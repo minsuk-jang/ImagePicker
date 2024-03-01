@@ -19,6 +19,6 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 ```
 dependencies {
-        implementation 'com.github.minsuk-jang:GallerySelector:Tag'
+    implementation 'com.github.minsuk-jang:GallerySelector:Tag'
 }
 ```
