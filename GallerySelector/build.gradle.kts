@@ -74,7 +74,7 @@ publishing{
         register<MavenPublication>("release"){
             groupId = "com.github.minsuk-jang"
             artifactId = "GallerySelector"
-            version = "1.0.0"
+            version = "1.0.1"
 
             afterEvaluate{
                 from(components["release"])
