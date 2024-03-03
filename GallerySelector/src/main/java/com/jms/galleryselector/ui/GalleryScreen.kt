@@ -7,6 +7,11 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -22,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun GalleryScreen(
+    state: GalleryState = rememberGalleryState(),
     selectFrame: @Composable (Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
@@ -40,6 +46,7 @@ fun GalleryScreen(
         images = images,
         selectFrame = selectFrame,
         onClick = {
+            state.update(image = it)
             viewModel.select(image = it)
         }
     )
@@ -59,7 +66,7 @@ private fun GalleryScreen(
                 modifier = modifier,
                 columns = GridCells.Fixed(3),
                 verticalArrangement = Arrangement.spacedBy(3.dp),
-                horizontalArrangement = Arrangement.spacedBy(3.dp)
+                horizontalArrangement = Arrangement.spacedBy(3.dp),
             ) {
                 items(images.itemCount, key = { it }) {
                     images[it]?.let {
@@ -78,6 +85,37 @@ private fun GalleryScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun rememberGalleryState(
+    initialList: List<Gallery.Image> = emptyList()
+): GalleryState {
+    return remember {
+        GalleryState(
+            initialList = initialList
+        )
+    }
+}
+
+@Stable
+class GalleryState(
+    private val initialList: List<Gallery.Image> = emptyList(),
+) {
+    private val _selectedImages: MutableState<List<Gallery.Image>> =
+        mutableStateOf(initialList.toMutableList())
+    val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
+
+    internal fun update(image: Gallery.Image) {
+        _selectedImages.value = _selectedImages.value.toMutableList().apply {
+            val index = indexOfFirst { it.id == image.id }
+
+            if (index == -1) {
+                add(image)
+            } else
+                removeAt(index)
         }
     }
 }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.jms.galleryselector.Constants
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.model.Gallery
 import com.jms.galleryselector.model.toImage
@@ -37,6 +38,7 @@ internal class GalleryScreenViewModel constructor(
                 val result = remove(image.id)
 
                 if (!result) {
+                    //limit max size
                     add(image.id)
                 }
             }
