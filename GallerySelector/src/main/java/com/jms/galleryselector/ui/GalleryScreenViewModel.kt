@@ -32,14 +32,15 @@ internal class GalleryScreenViewModel constructor(
                 update(pagingData = data, selectedIds = ids)
             }
 
-    fun select(image: Gallery.Image) {
+    fun select(image: Gallery.Image, max: Int) {
         _selectedIds.update {
             it.toMutableList().apply {
                 val result = remove(image.id)
 
                 if (!result) {
                     //limit max size
-                    add(image.id)
+                    if (_selectedIds.value.size < max)
+                        add(image.id)
                 }
             }
         }

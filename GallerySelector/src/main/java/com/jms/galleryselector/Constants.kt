@@ -6,4 +6,5 @@ internal object Constants {
 
     const val TAG = "gallerySelector"
     const val NO_ORDER = -1
+    const val MAX_SIZE = 30
 }

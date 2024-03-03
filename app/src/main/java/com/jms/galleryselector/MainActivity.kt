@@ -46,7 +46,9 @@ class MainActivity : ComponentActivity() {
                             arrays[0]
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        val state = rememberGalleryState()
+                        val state = rememberGalleryState(
+                            max = 3
+                        )
 
                         GalleryScreen(
                             state = state

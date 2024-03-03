@@ -47,7 +47,7 @@ fun GalleryScreen(
         selectFrame = selectFrame,
         onClick = {
             state.update(image = it)
-            viewModel.select(image = it)
+            viewModel.select(image = it, max = state.max)
         }
     )
 }
@@ -91,11 +91,13 @@ private fun GalleryScreen(
 
 @Composable
 fun rememberGalleryState(
-    initialList: List<Gallery.Image> = emptyList()
+    initialList: List<Gallery.Image> = emptyList(),
+    max: Int = Constants.MAX_SIZE
 ): GalleryState {
     return remember {
         GalleryState(
-            initialList = initialList
+            initialList = initialList,
+            max = max
         )
     }
 }
@@ -103,6 +105,7 @@ fun rememberGalleryState(
 @Stable
 class GalleryState(
     private val initialList: List<Gallery.Image> = emptyList(),
+    val max: Int = Constants.MAX_SIZE
 ) {
     private val _selectedImages: MutableState<List<Gallery.Image>> =
         mutableStateOf(initialList.toMutableList())
@@ -113,9 +116,12 @@ class GalleryState(
             val index = indexOfFirst { it.id == image.id }
 
             if (index == -1) {
-                add(image)
+                //limit max size
+                if (_selectedImages.value.size < max)
+                    add(image)
             } else
                 removeAt(index)
         }
     }
+
 }
