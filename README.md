@@ -7,9 +7,9 @@
 ## Table of Contents
 - [Installation](#installation)
 - [Usage]
-- [License]
+- [License](#license)
 
-### <a id="installation"></a> Installation
+## Installation
 Step 1. Add the JitPack repository to your build file
 
 ### Gradle
