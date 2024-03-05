@@ -1,24 +1,27 @@
-# GallerySelector
-- Short Descrition
+<h1 align = "center">  GallerySelector </h1>
+<!-- Add Gif -->
 
+<div align = "center"> The Gallery Selector is an Image Picker library created in the Compose language. <br>
+It allows customization of the select frame and supports both single and multiple selections.<br> 
+Additionally, it enables numbering for selected items and provides real-time access to the selected items.
+
+<br><br>
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![](https://jitpack.io/v/minsuk-jang/GallerySelector.svg)](https://jitpack.io/#minsuk-jang/GallerySelector)
 
+</div>
+
 ## Table of Contents
 - [Installation](#installation)
-- [Usage]
+- [Usage](#usage)
 - [License](#license)
 
 ## Installation
-Step 1. Add the JitPack repository to your build file
-
-### Gradle
-Add it in your root build.gradle at the end of repositories:
+Step 1. Add it in your root build.gradle at the end of repositories:
 ```
 dependencyResolutionManagement {
   ...
   repositories {
-    mavenCentral()
     maven { url 'https://jitpack.io' }
   }
 }
@@ -29,6 +32,9 @@ dependencies {
     implementation 'com.github.minsuk-jang:GallerySelector:1.0.1'
 }
 ```
+
+## Usage
+
 
 ## License
 ```
