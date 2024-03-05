@@ -1,10 +1,15 @@
 # GallerySelector
+- Short Descrition
+
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![](https://jitpack.io/v/minsuk-jang/GallerySelector.svg)](https://jitpack.io/#minsuk-jang/GallerySelector)
 
+## Table of Contents
+- [Installation](#installation)
+- [Usage]
+- [License]
 
-
-## How to 
+### <a id="installation"></a> Installation
 Step 1. Add the JitPack repository to your build file
 
 ### Gradle
