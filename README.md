@@ -36,6 +36,13 @@ dependencies {
 
 ## Usage
 
+<!-- 
+- Parameter 설명
+- content 설명
+- gif 추가 (select ordering / Custom 선택창 표현)
+- selectedImages 표현
+
+-->
 
 ## License
 ```
