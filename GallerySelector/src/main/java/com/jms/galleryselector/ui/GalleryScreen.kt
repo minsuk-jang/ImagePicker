@@ -1,15 +1,16 @@
 package com.jms.galleryselector.ui
 
-import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
@@ -28,6 +29,8 @@ import com.jms.galleryselector.data.GalleryPagingStream
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun GalleryScreen(
@@ -44,13 +47,20 @@ fun GalleryScreen(
         )
     }
 
+    LaunchedEffect(viewModel) {
+        launch {
+            viewModel.selectedImages.collectLatest {
+                state.update(list = it)
+            }
+        }
+    }
+
     val images = viewModel.images.collectAsLazyPagingItems(context = Dispatchers.Default)
 
     GalleryScreen(
         images = images,
         content = content,
         onClick = {
-            state.update(image = it)
             viewModel.select(image = it, max = state.max)
         }
     )
@@ -93,12 +103,10 @@ private fun GalleryScreen(
 
 @Composable
 fun rememberGalleryState(
-    initialList: List<Gallery.Image> = emptyList(),
     max: Int = Constants.MAX_SIZE
 ): GalleryState {
     return remember {
         GalleryState(
-            initialList = initialList,
             max = max
         )
     }
@@ -106,29 +114,11 @@ fun rememberGalleryState(
 
 @Stable
 class GalleryState(
-    private val initialList: List<Gallery.Image> = emptyList(),
     val max: Int = Constants.MAX_SIZE
 ) {
-    private val _selectedImages: MutableState<List<Gallery.Image>> =
-        mutableStateOf(initialList.toMutableList())
+    private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
-
-    internal fun update(image: Gallery.Image) {
-        _selectedImages.value = _selectedImages.value.toMutableList().apply {
-            val index = indexOfFirst { it.id == image.id }
-
-            Log.e("jms8732", "update: $image")
-            if (index == -1) {
-                //limit max size
-                if (_selectedImages.value.size < max)
-                    add(
-                        image.copy(
-                            selected = true
-                        )
-                    )
-            } else
-                removeAt(index)
-        }
+    internal fun update(list: List<Gallery.Image>) {
+        _selectedImages.value = list
     }
-
 }
