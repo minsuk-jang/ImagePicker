@@ -12,6 +12,14 @@ Additionally, it enables numbering for selected items and provides real-time acc
 
 </div>
 
+## ✅ Feature
+- [x] Custom Image Cell Content
+- [ ] Add Horizontal Orientation
+- [ ] Camera
+- [ ] Retain Previous Selected Images
+- [ ] Preview
+- [ ] Improve Performance
+
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
@@ -34,7 +42,7 @@ dependencies {
 }
 ```
 
-## Usage
+## 🎨 Usage
 
 <!-- 
 - Parameter 설명
