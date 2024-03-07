@@ -17,9 +17,11 @@ Additionally, it enables numbering for selected items and provides real-time acc
 - [ ] Scope Select
 - [ ] Custom Image Cell Configuration
 - [ ] Add Horizontal Orientation
-- [ ] Camera
+- [ ] Pick Image or Video and preview
+- [ ] Capture Camera Image
 - [ ] Retain Previous Selected Images
 - [ ] Preview
+- [ ] Gallery Sort
 - [ ] Improve Performance
 
 ## Table of Contents
@@ -29,7 +31,7 @@ Additionally, it enables numbering for selected items and provides real-time acc
 
 ## Installation
 Step 1. Add it in your root build.gradle at the end of repositories:
-```
+``` gradle
 dependencyResolutionManagement {
   ...
   repositories {
@@ -38,13 +40,22 @@ dependencyResolutionManagement {
 }
 ```
 Step 2. Add the dependency
-```
+``` gradle
 dependencies {
     implementation 'com.github.minsuk-jang:GallerySelector:1.0.1'
 }
 ```
 
 ## 🎨 Usage
+1. Add permission in AndroidManifest.xml file:
+``` AndroidManifest.xml
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+//For SDK over 33
+<uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+```
+
+2. 
 
 <!-- 
 - Parameter 설명
