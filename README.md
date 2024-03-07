@@ -14,6 +14,8 @@ Additionally, it enables numbering for selected items and provides real-time acc
 
 ## ✅ Feature
 - [x] Custom Image Cell Content
+- [ ] Scope Select
+- [ ] Custom Image Cell Configuration
 - [ ] Add Horizontal Orientation
 - [ ] Camera
 - [ ] Retain Previous Selected Images
