@@ -13,16 +13,15 @@ Additionally, it enables numbering for selected items and provides real-time acc
 </div>
 
 ## ✅ Feature
-- [x] Custom Image Cell Content
-- [ ] Scope Select
-- [ ] Custom Image Cell Configuration
-- [ ] Add Horizontal Orientation
-- [ ] Pick Image or Video and preview
-- [ ] Capture Camera Image
-- [ ] Retain Previous Selected Images
-- [ ] Preview
-- [ ] Gallery Sort
+- [x] Custom Cell UI
+- [x] Content's Selected Order
+- [ ] Multi Select Behaivor
+- [x] Load Content by Paging
+- [ ] Camera
+- [ ] Preview Image
+- [ ] Sort Content
 - [ ] Improve Performance
+- [ ] To be Next...
 
 ## Table of Contents
 - [Installation](#installation)
@@ -42,7 +41,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 ``` gradle
 dependencies {
-    implementation 'com.github.minsuk-jang:GallerySelector:1.0.1'
+    implementation 'com.github.minsuk-jang:GallerySelector:1.0.3'
 }
 ```
 
@@ -57,9 +56,9 @@ dependencies {
 
 2. 
 
-<!-- 
-- Parameter 설명
-- content 설명
+<!--
+- Gallery Screen Parameter 설명
+- state 설명
 - gif 추가 (select ordering / Custom 선택창 표현)
 - selectedImages 표현
 
