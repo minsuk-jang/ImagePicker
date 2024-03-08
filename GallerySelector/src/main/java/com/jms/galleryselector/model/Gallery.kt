@@ -24,7 +24,8 @@ sealed interface Gallery {
         val uri: Uri,
         val mimeType: String,
         val album: String,
-        val selectedOrder: Int = Constants.NO_ORDER
+        val selectedOrder: Int = Constants.NO_ORDER,
+        val selected : Boolean = false
     ) : Gallery
 }
 
