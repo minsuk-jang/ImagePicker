@@ -61,7 +61,6 @@ class MainActivity : ComponentActivity() {
                         )
 
                         val list = state.selectedImagesState.value
-                        Log.e("jms8732", "list: $list")
 
                         GalleryScreen(
                             state = state,
