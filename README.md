@@ -1,19 +1,21 @@
 <h1 align = "center">  GallerySelector </h1>
 <!-- Add Gif -->
 <p align = "center">
-<img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666"/>
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/4c31231f-a00f-43e0-a4f9-a5007f63ae07"/>
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff"/>
+<img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666" width="270"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="270"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="270"/>
 </p>
 
-<div align = "center"> The Gallery Selector is an Image Picker library created in the Compose language. <br>
-It allows customization of the select frame and supports both single and multiple selections.<br> 
-Additionally, it enables numbering for selected items and provides real-time access to the selected items.
-
-<br><br>
+<div align = "center">
+  
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 [![](https://jitpack.io/v/minsuk-jang/GallerySelector.svg)](https://jitpack.io/#minsuk-jang/GallerySelector)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  
+<br>
+ The Gallery Selector is an Image Picker library created in the Compose language. <br>
+It allows customization of the select frame and supports both single and multiple selections.<br> 
+Additionally, it enables numbering for selected items and provides real-time access to the selected items.
 
 </div>
 
@@ -54,41 +56,121 @@ dependencies {
 ### Add permission in AndroidManifest.xml file:
 ``` AndroidManifest.xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
-//For SDK over 33
-<uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+<uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/> //For SDK over 33
 ```
 
 ### GalleryScreen
+`GalleryScreen` fetches the list of images from the device. and customize each Image cell through `Content` parameter.<br>
 ``` kotlin
 @Composable
 fun GalleryScreen(
     state: GalleryState = rememberGalleryState(), // state used in GalleryScreen
-    content: @Composable BoxScope.(Gallery.Image) -> Unit //Media Content Cell Composable 
+    content: @Composable BoxScope.(Gallery.Image) -> Unit //Media Image Content Cell Composable 
 )
 ```
 
-### State
-- Get Selected Media Contents
-- Set Max Size to Select Media Content
-``` kotlin 
-@Stable
-class GalleryState(
-    val max: Int = Constants.MAX_SIZE
-) {
-    val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
-}
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" align="right" width="270"/>
+
+Here is an example where it is represented by a checkmark when selected
+``` kotlin
+ GalleryScreen(
+    state = state,
+    content = {
+      if (it.selected) {
+        Box(modifier = Modifier.fillMaxSize()) {
+          Icon(
+            modifier = Modifier.align(Alignment.TopEnd),
+            painter = painterResource(id = R.drawable.done_black_24dp),
+            contentDescription = null,
+            tint = Color.Green
+          )
+      }
+    }
+  }
+)
+
+```
+
+### Image
+When you click image cell then can get Image class. it's properties as below. You can use `selectedOrder`, `selected` to check the selection order, status
+``` kotlin
+class Image(
+  val id: Long, //Media content id
+  val title: String, //Media content title
+  val dateAt: Long, // Media content date token
+  val data: String, //Media content data (File size)
+  val uri: Uri,
+  val mimeType: String, 
+  val album: String, //Media content album name
+  val selectedOrder: Int = Constants.NO_ORDER, //Media content selected order
+  val selected : Boolean = false //Current selected flag
+) : Gallery
 ```
 
 
+### State
+Using State, you can get selected contents and set their values.
 
-<!--
-- Gallery Screen Parameter 설명
-- state 설명
-- gif 추가 (select ordering / Custom 선택창 표현)
-- selectedImages 표현
+``` kotlin 
+@Stable
+class GalleryState(
+    val max: Int //Select max size
+) {
+    val selectedImagesState: State<List<Gallery.Image>> //Current selected Content Images State
+}
+```
 
--->
+For example, 
+
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" align="right" width="270"/>
+
+``` kotlin
+val state = rememberGalleryState(max = 10)
+val list = state.selectedImagesState.value
+
+Scaffold(
+    topBar = {
+        ...
+        Text(
+            text = "${list.size} / ${state.max}",
+            fontWeight = FontWeight.Medium,
+            fontStyle = FontStyle.Normal,
+        )
+        ...
+    }
+) {
+    GalleryScreen(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(it),
+        state = state,
+        content = {
+            if (it.selected) {
+                Box(
+                    modifier = Modifier
+                        .border(width = 3.5.dp, color = Purple40)
+                        .background(color = Gray.copy(0.5f))
+                        .fillMaxSize()
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .background(
+                                color = Purple40,
+                                shape = CircleShape
+                            )
+                            .size(25.dp)
+                            .align(Alignment.TopEnd),
+                        text = "${it.selectedOrder + 1}",
+                        textAlign = TextAlign.Center,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+    )
+}
+```
+
 
 ## License
 ```
