@@ -14,13 +14,13 @@
   
 <br>
  The Gallery Selector is an Image Picker library created in the Compose language. <br>
-It allows customization of the select frame and supports both single and multiple selections.<br> 
-Additionally, it enables numbering for selected items and provides real-time access to the selected items.
+It allows customization of the content cell and supports both single and multiple selections.<br> 
+Additionally, it enables numbering for selected contents and get latest total selected contents.
 
 </div>
 
 ## ✅ Feature
-- [x] Custom Cell UI
+- [x] Custom Content Cell UI
 - [x] Content's Selected Order
 - [ ] Multi Select Behaivor
 - [x] Load Content by Paging
@@ -60,12 +60,12 @@ dependencies {
 ```
 
 ### GalleryScreen
-`GalleryScreen` fetches the list of images from the device. and customize each Image cell through `Content` parameter.<br>
+`GalleryScreen` fetches the list of contents from the device. and customize each content cell through `Content` parameter.<br>
 ``` kotlin
 @Composable
 fun GalleryScreen(
     state: GalleryState = rememberGalleryState(), // state used in GalleryScreen
-    content: @Composable BoxScope.(Gallery.Image) -> Unit //Media Image Content Cell Composable 
+    content: @Composable BoxScope.(Gallery.Image) -> Unit //Media content cell composable 
 )
 ```
 
@@ -92,7 +92,7 @@ Here is an example where it is represented by a checkmark when selected
 ```
 
 ### Image
-When you click image cell then can get Image class. it's properties as below. You can use `selectedOrder`, `selected` to check the selection order, status
+When you click content cell, get image class inherited from Gallery. You can use `selectedOrder` and `selected` to check the selection order, status. It's properties as below.
 ``` kotlin
 class Image(
   val id: Long, //Media content id
@@ -108,8 +108,9 @@ class Image(
 ```
 
 
-### State
-Using State, you can get selected contents and set their values.
+### GalleryState
+GalleryState sets the required configurations for `GalleryScreen` and provides the total selected contents state. 
+Since the State type is used for the total selected contents, you can always get the most latest value.
 
 ``` kotlin 
 @Stable
@@ -120,9 +121,11 @@ class GalleryState(
 }
 ```
 
-For example, 
+Here is an example showing the order of selected content and the total number of selected contents.
 
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" align="right" width="270"/>
+<div display= "inline-block;" >
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" align = "right" width="270"/> 
+</div>
 
 ``` kotlin
 val state = rememberGalleryState(max = 10)
@@ -130,48 +133,24 @@ val list = state.selectedImagesState.value
 
 Scaffold(
     topBar = {
-        ...
         Text(
-            text = "${list.size} / ${state.max}",
-            fontWeight = FontWeight.Medium,
-            fontStyle = FontStyle.Normal,
+            text = "${list.size} / ${state.max}"
         )
-        ...
     }
 ) {
     GalleryScreen(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(it),
         state = state,
         content = {
             if (it.selected) {
-                Box(
-                    modifier = Modifier
-                        .border(width = 3.5.dp, color = Purple40)
-                        .background(color = Gray.copy(0.5f))
-                        .fillMaxSize()
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .background(
-                                color = Purple40,
-                                shape = CircleShape
-                            )
-                            .size(25.dp)
-                            .align(Alignment.TopEnd),
-                        text = "${it.selectedOrder + 1}",
-                        textAlign = TextAlign.Center,
-                        color = Color.White
-                    )
-                }
+                Text(
+                    text = "${it.selectedOrder + 1}",
+                )
             }
-        }
-    )
+        })
 }
 ```
 
-
+ 
 ## License
 ```
 MIT License
