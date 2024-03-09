@@ -1,5 +1,10 @@
 <h1 align = "center">  GallerySelector </h1>
 <!-- Add Gif -->
+<p align = "center">
+<img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/4c31231f-a00f-43e0-a4f9-a5007f63ae07"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff"/>
+</p>
 
 <div align = "center"> The Gallery Selector is an Image Picker library created in the Compose language. <br>
 It allows customization of the select frame and supports both single and multiple selections.<br> 
@@ -46,7 +51,7 @@ dependencies {
 ```
 
 ## 🎨 Usage
-1. Add permission in AndroidManifest.xml file:
+### Add permission in AndroidManifest.xml file:
 ``` AndroidManifest.xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
@@ -54,7 +59,28 @@ dependencies {
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 ```
 
-2. 
+### GalleryScreen
+``` kotlin
+@Composable
+fun GalleryScreen(
+    state: GalleryState = rememberGalleryState(), // state used in GalleryScreen
+    content: @Composable BoxScope.(Gallery.Image) -> Unit //Media Content Cell Composable 
+)
+```
+
+### State
+- Get Selected Media Contents
+- Set Max Size to Select Media Content
+``` kotlin 
+@Stable
+class GalleryState(
+    val max: Int = Constants.MAX_SIZE
+) {
+    val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
+}
+```
+
+
 
 <!--
 - Gallery Screen Parameter 설명
