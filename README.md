@@ -32,7 +32,7 @@ Additionally, it enables numbering for selected contents and get latest total se
 
 ## Table of Contents
 - [Installation](#installation)
-- [Usage](#usage)
+- [Usage](#-usage)
 - [License](#license)
 
 ## Installation
