@@ -6,12 +6,15 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.core.os.bundleOf
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import com.jms.galleryselector.Constants
 import com.jms.galleryselector.model.ImageEntity
 import kotlinx.coroutines.flow.Flow
+import java.text.SimpleDateFormat
 
 /**
  *
@@ -42,7 +45,7 @@ internal class LocalGalleryDataSource(
                         val title =
                             cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.TITLE))
                         val dateAt =
-                            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN))
+                            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED))
 
                         val mimeType =
                             cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE))
@@ -83,17 +86,15 @@ internal class LocalGalleryDataSource(
 
 
     private fun getCursor(uri: Uri, offset: Int, limit: Int): Cursor? {
-        val selection =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) MediaStore.Images.Media.SIZE + " > 0"
-            else null
-
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             val selectionBundle = bundleOf(
                 ContentResolver.QUERY_ARG_OFFSET to offset,
                 ContentResolver.QUERY_ARG_LIMIT to limit,
+                ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(MediaStore.Files.FileColumns.DATE_MODIFIED),
                 ContentResolver.QUERY_ARG_SORT_DIRECTION to
                         ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
-                ContentResolver.QUERY_ARG_SQL_SELECTION to selection
+                ContentResolver.QUERY_ARG_SQL_SELECTION to null,
+                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to null
             )
 
             context.contentResolver.query(
@@ -102,21 +103,22 @@ internal class LocalGalleryDataSource(
                 selectionBundle,
                 null
             )
-        } else
+        } else {
             context.contentResolver.query(
                 uri,
                 getGalleryImageProjections(),
-                selection,
                 null,
-                "${MediaStore.Images.Media.DATE_TAKEN} DESC LIMIT $limit OFFSET $offset"
+                null,
+                "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
             )
+        }
     }
 
     private fun getGalleryImageProjections(): Array<String> {
         return arrayOf(
             MediaStore.Images.ImageColumns._ID,
             MediaStore.Images.ImageColumns.TITLE,
-            MediaStore.Images.ImageColumns.DATE_TAKEN,
+            MediaStore.Images.ImageColumns.DATE_MODIFIED,
             MediaStore.Images.ImageColumns.DATA,
             MediaStore.Images.ImageColumns.MIME_TYPE,
             MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME
