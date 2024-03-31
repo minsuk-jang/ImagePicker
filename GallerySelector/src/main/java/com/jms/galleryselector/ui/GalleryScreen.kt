@@ -72,12 +72,12 @@ fun GalleryScreen(
         }
     }
 
-    var uri by remember { mutableStateOf(Uri.EMPTY) }
+    var file by remember { mutableStateOf(File("")) }
 
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {
-                Utils.saveImageToMediaStore(context = context, uri = uri)
+                Utils.saveImageToMediaStore(context = context, file= file)
             }
         }
 
@@ -92,12 +92,13 @@ fun GalleryScreen(
         },
         onPhoto = {
             val name = SimpleDateFormat("yyyyMMdd_HHmmss").format(System.currentTimeMillis())
-
-            uri = FileProvider.getUriForFile(
-                context, "com.jms.galleryselector.fileprovider",
-                Utils.createTempMediaFile(fileName = name, fileExtension = ".jpeg")
+            file = Utils.createTempMediaFile(fileName = name, fileExtension = ".jpeg")
+            cameraLaunch.launch(
+                FileProvider.getUriForFile(
+                    context, "com.jms.galleryselector.fileprovider",
+                    file
+                )
             )
-            cameraLaunch.launch(uri)
         }
     )
 }
