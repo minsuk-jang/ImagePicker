@@ -4,31 +4,25 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.jms.galleryselector.model.GalleryContentSortBy
 import com.jms.galleryselector.ui.GalleryScreen
-import com.jms.galleryselector.ui.GalleryState
 import com.jms.galleryselector.ui.rememberGalleryState
 import com.jms.galleryselector.ui.theme.GallerySelectorTheme
 import com.jms.galleryselector.ui.theme.Purple40
@@ -57,7 +51,8 @@ class MainActivity : ComponentActivity() {
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
                         val state = rememberGalleryState(
-                            max = 3
+                            max = 3,
+                            sortBy = GalleryContentSortBy.Descending
                         )
 
                         val list = state.selectedImagesState.value

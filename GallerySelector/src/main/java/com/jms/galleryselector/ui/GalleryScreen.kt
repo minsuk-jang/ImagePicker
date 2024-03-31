@@ -1,14 +1,12 @@
 package com.jms.galleryselector.ui
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -28,6 +26,7 @@ import com.jms.galleryselector.component.ImageCell
 import com.jms.galleryselector.data.GalleryPagingStream
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.model.Gallery
+import com.jms.galleryselector.model.GalleryContentSortBy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -55,7 +54,8 @@ fun GalleryScreen(
         }
     }
 
-    val images = viewModel.images.collectAsLazyPagingItems(context = Dispatchers.Default)
+    val images = viewModel.getGalleryContents(page = 1, sortBy = state.sortBy)
+        .collectAsLazyPagingItems(context = Dispatchers.Default)
 
     GalleryScreen(
         images = images,
@@ -103,18 +103,21 @@ private fun GalleryScreen(
 
 @Composable
 fun rememberGalleryState(
-    max: Int = Constants.MAX_SIZE
+    max: Int = Constants.MAX_SIZE,
+    sortBy: GalleryContentSortBy = GalleryContentSortBy.Descending
 ): GalleryState {
     return remember {
         GalleryState(
-            max = max
+            max = max,
+            sortBy = sortBy
         )
     }
 }
 
 @Stable
 class GalleryState(
-    val max: Int = Constants.MAX_SIZE
+    val max: Int = Constants.MAX_SIZE,
+    val sortBy: GalleryContentSortBy = GalleryContentSortBy.Descending
 ) {
     private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val selectedImagesState: State<List<Gallery.Image>> = _selectedImages

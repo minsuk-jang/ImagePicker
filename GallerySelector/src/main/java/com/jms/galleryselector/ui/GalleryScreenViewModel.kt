@@ -1,14 +1,13 @@
 package com.jms.galleryselector.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.jms.galleryselector.Constants
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.model.Gallery
+import com.jms.galleryselector.model.GalleryContentSortBy
 import com.jms.galleryselector.model.toImage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,8 +24,11 @@ internal class GalleryScreenViewModel constructor(
     private val _selectedImages = MutableStateFlow<List<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
 
-    val images: Flow<PagingData<Gallery.Image>> =
-        localGalleryDataSource.getLocalGalleryImages(page = 1)
+    fun getGalleryContents(
+        page: Int = 1,
+        sortBy: GalleryContentSortBy
+    ): Flow<PagingData<Gallery.Image>> {
+        return localGalleryDataSource.getLocalGalleryImages(page = page, sortBy = sortBy)
             .map {
                 it.map { it.toImage() }
             }
@@ -34,6 +36,7 @@ internal class GalleryScreenViewModel constructor(
             .combine(_selectedImages) { data, images ->
                 update(pagingData = data, selectedImages = images)
             }
+    }
 
     fun select(image: Gallery.Image, max: Int) {
         _selectedImages.update {

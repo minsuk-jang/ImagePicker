@@ -6,15 +6,13 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
-import android.webkit.MimeTypeMap
 import androidx.core.os.bundleOf
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import com.jms.galleryselector.Constants
 import com.jms.galleryselector.model.ImageEntity
+import com.jms.galleryselector.model.GalleryContentSortBy
 import kotlinx.coroutines.flow.Flow
-import java.text.SimpleDateFormat
 
 /**
  *
@@ -26,7 +24,8 @@ internal class LocalGalleryDataSource(
 ) {
     fun getLocalGalleryImages(
         page: Int = 1,
-        pageSize: Int = Constants.DEFAULT_PAGE_SiZE
+        pageSize: Int = Constants.DEFAULT_PAGE_SiZE,
+        sortBy: GalleryContentSortBy = GalleryContentSortBy.Ascending
     ): Flow<PagingData<ImageEntity>> {
         return galleryStream.load {
             val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -36,7 +35,8 @@ internal class LocalGalleryDataSource(
             getCursor(
                 uri = uri,
                 offset = (_page - 1) * pageSize,
-                limit = pageSize
+                limit = pageSize,
+                sortBy = sortBy
             )?.use { cursor ->
                 val list = buildList {
                     while (cursor.moveToNext()) {
@@ -85,14 +85,18 @@ internal class LocalGalleryDataSource(
     }
 
 
-    private fun getCursor(uri: Uri, offset: Int, limit: Int): Cursor? {
+    private fun getCursor(uri: Uri, offset: Int, limit: Int, sortBy: GalleryContentSortBy): Cursor? {
         return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             val selectionBundle = bundleOf(
                 ContentResolver.QUERY_ARG_OFFSET to offset,
                 ContentResolver.QUERY_ARG_LIMIT to limit,
-                ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(MediaStore.Files.FileColumns.DATE_MODIFIED),
-                ContentResolver.QUERY_ARG_SORT_DIRECTION to
-                        ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
+                ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(
+                    MediaStore.Files.FileColumns.DATE_MODIFIED
+                ),
+                ContentResolver.QUERY_ARG_SORT_DIRECTION to when (sortBy) {
+                    GalleryContentSortBy.Ascending -> ContentResolver.QUERY_SORT_DIRECTION_ASCENDING
+                    GalleryContentSortBy.Descending -> ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
+                },
                 ContentResolver.QUERY_ARG_SQL_SELECTION to null,
                 ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to null
             )
@@ -104,12 +108,17 @@ internal class LocalGalleryDataSource(
                 null
             )
         } else {
+            val sb = when (sortBy) {
+                GalleryContentSortBy.Ascending -> "ASC"
+                GalleryContentSortBy.Descending -> "DESC"
+            }
+
             context.contentResolver.query(
                 uri,
                 getGalleryImageProjections(),
                 null,
                 null,
-                "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
+                "${MediaStore.Files.FileColumns.DATE_MODIFIED} $sb LIMIT $limit OFFSET $offset"
             )
         }
     }
