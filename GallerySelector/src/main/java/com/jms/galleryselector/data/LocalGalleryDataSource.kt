@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import androidx.core.os.bundleOf
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
@@ -60,6 +61,18 @@ internal class LocalGalleryDataSource(
 
                         val album =
                             cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                        val albumId =
+                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID))
+
+                        Log.e(
+                            "jms8732",
+                            "title: $title\n" +
+                                    "album: $album\n" +
+                                    "id: $id\n" +
+                                    "dateAt: $dateAt\n" +
+                                    "type: $mimeType\n" +
+                                    "albumId: $albumId",
+                        )
 
                         add(
                             ImageEntity(
@@ -85,7 +98,12 @@ internal class LocalGalleryDataSource(
     }
 
 
-    private fun getCursor(uri: Uri, offset: Int, limit: Int, sortBy: GalleryContentSortBy): Cursor? {
+    private fun getCursor(
+        uri: Uri,
+        offset: Int,
+        limit: Int,
+        sortBy: GalleryContentSortBy
+    ): Cursor? {
         return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             val selectionBundle = bundleOf(
                 ContentResolver.QUERY_ARG_OFFSET to offset,
@@ -130,7 +148,8 @@ internal class LocalGalleryDataSource(
             MediaStore.Images.ImageColumns.DATE_MODIFIED,
             MediaStore.Images.ImageColumns.DATA,
             MediaStore.Images.ImageColumns.MIME_TYPE,
-            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME
+            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+            MediaStore.Images.ImageColumns.BUCKET_ID
         )
     }
 }
