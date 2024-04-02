@@ -82,7 +82,8 @@ internal class LocalGalleryDataSource(
                                 data = data,
                                 uri = uri,
                                 mimeType = mimeType,
-                                album = album
+                                album = album,
+                                albumId = albumId
                             )
                         )
                     }
