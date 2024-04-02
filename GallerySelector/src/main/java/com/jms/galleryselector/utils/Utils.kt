@@ -28,7 +28,6 @@ internal object Utils {
     fun saveImageToMediaStore(context: Context, file: File) {
         val currentTimeMillis = System.currentTimeMillis()
         val name = SimpleDateFormat("yyyyMMdd_HHmmss").format(currentTimeMillis)
-
         val bitmap = rotateBitmap(file = file)
 
         val contentValues = ContentValues().apply {
@@ -39,7 +38,7 @@ internal object Utils {
             put(MediaStore.Images.Media.DATE_MODIFIED, currentTimeMillis / 1000) //sec
             put(
                 MediaStore.Images.Media.RELATIVE_PATH,
-                Environment.DIRECTORY_PICTURES + File.separator + "Camera"
+                Environment.DIRECTORY_DCIM + File.separator + "Camera"
             )
         }
 
@@ -71,9 +70,7 @@ internal object Utils {
 
     private fun rotateBitmap(file: File): Bitmap {
         val orientation = getOrientation(file = file)
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply {
-            inSampleSize = 3
-        })
+        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
 
         val matrix = Matrix()
         if (orientation != 0f) {

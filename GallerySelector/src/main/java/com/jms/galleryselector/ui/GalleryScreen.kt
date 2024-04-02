@@ -3,6 +3,7 @@ package com.jms.galleryselector.ui
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -74,15 +75,17 @@ fun GalleryScreen(
 
     var file by remember { mutableStateOf(File("")) }
 
+    val images = viewModel.getGalleryContents(page = 1, sortBy = state.sortBy)
+        .collectAsLazyPagingItems(context = Dispatchers.Default)
+
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {
-                Utils.saveImageToMediaStore(context = context, file= file)
+                Utils.saveImageToMediaStore(context = context, file = file)
+                images.refresh()
             }
         }
 
-    val images = viewModel.getGalleryContents(page = 1, sortBy = state.sortBy)
-        .collectAsLazyPagingItems(context = Dispatchers.Default)
 
     GalleryScreen(
         images = images,

@@ -104,6 +104,10 @@ internal class LocalGalleryDataSource(
         limit: Int,
         sortBy: GalleryContentSortBy
     ): Cursor? {
+        //filter deleted media contents
+        val selection = MediaStore.MediaColumns.IS_PENDING + " = ?"
+        val selectionArgs = arrayOf("0")
+
         return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             val selectionBundle = bundleOf(
                 ContentResolver.QUERY_ARG_OFFSET to offset,
@@ -115,8 +119,8 @@ internal class LocalGalleryDataSource(
                     GalleryContentSortBy.Ascending -> ContentResolver.QUERY_SORT_DIRECTION_ASCENDING
                     GalleryContentSortBy.Descending -> ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
                 },
-                ContentResolver.QUERY_ARG_SQL_SELECTION to null,
-                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to null
+                ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
+                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs
             )
 
             context.contentResolver.query(
@@ -134,8 +138,8 @@ internal class LocalGalleryDataSource(
             context.contentResolver.query(
                 uri,
                 getGalleryImageProjections(),
-                null,
-                null,
+                selection,
+                selectionArgs,
                 "${MediaStore.Files.FileColumns.DATE_MODIFIED} $sb LIMIT $limit OFFSET $offset"
             )
         }
