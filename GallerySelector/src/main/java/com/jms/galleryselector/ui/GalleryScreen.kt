@@ -37,7 +37,6 @@ import com.jms.galleryselector.data.GalleryPagingStream
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.MediaContentManager
 import com.jms.galleryselector.model.Gallery
-import com.jms.galleryselector.model.GalleryContentSortBy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -66,13 +65,13 @@ fun GalleryScreen(
         }
     }
 
-    val images = viewModel.getGalleryContents(page = 1, sortBy = state.sortBy)
+    val images = viewModel.getGalleryContents(page = 1)
         .collectAsLazyPagingItems(context = Dispatchers.Default)
 
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {
-                viewModel.saveImageFile(context = context)
+                viewModel.saveImageFile(context = context, max = state.max, autoSelect = state.flag)
                 images.refresh()
             }
         }
@@ -155,12 +154,12 @@ private fun GalleryScreen(
 @Composable
 fun rememberGalleryState(
     max: Int = Constants.MAX_SIZE,
-    sortBy: GalleryContentSortBy = GalleryContentSortBy.Descending
+    flag: Boolean = false
 ): GalleryState {
     return remember {
         GalleryState(
             max = max,
-            sortBy = sortBy
+            flag = flag
         )
     }
 }
@@ -168,7 +167,7 @@ fun rememberGalleryState(
 @Stable
 class GalleryState(
     val max: Int = Constants.MAX_SIZE,
-    val sortBy: GalleryContentSortBy = GalleryContentSortBy.Descending
+    val flag: Boolean = false
 ) {
     private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val selectedImagesState: State<List<Gallery.Image>> = _selectedImages

@@ -9,7 +9,6 @@ import androidx.paging.map
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.MediaContentManager
 import com.jms.galleryselector.model.Gallery
-import com.jms.galleryselector.model.GalleryContentSortBy
 import com.jms.galleryselector.model.toImage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,10 +30,9 @@ internal class GalleryScreenViewModel constructor(
     private var _imageFile: File? = null
 
     fun getGalleryContents(
-        page: Int = 1,
-        sortBy: GalleryContentSortBy
+        page: Int = 1
     ): Flow<PagingData<Gallery.Image>> {
-        return localGalleryDataSource.getLocalGalleryImages(page = page, sortBy = sortBy)
+        return localGalleryDataSource.getLocalGalleryImages(page = page)
             .map {
                 it.map { it.toImage() }
             }
@@ -71,9 +69,12 @@ internal class GalleryScreenViewModel constructor(
         return _imageFile ?: throw IllegalStateException("File is null!!")
     }
 
-    fun saveImageFile(context: Context) {
+    fun saveImageFile(context: Context, max : Int, autoSelect: Boolean) {
         if (_imageFile != null) {
             contentManager.saveImageFile(context = context, file = _imageFile!!)
+
+            if (autoSelect)
+                select(image = localGalleryDataSource.getImageEntity().toImage(), max = max)
         }
     }
 
