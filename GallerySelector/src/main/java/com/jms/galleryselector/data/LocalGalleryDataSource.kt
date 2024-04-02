@@ -37,41 +37,7 @@ internal class LocalGalleryDataSource(
             )?.use { cursor ->
                 val list = buildList {
                     while (cursor.moveToNext()) {
-                        val id =
-                            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                        val title =
-                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.TITLE))
-                        val dateAt =
-                            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED))
-
-                        val mimeType =
-                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE))
-
-                        val uri = Uri.withAppendedPath(
-                            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                            id.toString()
-                        )
-
-                        val data =
-                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
-
-                        val album =
-                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
-                        val albumId =
-                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID))
-
-                        add(
-                            ImageEntity(
-                                id = id,
-                                title = title,
-                                dateAt = dateAt,
-                                data = data,
-                                uri = uri,
-                                mimeType = mimeType,
-                                album = album,
-                                albumId = albumId
-                            )
-                        )
+                        add(makeImageEntity(cursor = cursor))
                     }
                 }
 
@@ -91,39 +57,7 @@ internal class LocalGalleryDataSource(
             limit = 1,
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
-                val id =
-                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
-                val title =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.TITLE))
-                val dateAt =
-                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED))
-
-                val mimeType =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE))
-
-                val uri = Uri.withAppendedPath(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    id.toString()
-                )
-
-                val data =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
-
-                val album =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
-                val albumId =
-                    cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID))
-
-                return ImageEntity(
-                    id = id,
-                    title = title,
-                    dateAt = dateAt,
-                    data = data,
-                    uri = uri,
-                    mimeType = mimeType,
-                    album = album,
-                    albumId = albumId
-                )
+                return makeImageEntity(cursor = cursor)
             } else throw IllegalStateException("Cursor is empty!!")
         } ?: throw IllegalStateException("Cursor is null!!")
     }
@@ -136,6 +70,15 @@ internal class LocalGalleryDataSource(
         //filter deleted media contents
         val selection = MediaStore.MediaColumns.IS_PENDING + " = ?"
         val selectionArgs = arrayOf("0")
+        val projection = arrayOf(
+            MediaStore.Images.ImageColumns._ID,
+            MediaStore.Images.ImageColumns.TITLE,
+            MediaStore.Images.ImageColumns.DATE_MODIFIED,
+            MediaStore.Images.ImageColumns.DATA,
+            MediaStore.Images.ImageColumns.MIME_TYPE,
+            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+            MediaStore.Images.ImageColumns.BUCKET_ID
+        )
 
         return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
             val selectionBundle = bundleOf(
@@ -151,14 +94,14 @@ internal class LocalGalleryDataSource(
 
             context.contentResolver.query(
                 uri,
-                getImageColumns(),
+                projection,
                 selectionBundle,
                 null
             )
         } else {
             context.contentResolver.query(
                 uri,
-                getImageColumns(),
+                projection,
                 selection,
                 selectionArgs,
                 "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
@@ -166,15 +109,39 @@ internal class LocalGalleryDataSource(
         }
     }
 
-    private fun getImageColumns(): Array<String> {
-        return arrayOf(
-            MediaStore.Images.ImageColumns._ID,
-            MediaStore.Images.ImageColumns.TITLE,
-            MediaStore.Images.ImageColumns.DATE_MODIFIED,
-            MediaStore.Images.ImageColumns.DATA,
-            MediaStore.Images.ImageColumns.MIME_TYPE,
-            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.Images.ImageColumns.BUCKET_ID
+    private fun makeImageEntity(cursor: Cursor): ImageEntity {
+        val id =
+            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+        val title =
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.TITLE))
+        val dateAt =
+            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED))
+
+        val mimeType =
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE))
+
+        val uri = Uri.withAppendedPath(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            id.toString()
+        )
+
+        val data =
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
+
+        val album =
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+        val albumId =
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID))
+
+        return ImageEntity(
+            id = id,
+            title = title,
+            dateAt = dateAt,
+            data = data,
+            uri = uri,
+            mimeType = mimeType,
+            album = album,
+            albumId = albumId
         )
     }
 }
