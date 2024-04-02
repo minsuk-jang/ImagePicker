@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val state = rememberGalleryState(
                             max = 3,
-                            flag = true
+                            autoSelectAfterCapture = true
                         )
 
                         val list = state.selectedImagesState.value

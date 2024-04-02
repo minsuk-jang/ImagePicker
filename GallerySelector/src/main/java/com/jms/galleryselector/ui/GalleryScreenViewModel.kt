@@ -69,11 +69,11 @@ internal class GalleryScreenViewModel constructor(
         return _imageFile ?: throw IllegalStateException("File is null!!")
     }
 
-    fun saveImageFile(context: Context, max : Int, autoSelect: Boolean) {
+    fun saveImageFile(context: Context, max : Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
             contentManager.saveImageFile(context = context, file = _imageFile!!)
 
-            if (autoSelect)
+            if (autoSelectAfterCapture)
                 select(image = localGalleryDataSource.getImageEntity().toImage(), max = max)
         }
     }

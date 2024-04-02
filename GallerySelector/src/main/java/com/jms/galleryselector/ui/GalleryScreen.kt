@@ -71,7 +71,7 @@ fun GalleryScreen(
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {
-                viewModel.saveImageFile(context = context, max = state.max, autoSelect = state.flag)
+                viewModel.saveImageFile(context = context, max = state.max, autoSelectAfterCapture = state.autoSelectAfterCapture)
                 images.refresh()
             }
         }
@@ -154,12 +154,12 @@ private fun GalleryScreen(
 @Composable
 fun rememberGalleryState(
     max: Int = Constants.MAX_SIZE,
-    flag: Boolean = false
+    autoSelectAfterCapture: Boolean = false
 ): GalleryState {
     return remember {
         GalleryState(
             max = max,
-            flag = flag
+            autoSelectAfterCapture = autoSelectAfterCapture
         )
     }
 }
@@ -167,7 +167,7 @@ fun rememberGalleryState(
 @Stable
 class GalleryState(
     val max: Int = Constants.MAX_SIZE,
-    val flag: Boolean = false
+    val autoSelectAfterCapture: Boolean = false
 ) {
     private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
