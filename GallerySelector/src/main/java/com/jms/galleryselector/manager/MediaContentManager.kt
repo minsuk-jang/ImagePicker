@@ -1,104 +1,60 @@
 package com.jms.galleryselector.manager
 
-import android.annotation.SuppressLint
-import android.content.ContentValues
+import android.content.ContentResolver
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
+import android.database.Cursor
+import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
-import androidx.exifinterface.media.ExifInterface
-import java.io.File
-import java.io.IOException
-import java.text.SimpleDateFormat
+import androidx.core.os.bundleOf
 
+internal class MediaContentManager(
+    private val context: Context
+) {
+    fun getCursor(
+        uri: Uri,
+        offset: Int,
+        limit: Int,
+    ): Cursor? {
+        //filter deleted media contents
+        val selection = MediaStore.MediaColumns.IS_PENDING + " = ?"
+        val selectionArgs = arrayOf("0")
+        val projection = arrayOf(
+            MediaStore.Images.ImageColumns._ID,
+            MediaStore.Images.ImageColumns.TITLE,
+            MediaStore.Images.ImageColumns.DATE_MODIFIED,
+            MediaStore.Images.ImageColumns.DATA,
+            MediaStore.Images.ImageColumns.MIME_TYPE,
+            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+            MediaStore.Images.ImageColumns.BUCKET_ID
+        )
 
-internal class MediaContentManager {
-    companion object {
-        const val PATTERN = "yyyyMMdd_HHmmss"
-    }
-
-    @SuppressLint("SimpleDateFormat")
-    fun createImageFile(): File {
-        val name = SimpleDateFormat(PATTERN).format(System.currentTimeMillis())
-
-        val dir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
-        return File(dir.absolutePath + "/Camera/$name.jpg")
-    }
-
-    fun saveImageFile(context: Context, file: File) {
-        val currentTimeMillis = file.lastModified()
-        val bitmap = rotateBitmap(file = file)
-
-        val contentValues = ContentValues().apply {
-            put(MediaStore.Images.Media.TITLE, file.nameWithoutExtension)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.DATE_TAKEN, currentTimeMillis)
-            put(MediaStore.Images.Media.DATE_ADDED, currentTimeMillis / 1000) //sec
-            put(MediaStore.Images.Media.DATE_MODIFIED, currentTimeMillis / 1000) //sec
-            put(
-                MediaStore.Images.Media.RELATIVE_PATH,
-                Environment.DIRECTORY_DCIM + File.separator + "Camera"
+        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+            val selectionBundle = bundleOf(
+                ContentResolver.QUERY_ARG_OFFSET to offset,
+                ContentResolver.QUERY_ARG_LIMIT to limit,
+                ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(
+                    MediaStore.Files.FileColumns.DATE_MODIFIED
+                ),
+                ContentResolver.QUERY_ARG_SORT_DIRECTION to ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
+                ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
+                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs
             )
-        }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            try {
-                val imageUri = context.contentResolver.insert(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    contentValues
-                ) ?: throw IOException("Failed to create new MediaStore record.")
-
-                context.contentResolver.openOutputStream(imageUri)?.use {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
-                } ?: throw IOException("Failed to open output stream.")
-
-            } catch (e: Exception) {
-                throw e
-            }
+            context.contentResolver.query(
+                uri,
+                projection,
+                selectionBundle,
+                null
+            )
         } else {
-            file.outputStream().use {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
-            }
-            contentValues.put(MediaStore.Images.Media.DATA, file.absolutePath)
-            context.contentResolver.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
+            context.contentResolver.query(
+                uri,
+                projection,
+                selection,
+                selectionArgs,
+                "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
             )
-        }
-    }
-
-    private fun rotateBitmap(file: File): Bitmap {
-        val orientation = getOrientation(file = file)
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
-
-        val matrix = Matrix()
-        if (orientation != 0f) {
-            matrix.postRotate(orientation)
-        }
-
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-    }
-
-    private fun getOrientation(file: File): Float {
-        return kotlin.runCatching {
-            val exif = ExifInterface(file.absolutePath)
-            val orientation = exif.getAttributeInt(
-                ExifInterface.TAG_ORIENTATION,
-                ExifInterface.ORIENTATION_UNDEFINED
-            )
-            when (orientation) {
-                ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                else -> 0f
-            }
-        }.getOrElse {
-            throw it
         }
     }
 }

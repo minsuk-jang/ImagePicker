@@ -35,6 +35,7 @@ import com.jms.galleryselector.R
 import com.jms.galleryselector.component.ImageCell
 import com.jms.galleryselector.data.GalleryPagingStream
 import com.jms.galleryselector.data.LocalGalleryDataSource
+import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.manager.MediaContentManager
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
@@ -49,9 +50,9 @@ fun GalleryScreen(
     val context = LocalContext.current
     val viewModel: GalleryScreenViewModel = viewModel {
         GalleryScreenViewModel(
-            contentManager = MediaContentManager(),
+            fileManager = FileManager(),
             localGalleryDataSource = LocalGalleryDataSource(
-                context = context,
+                contentManager = MediaContentManager(context = context),
                 galleryStream = GalleryPagingStream()
             )
         )
@@ -71,7 +72,11 @@ fun GalleryScreen(
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {
-                viewModel.saveImageFile(context = context, max = state.max, autoSelectAfterCapture = state.autoSelectAfterCapture)
+                viewModel.saveImageFile(
+                    context = context,
+                    max = state.max,
+                    autoSelectAfterCapture = state.autoSelectAfterCapture
+                )
                 images.refresh()
             }
         }
