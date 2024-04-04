@@ -74,7 +74,7 @@ internal class GalleryScreenViewModel constructor(
             fileManager.saveImageFile(context = context, file = _imageFile!!)
 
             if (autoSelectAfterCapture)
-                select(image = localGalleryDataSource.getImageEntity().toImage(), max = max)
+                select(image = localGalleryDataSource.getLocalGalleryImage().toImage(), max = max)
         }
     }
 

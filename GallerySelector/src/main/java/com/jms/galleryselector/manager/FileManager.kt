@@ -39,17 +39,18 @@ internal class FileManager {
             put(MediaStore.Images.Media.DATE_TAKEN, currentTimeMillis)
             put(MediaStore.Images.Media.DATE_ADDED, currentTimeMillis / 1000) //sec
             put(MediaStore.Images.Media.DATE_MODIFIED, currentTimeMillis / 1000) //sec
-            put(
-                MediaStore.Images.Media.RELATIVE_PATH,
-                Environment.DIRECTORY_DCIM + File.separator + "Camera"
-            )
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             try {
                 val imageUri = context.contentResolver.insert(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    contentValues
+                    contentValues.apply {
+                        put(
+                            MediaStore.Images.Media.RELATIVE_PATH,
+                            Environment.DIRECTORY_DCIM + File.separator + "Camera"
+                        )
+                    }
                 ) ?: throw IOException("Failed to create new MediaStore record.")
 
                 context.contentResolver.openOutputStream(imageUri)?.use {
@@ -63,10 +64,11 @@ internal class FileManager {
             file.outputStream().use {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
             }
-            contentValues.put(MediaStore.Images.Media.DATA, file.absolutePath)
             context.contentResolver.insert(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues
+                contentValues.apply {
+                    put(MediaStore.Images.Media.DATA, file.absolutePath)
+                }
             )
         }
     }

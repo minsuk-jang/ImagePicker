@@ -1,12 +1,9 @@
 package com.jms.galleryselector.data
 
-import android.content.ContentResolver
-import android.content.Context
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
-import androidx.core.os.bundleOf
+import android.util.Log
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import com.jms.galleryselector.Constants
@@ -51,7 +48,7 @@ internal class LocalGalleryDataSource(
         }
     }
 
-    fun getImageEntity(): ImageEntity {
+    fun getLocalGalleryImage(): ImageEntity {
         contentManager.getCursor(
             uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             offset = 0,

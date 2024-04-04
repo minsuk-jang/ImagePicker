@@ -51,8 +51,8 @@ internal class MediaContentManager(
             context.contentResolver.query(
                 uri,
                 projection,
-                selection,
-                selectionArgs,
+                null,
+                null,
                 "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
             )
         }
