@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.jms.galleryselector.model.GalleryContentSortBy
 import com.jms.galleryselector.ui.GalleryScreen
 import com.jms.galleryselector.ui.rememberGalleryState
 import com.jms.galleryselector.ui.theme.GallerySelectorTheme
@@ -52,7 +51,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val state = rememberGalleryState(
                             max = 3,
-                            sortBy = GalleryContentSortBy.Descending
+                            autoSelectAfterCapture = true
                         )
 
                         val list = state.selectedImagesState.value

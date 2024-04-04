@@ -10,7 +10,8 @@ internal data class ImageEntity(
     val data: String,
     val uri: Uri,
     val mimeType: String,
-    val album: String
+    val album: String,
+    val albumId: String
 )
 
 
@@ -24,8 +25,9 @@ sealed interface Gallery {
         val uri: Uri,
         val mimeType: String,
         val album: String,
+        val albumId: String,
         val selectedOrder: Int = Constants.NO_ORDER,
-        val selected : Boolean = false
+        val selected: Boolean = false
     ) : Gallery
 }
 
@@ -38,6 +40,7 @@ internal fun ImageEntity.toImage(): Gallery.Image {
         data = data,
         uri = uri,
         mimeType = mimeType,
-        album = album
+        album = album,
+        albumId = albumId
     )
 }
