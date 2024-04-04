@@ -24,9 +24,8 @@ Additionally, it enables numbering for selected contents and get latest total se
 - [x] Content's Selected Order
 - [ ] Multi Select Behaivor
 - [x] Load Content by Paging
-- [ ] Camera
+- [x] Camera
 - [ ] Preview Image
-- [ ] Sort Content
 - [ ] Improve Performance
 - [ ] To be Next...
 
@@ -48,7 +47,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 ``` gradle
 dependencies {
-    implementation 'com.github.minsuk-jang:GallerySelector:1.0.3'
+    implementation 'com.github.minsuk-jang:GallerySelector:1.0.4'
 }
 ```
 
@@ -57,6 +56,8 @@ dependencies {
 ``` AndroidManifest.xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/> //For SDK over 33
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+<uses-permission android:name="android.permission.CAMERA" />
 ```
 
 ### GalleryScreen
@@ -102,6 +103,7 @@ class Image(
   val uri: Uri,
   val mimeType: String, 
   val album: String, //Media content album name
+  val albumId: String //Media conten album id
   val selectedOrder: Int = Constants.NO_ORDER, //Media content selected order
   val selected : Boolean = false //Current selected flag
 ) : Gallery
@@ -116,6 +118,7 @@ Since the State type is used for the total selected contents, you can always get
 @Stable
 class GalleryState(
     val max: Int //Select max size
+    val autoSelectAfaterCapture //auto select flag after taking picture 
 ) {
     val selectedImagesState: State<List<Gallery.Image>> //Current selected Content Images State
 }
