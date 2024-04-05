@@ -110,46 +110,42 @@ private fun GalleryScreen(
     onPhoto: () -> Unit,
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
-    when {
-        images.itemCount > 0 -> {
-            LazyVerticalGrid(
-                modifier = modifier,
-                columns = GridCells.Fixed(3),
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-                horizontalArrangement = Arrangement.spacedBy(3.dp),
+    LazyVerticalGrid(
+        modifier = modifier,
+        columns = GridCells.Fixed(3),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        item {
+            Box(
+                modifier = Modifier
+                    .background(color = Color.LightGray)
+                    .clickable {
+                        onPhoto()
+                    }
+                    .aspectRatio(1f)
             ) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .background(color = Color.LightGray)
-                            .clickable {
-                                onPhoto()
-                            }
-                            .aspectRatio(1f)
-                    ) {
-                        Icon(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .size(39.dp),
-                            painter = painterResource(id = R.drawable.photo_camera),
-                            contentDescription = null,
-                        )
-                    }
-                }
+                Icon(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(39.dp),
+                    painter = painterResource(id = R.drawable.photo_camera),
+                    contentDescription = null,
+                )
+            }
+        }
 
-                items(images.itemCount, key = images.itemKey { it.id }) {
-                    images[it]?.let {
-                        Box(
-                            modifier = Modifier
-                                .clickable {
-                                    onClick(it)
-                                }
-                                .aspectRatio(1f)
-                        ) {
-                            ImageCell(image = it)
-                            content(it)
+        items(images.itemCount, key = images.itemKey { it.id }) {
+            images[it]?.let {
+                Box(
+                    modifier = Modifier
+                        .clickable {
+                            onClick(it)
                         }
-                    }
+                        .aspectRatio(1f)
+                ) {
+                    ImageCell(image = it)
+                    content(it)
                 }
             }
         }
