@@ -156,14 +156,14 @@ Scaffold(
 
 #### autoSelectAfterCapture
 
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/a2e28762-998f-4404-99fe-569c2b961dba" align="right" width ="270"/>
+`autoSelectAfterChange` is a flag indicating whether the taken photo will be automatically selected after being captured. When you set `autoSelectAfterChange` flag true, it will be selected automatically
 
-`autoSelectAfterChange` is a flag indicating whether the taken photo will be automatically selected after being captured. For example, when `autoSelectAfterChange` flag is true 
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/a2e28762-998f-4404-99fe-569c2b961dba" align="right" width ="270"/>
 
 ``` kotlin
 val state = rememberGalleryState(
     max = 3,
-    autoSelectAfterCapture = false
+    autoSelectAfterCapture = true
 )
 
 Scaffold(
