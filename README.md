@@ -118,13 +118,14 @@ Since the State type is used for the total selected contents, you can always get
 @Stable
 class GalleryState(
     val max: Int //Select max size
-    val autoSelectAfaterCapture //auto select flag after taking picture 
+    val autoSelectAfterCapture //auto select flag after taking picture 
 ) {
-    val selectedImagesState: State<List<Gallery.Image>> //Current selected Content Images State
+    val selectedImagesState: State<List<Gallery.Image>> //Current selected Content Images
 }
 ```
 
-Here is an example showing the order of selected content and the total number of selected contents.
+#### max
+You can set the maximum selection value using the `max` variable. Here is an example showing the order of selected content and the total number of selected contents.
 
 <div display= "inline-block;" >
 <img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" align = "right" width="270"/> 
@@ -153,7 +154,35 @@ Scaffold(
 }
 ```
 
- 
+#### autoSelectAfterCapture
+
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/a2e28762-998f-4404-99fe-569c2b961dba" align="right" width ="270"/>
+
+`autoSelectAfterChange` is a flag indicating whether the taken photo will be automatically selected after being captured. For example, when `autoSelectAfterChange` flag is true 
+
+``` kotlin
+val state = rememberGalleryState(
+    max = 3,
+    autoSelectAfterCapture = false
+)
+
+Scaffold(
+    ...
+) {
+    GalleryScreen(
+        state = state,
+        content = {
+            if (it.selected) {
+                Text(
+                    text = "${it.selectedOrder + 1}",
+                )
+            }
+        })
+}
+```
+
+<br><br><br>
+
 ## License
 ```
 MIT License
