@@ -17,8 +17,9 @@ internal class MediaContentManager(
         limit: Int,
     ): Cursor? {
         //filter deleted media contents
-        val selection = MediaStore.MediaColumns.IS_PENDING + " = ?"
-        val selectionArgs = arrayOf("0")
+        val baseSelection = "${MediaStore.Images.Media.MIME_TYPE} != ?"
+        val baseSelectionArgs = arrayListOf("image/gif")
+
         val projection = arrayOf(
             MediaStore.Images.ImageColumns._ID,
             MediaStore.Images.ImageColumns.TITLE,
@@ -30,6 +31,11 @@ internal class MediaContentManager(
         )
 
         return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+            val selection = baseSelection + "AND ${MediaStore.MediaColumns.IS_PENDING} = ?"
+            val selectionArgs = baseSelectionArgs.apply {
+                add("0")
+            }.toTypedArray()
+
             val selectionBundle = bundleOf(
                 ContentResolver.QUERY_ARG_OFFSET to offset,
                 ContentResolver.QUERY_ARG_LIMIT to limit,
@@ -48,11 +54,12 @@ internal class MediaContentManager(
                 null
             )
         } else {
+
             context.contentResolver.query(
                 uri,
                 projection,
-                null,
-                null,
+                baseSelection,
+                baseSelectionArgs.toTypedArray(),
                 "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
             )
         }
