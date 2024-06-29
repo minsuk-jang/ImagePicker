@@ -54,7 +54,6 @@ internal class MediaContentManager(
                 null
             )
         } else {
-
             context.contentResolver.query(
                 uri,
                 projection,
