@@ -11,6 +11,59 @@ import androidx.core.os.bundleOf
 internal class MediaContentManager(
     private val context: Context
 ) {
+    fun getAlbumCursor(
+        uri: Uri,
+        total: Boolean = false,
+    ): Cursor? {
+        val projection = arrayOf(
+            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+            MediaStore.Images.Media.BUCKET_ID,
+            "COUNT(${MediaStore.Images.Media._ID})"
+        )
+
+        val baseSelection = "${MediaStore.Images.Media.MIME_TYPE} != ?"
+        val baseSelectionArgs = arrayListOf("image/gif")
+
+        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+            val selection = baseSelection +
+                    "AND ${MediaStore.MediaColumns.IS_PENDING} = ? "
+            val selectionArgs = baseSelectionArgs.apply {
+                add("0")
+            }.toTypedArray()
+
+            val selectionBundle = bundleOf(
+                ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
+                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs
+            ).apply {
+                when (total) {
+                    true -> Unit
+                    false -> {
+                        putString(
+                            ContentResolver.QUERY_ARG_SQL_GROUP_BY,
+                            MediaStore.Images.Media.BUCKET_ID
+                        )
+                    }
+                }
+            }
+
+            context.contentResolver.query(
+                uri,
+                projection,
+                selectionBundle,
+                null
+            )
+        } else {
+            context.contentResolver.query(
+                uri,
+                projection,
+                baseSelection,
+                baseSelectionArgs.toTypedArray(),
+                null
+            )
+        }
+    }
+
+
     fun getCursor(
         uri: Uri,
         offset: Int,

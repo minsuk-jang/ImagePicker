@@ -37,6 +37,7 @@ import com.jms.galleryselector.data.GalleryPagingStream
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.manager.MediaContentManager
+import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -63,6 +64,10 @@ fun GalleryScreen(
             viewModel.selectedImages.collectLatest {
                 state.update(list = it)
             }
+        }
+
+        launch {
+
         }
     }
 
@@ -172,7 +177,17 @@ class GalleryState(
 ) {
     private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
+
+    //update images
     internal fun update(list: List<Gallery.Image>) {
         _selectedImages.value = list
     }
+
+    /*private val _albums: MutableState<List<Album>> = mutableStateOf(emptyList())
+    val albums: State<List<Album>> = _albums
+
+    //update albums
+    internal fun update(list: List<Album>) {
+        _albums.value = list
+    }*/
 }

@@ -1,6 +1,7 @@
 package com.jms.galleryselector.ui
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.io.File
@@ -27,15 +29,29 @@ internal class GalleryScreenViewModel constructor(
     private val _selectedImages = MutableStateFlow<List<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
 
+
     private var _imageFile: File? = null
+
+    //album
+    private val _selectedAlbum: MutableStateFlow<String> = MutableStateFlow("")
+
+    init {
+        getAlbums()
+    }
+
+    private fun getAlbums() {
+        val list = localGalleryDataSource.getAlbums()
+        Log.e("jms8732", "getAlbums: $list")
+    }
 
     fun getGalleryContents(
         page: Int = 1
     ): Flow<PagingData<Gallery.Image>> {
-        return localGalleryDataSource.getLocalGalleryImages(page = page)
-            .map {
-                it.map { it.toImage() }
-            }
+        return _selectedAlbum.flatMapLatest {
+            localGalleryDataSource.getLocalGalleryImages(page = page)
+        }.map {
+            it.map { it.toImage() }
+        }
             .cachedIn(viewModelScope)
             .combine(_selectedImages) { data, images ->
                 update(pagingData = data, selectedImages = images)
@@ -69,7 +85,7 @@ internal class GalleryScreenViewModel constructor(
         return _imageFile ?: throw IllegalStateException("File is null!!")
     }
 
-    fun saveImageFile(context: Context, max : Int, autoSelectAfterCapture: Boolean) {
+    fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
             fileManager.saveImageFile(context = context, file = _imageFile!!)
 

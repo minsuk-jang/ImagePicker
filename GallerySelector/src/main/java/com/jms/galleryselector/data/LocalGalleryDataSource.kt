@@ -8,6 +8,7 @@ import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import com.jms.galleryselector.Constants
 import com.jms.galleryselector.manager.MediaContentManager
+import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.ImageEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -19,6 +20,51 @@ internal class LocalGalleryDataSource(
     private val contentManager: MediaContentManager,
     private val galleryStream: GalleryPagingStream
 ) {
+    fun getAlbums(): List<Album> {
+        return buildList {
+            contentManager.getAlbumCursor(
+                uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                total = true
+            )?.use { cursor ->
+                while (cursor.moveToNext()) {
+                    val albumName =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                    val albumId =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID))
+                    val count = cursor.getInt(2)
+
+                    add(
+                        Album(
+                            id = albumId,
+                            name = albumName,
+                            count = count
+                        )
+                    )
+                }
+            }
+
+            contentManager.getAlbumCursor(
+                uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            )?.use { cursor ->
+                while (cursor.moveToNext()) {
+                    val albumName =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                    val albumId =
+                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID))
+                    val count = cursor.getInt(2)
+
+                    add(
+                        Album(
+                            id = albumId,
+                            name = albumName,
+                            count = count
+                        )
+                    )
+                }
+            }
+        }
+    }
+
     fun getLocalGalleryImages(
         page: Int = 1,
         pageSize: Int = Constants.DEFAULT_PAGE_SiZE
