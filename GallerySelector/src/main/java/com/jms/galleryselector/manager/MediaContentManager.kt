@@ -33,7 +33,11 @@ internal class MediaContentManager(
 
             val selectionBundle = bundleOf(
                 ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
-                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs
+                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs,
+                ContentResolver.QUERY_ARG_SORT_DIRECTION to ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
+                ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(
+                    MediaStore.Files.FileColumns.DATE_MODIFIED
+                )
             ).apply {
                 when (total) {
                     true -> Unit
@@ -58,7 +62,7 @@ internal class MediaContentManager(
                 projection,
                 baseSelection,
                 baseSelectionArgs.toTypedArray(),
-                null
+                "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC"
             )
         }
     }
@@ -66,6 +70,7 @@ internal class MediaContentManager(
 
     fun getCursor(
         uri: Uri,
+        albumId: String,
         offset: Int,
         limit: Int,
     ): Cursor? {
@@ -84,9 +89,11 @@ internal class MediaContentManager(
         )
 
         return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            val selection = baseSelection + "AND ${MediaStore.MediaColumns.IS_PENDING} = ?"
+            val selection = baseSelection + "AND ${MediaStore.MediaColumns.IS_PENDING} = ?" +
+                    " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?"
             val selectionArgs = baseSelectionArgs.apply {
                 add("0")
+                add(albumId)
             }.toTypedArray()
 
             val selectionBundle = bundleOf(

@@ -29,11 +29,10 @@ internal class GalleryScreenViewModel constructor(
     private val _selectedImages = MutableStateFlow<List<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
 
-
     private var _imageFile: File? = null
 
     //album
-    private val _selectedAlbum: MutableStateFlow<String> = MutableStateFlow("")
+    private val _selectedAlbumId : MutableStateFlow<String> = MutableStateFlow("-1219917834")
 
     init {
         getAlbums()
@@ -47,8 +46,11 @@ internal class GalleryScreenViewModel constructor(
     fun getGalleryContents(
         page: Int = 1
     ): Flow<PagingData<Gallery.Image>> {
-        return _selectedAlbum.flatMapLatest {
-            localGalleryDataSource.getLocalGalleryImages(page = page)
+        return _selectedAlbumId.flatMapLatest { albumId ->
+            localGalleryDataSource.getLocalGalleryImages(
+                page = page,
+                albumId = albumId
+            )
         }.map {
             it.map { it.toImage() }
         }

@@ -22,6 +22,7 @@ internal class LocalGalleryDataSource(
 ) {
     fun getAlbums(): List<Album> {
         return buildList {
+            //total
             contentManager.getAlbumCursor(
                 uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 total = true
@@ -43,6 +44,7 @@ internal class LocalGalleryDataSource(
                 }
             }
 
+            //album grouping
             contentManager.getAlbumCursor(
                 uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             )?.use { cursor ->
@@ -67,6 +69,7 @@ internal class LocalGalleryDataSource(
 
     fun getLocalGalleryImages(
         page: Int = 1,
+        albumId: String,
         pageSize: Int = Constants.DEFAULT_PAGE_SiZE
     ): Flow<PagingData<ImageEntity>> {
         return galleryStream.load {
@@ -77,6 +80,7 @@ internal class LocalGalleryDataSource(
             contentManager.getCursor(
                 uri = uri,
                 offset = (_page - 1) * pageSize,
+                albumId = albumId,
                 limit = pageSize
             )?.use { cursor ->
                 val list = buildList {
@@ -98,6 +102,7 @@ internal class LocalGalleryDataSource(
         contentManager.getCursor(
             uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             offset = 0,
+            albumId = "",
             limit = 1,
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
