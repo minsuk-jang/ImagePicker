@@ -25,6 +25,7 @@ Additionally, it enables numbering for selected contents and get latest total se
 - [ ] Multi Select Behaivor
 - [x] Load Content by Paging
 - [x] Camera
+- [ ] Album
 - [ ] Preview Image
 - [ ] Improve Performance
 - [ ] To be Next...
