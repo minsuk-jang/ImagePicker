@@ -10,14 +10,12 @@ import androidx.paging.map
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Gallery
-import com.jms.galleryselector.model.toImage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.io.File
 
@@ -32,7 +30,7 @@ internal class GalleryScreenViewModel constructor(
     private var _imageFile: File? = null
 
     //album
-    private val _selectedAlbumId : MutableStateFlow<String?> = MutableStateFlow(null)
+    private val _selectedAlbumId: MutableStateFlow<String?> = MutableStateFlow(null)
 
     init {
         getAlbums()
@@ -51,8 +49,6 @@ internal class GalleryScreenViewModel constructor(
                 page = page,
                 albumId = albumId
             )
-        }.map {
-            it.map { it.toImage() }
         }
             .cachedIn(viewModelScope)
             .combine(_selectedImages) { data, images ->
@@ -92,7 +88,7 @@ internal class GalleryScreenViewModel constructor(
             fileManager.saveImageFile(context = context, file = _imageFile!!)
 
             if (autoSelectAfterCapture)
-                select(image = localGalleryDataSource.getLocalGalleryImage().toImage(), max = max)
+                select(image = localGalleryDataSource.getLocalGalleryImage(), max = max)
         }
     }
 

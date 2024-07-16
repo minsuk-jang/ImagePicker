@@ -3,13 +3,12 @@ package com.jms.galleryselector.data
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
-import android.util.Log
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import com.jms.galleryselector.Constants
 import com.jms.galleryselector.manager.MediaContentManager
 import com.jms.galleryselector.model.Album
-import com.jms.galleryselector.model.ImageEntity
+import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -28,7 +27,7 @@ internal class LocalGalleryDataSource(
         page: Int = 1,
         albumId: String?,
         pageSize: Int = Constants.DEFAULT_PAGE_SiZE
-    ): Flow<PagingData<ImageEntity>> {
+    ): Flow<PagingData<Gallery.Image>> {
         return galleryStream.load {
             val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
 
@@ -51,7 +50,7 @@ internal class LocalGalleryDataSource(
             )?.use { cursor ->
                 val list = buildList {
                     while (cursor.moveToNext()) {
-                        add(makeImageEntity(cursor = cursor))
+                        add(toImage(cursor = cursor))
                     }
                 }
 
@@ -64,11 +63,11 @@ internal class LocalGalleryDataSource(
         }
     }
 
-    fun getLocalGalleryImage(): ImageEntity {
+    fun getLocalGalleryImage(): Gallery.Image {
         contentManager.getCursor(
             uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
             offset = 0,
-            albumId = "",
+            albumId = null,
             limit = 1,
             projection = arrayOf(
                 MediaStore.Images.ImageColumns._ID,
@@ -81,12 +80,12 @@ internal class LocalGalleryDataSource(
             )
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
-                return makeImageEntity(cursor = cursor)
+                return toImage(cursor = cursor)
             } else throw IllegalStateException("Cursor is empty!!")
         } ?: throw IllegalStateException("Cursor is null!!")
     }
 
-    private fun makeImageEntity(cursor: Cursor): ImageEntity {
+    private fun toImage(cursor: Cursor): Gallery.Image {
         val id =
             cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
         val title =
@@ -110,7 +109,7 @@ internal class LocalGalleryDataSource(
         val albumId =
             cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID))
 
-        return ImageEntity(
+        return Gallery.Image(
             id = id,
             title = title,
             dateAt = dateAt,
@@ -121,4 +120,5 @@ internal class LocalGalleryDataSource(
             albumId = albumId
         )
     }
+
 }
