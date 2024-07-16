@@ -56,7 +56,7 @@ fun GalleryScreen(
         GalleryScreenViewModel(
             fileManager = FileManager(),
             localGalleryDataSource = LocalGalleryDataSource(
-                contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     API29MediaContentManager(context = context)
                 } else
                     API21MediaContentManager(context = context),

@@ -20,6 +20,10 @@ internal class LocalGalleryDataSource(
     private val contentManager: MediaContentManager,
     private val galleryStream: GalleryPagingStream
 ) {
+    fun getAlbums(): List<Album> {
+        return contentManager.getAlbums(uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+    }
+
     fun getLocalGalleryImages(
         page: Int = 1,
         albumId: String,
@@ -45,6 +49,11 @@ internal class LocalGalleryDataSource(
                     MediaStore.Images.ImageColumns.BUCKET_ID
                 )
             )?.use { cursor ->
+                Log.e(
+                    "jms8732",
+                    "count: ${cursor.count}"
+                )
+
                 val list = buildList {
                     while (cursor.moveToNext()) {
                         add(makeImageEntity(cursor = cursor))

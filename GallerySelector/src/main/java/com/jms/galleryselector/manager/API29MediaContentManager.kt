@@ -6,27 +6,29 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.os.bundleOf
+import com.jms.galleryselector.model.Album
+import kotlin.time.Duration.Companion.seconds
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.R)
 internal class API29MediaContentManager(
     private val context: Context
-) : MediaContentManager(context = context) {
-
+) : MediaContentManager() {
     override fun getCursor(
         uri: Uri,
         projection: Array<String>,
-        albumId: String,
+        albumId: String?,
         offset: Int,
         limit: Int
     ): Cursor? {
-        val selection = baseSelectionClause + "AND ${MediaStore.MediaColumns.IS_PENDING} = ?" +
-                " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?"
-        val selectionArgs = baseSelectionArgs.apply {
+        val selection = baseSelectionClause + " AND ${MediaStore.MediaColumns.IS_PENDING} = ?" +
+                if (albumId != null) " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?" else ""
+        val selectionArgs = baseSelectionArgs.toMutableList().apply {
             add("0")
-            add(albumId)
+            albumId?.let { add(it) } //when album id is not null
         }.toTypedArray()
 
         val selectionBundle = bundleOf(

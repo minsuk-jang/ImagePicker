@@ -7,11 +7,11 @@ import android.provider.MediaStore
 
 internal class API21MediaContentManager(
     private val context: Context
-) : MediaContentManager(context = context) {
+) : MediaContentManager() {
     override fun getCursor(
         uri: Uri,
         projection: Array<String>,
-        albumId: String,
+        albumId: String?,
         offset: Int,
         limit: Int
     ): Cursor? {
