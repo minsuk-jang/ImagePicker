@@ -26,7 +26,7 @@ internal class LocalGalleryDataSource(
 
     fun getLocalGalleryImages(
         page: Int = 1,
-        albumId: String,
+        albumId: String?,
         pageSize: Int = Constants.DEFAULT_PAGE_SiZE
     ): Flow<PagingData<ImageEntity>> {
         return galleryStream.load {

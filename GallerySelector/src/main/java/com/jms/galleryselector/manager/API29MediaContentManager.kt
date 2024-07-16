@@ -6,11 +6,8 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.os.bundleOf
-import com.jms.galleryselector.model.Album
-import kotlin.time.Duration.Companion.seconds
 
 
 @RequiresApi(Build.VERSION_CODES.R)

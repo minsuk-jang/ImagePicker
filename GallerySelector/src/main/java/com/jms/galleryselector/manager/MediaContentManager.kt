@@ -51,6 +51,8 @@ internal abstract class MediaContentManager {
                             name = it.first.second,
                             count = it.second
                         )
+                    }.toMutableList().apply {
+                        add(0, Album(id = null, name = "total", count = sumOf { it.count }))
                     }
                 }
             } ?: break
@@ -64,6 +66,8 @@ internal abstract class MediaContentManager {
                 name = it.first.second,
                 count = it.second
             )
+        }.toMutableList().apply {
+            add(0, Album(id = null, name = "total", count = sumOf { it.count }))
         }
     }
 
