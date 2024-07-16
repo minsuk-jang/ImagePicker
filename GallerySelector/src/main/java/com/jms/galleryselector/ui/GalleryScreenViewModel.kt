@@ -9,12 +9,14 @@ import androidx.paging.cachedIn
 import androidx.paging.map
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
+import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import java.io.File
@@ -27,33 +29,39 @@ internal class GalleryScreenViewModel constructor(
     private val _selectedImages = MutableStateFlow<List<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
 
-    private var _imageFile: File? = null
+    private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
+    val albums: StateFlow<List<Album>> = _albums.asStateFlow()
 
-    //album
-    private val _selectedAlbumId: MutableStateFlow<String?> = MutableStateFlow(null)
+    private val _selectedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
+
+    val contents: Flow<PagingData<Gallery.Image>> = _selectedAlbum.flatMapLatest {
+        Log.e("jms8732", "album: $it", )
+        if (it == null) emptyFlow()
+        else localGalleryDataSource.getLocalGalleryImages(
+            page = 1,
+            albumId = it.id
+        )
+    }
+        .cachedIn(viewModelScope)
+        .combine(_selectedImages) { data, images ->
+            update(pagingData = data, selectedImages = images)
+        }
+
+    private var _imageFile: File? = null
 
     init {
         getAlbums()
+        setSelectedAlbum(album = _albums.value.getOrNull(0))
     }
 
     private fun getAlbums() {
-        val list = localGalleryDataSource.getAlbums()
-        Log.e("jms8732", "getAlbums: $list")
+        _albums.update {
+            localGalleryDataSource.getAlbums()
+        }
     }
 
-    fun getGalleryContents(
-        page: Int = 1
-    ): Flow<PagingData<Gallery.Image>> {
-        return _selectedAlbumId.flatMapLatest { albumId ->
-            localGalleryDataSource.getLocalGalleryImages(
-                page = page,
-                albumId = albumId
-            )
-        }
-            .cachedIn(viewModelScope)
-            .combine(_selectedImages) { data, images ->
-                update(pagingData = data, selectedImages = images)
-            }
+    fun setSelectedAlbum(album: Album?) {
+        _selectedAlbum.update { album }
     }
 
     fun select(image: Gallery.Image, max: Int) {

@@ -1,13 +1,8 @@
 package com.jms.galleryselector.manager
 
-import android.content.ContentResolver
-import android.content.Context
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
-import androidx.core.os.bundleOf
 import com.jms.galleryselector.model.Album
 
 internal abstract class MediaContentManager {
@@ -52,7 +47,14 @@ internal abstract class MediaContentManager {
                             count = it.second
                         )
                     }.toMutableList().apply {
-                        add(0, Album(id = null, name = "total", count = sumOf { it.count }))
+                        add(
+                            0,
+                            Album(
+                                id = null,
+                                name = "total",
+                                count = sumOf { it.count }
+                            )
+                        )
                     }
                 }
             } ?: break

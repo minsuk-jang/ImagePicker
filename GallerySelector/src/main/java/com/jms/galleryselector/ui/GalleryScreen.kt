@@ -19,6 +19,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,11 +40,14 @@ import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.API21MediaContentManager
 import com.jms.galleryselector.manager.API29MediaContentManager
 import com.jms.galleryselector.manager.FileManager
-import com.jms.galleryselector.manager.MediaContentManager
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @Composable
@@ -68,18 +72,24 @@ fun GalleryScreen(
     LaunchedEffect(viewModel) {
         launch {
             viewModel.selectedImages.collectLatest {
-                state.update(list = it)
+                state.updateImages(list = it)
             }
         }
 
         launch {
+            viewModel.albums.collectLatest {
+                state.updateAlbums(list = it)
+            }
+        }
 
+        launch {
+            state.selectedAlbum.collectLatest {
+                viewModel.setSelectedAlbum(album = it)
+            }
         }
     }
 
-    val images = viewModel.getGalleryContents(page = 1)
-        .collectAsLazyPagingItems(context = Dispatchers.Default)
-
+    val contents = viewModel.contents.collectAsLazyPagingItems(context = Dispatchers.Default)
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {
@@ -88,13 +98,13 @@ fun GalleryScreen(
                     max = state.max,
                     autoSelectAfterCapture = state.autoSelectAfterCapture
                 )
-                images.refresh()
+                contents.refresh()
             }
         }
 
 
     GalleryScreen(
-        images = images,
+        images = contents,
         content = content,
         onClick = {
             viewModel.select(image = it, max = state.max)
@@ -185,15 +195,22 @@ class GalleryState(
     val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
 
     //update images
-    internal fun update(list: List<Gallery.Image>) {
+    internal fun updateImages(list: List<Gallery.Image>) {
         _selectedImages.value = list
     }
 
-    /*private val _albums: MutableState<List<Album>> = mutableStateOf(emptyList())
+    private val _albums: MutableState<List<Album>> = mutableStateOf(emptyList())
     val albums: State<List<Album>> = _albums
 
+    private val _selectedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
+    val selectedAlbum: StateFlow<Album?> = _selectedAlbum.asStateFlow()
+
     //update albums
-    internal fun update(list: List<Album>) {
+    internal fun updateAlbums(list: List<Album>) {
         _albums.value = list
-    }*/
+    }
+
+    fun selectAlbum(album: Album) {
+        _selectedAlbum.update { album }
+    }
 }
