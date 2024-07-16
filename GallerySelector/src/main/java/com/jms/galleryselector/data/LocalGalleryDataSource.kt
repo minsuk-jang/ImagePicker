@@ -20,53 +20,6 @@ internal class LocalGalleryDataSource(
     private val contentManager: MediaContentManager,
     private val galleryStream: GalleryPagingStream
 ) {
-    fun getAlbums(): List<Album> {
-        return buildList {
-            //total
-            contentManager.getAlbumCursor(
-                uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                total = true
-            )?.use { cursor ->
-                while (cursor.moveToNext()) {
-                    val albumName =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
-                    val albumId =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID))
-                    val count = cursor.getInt(2)
-
-                    add(
-                        Album(
-                            id = albumId,
-                            name = albumName,
-                            count = count
-                        )
-                    )
-                }
-            }
-
-            //album grouping
-            contentManager.getAlbumCursor(
-                uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            )?.use { cursor ->
-                while (cursor.moveToNext()) {
-                    val albumName =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
-                    val albumId =
-                        cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID))
-                    val count = cursor.getInt(2)
-
-                    add(
-                        Album(
-                            id = albumId,
-                            name = albumName,
-                            count = count
-                        )
-                    )
-                }
-            }
-        }
-    }
-
     fun getLocalGalleryImages(
         page: Int = 1,
         albumId: String,
@@ -81,7 +34,16 @@ internal class LocalGalleryDataSource(
                 uri = uri,
                 offset = (_page - 1) * pageSize,
                 albumId = albumId,
-                limit = pageSize
+                limit = pageSize,
+                projection = arrayOf(
+                    MediaStore.Images.ImageColumns._ID,
+                    MediaStore.Images.ImageColumns.TITLE,
+                    MediaStore.Images.ImageColumns.DATE_MODIFIED,
+                    MediaStore.Images.ImageColumns.DATA,
+                    MediaStore.Images.ImageColumns.MIME_TYPE,
+                    MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+                    MediaStore.Images.ImageColumns.BUCKET_ID
+                )
             )?.use { cursor ->
                 val list = buildList {
                     while (cursor.moveToNext()) {
@@ -104,6 +66,15 @@ internal class LocalGalleryDataSource(
             offset = 0,
             albumId = "",
             limit = 1,
+            projection = arrayOf(
+                MediaStore.Images.ImageColumns._ID,
+                MediaStore.Images.ImageColumns.TITLE,
+                MediaStore.Images.ImageColumns.DATE_MODIFIED,
+                MediaStore.Images.ImageColumns.DATA,
+                MediaStore.Images.ImageColumns.MIME_TYPE,
+                MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
+                MediaStore.Images.ImageColumns.BUCKET_ID
+            )
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
                 return makeImageEntity(cursor = cursor)

@@ -39,8 +39,8 @@ internal class GalleryScreenViewModel constructor(
     }
 
     private fun getAlbums() {
-        val list = localGalleryDataSource.getAlbums()
-        Log.e("jms8732", "getAlbums: $list")
+        //val list = localGalleryDataSource.getAlbums()
+        //Log.e("jms8732", "getAlbums: $list")
     }
 
     fun getGalleryContents(

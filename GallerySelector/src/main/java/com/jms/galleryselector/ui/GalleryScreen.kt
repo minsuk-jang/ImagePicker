@@ -1,5 +1,6 @@
 package com.jms.galleryselector.ui
 
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -35,6 +36,8 @@ import com.jms.galleryselector.R
 import com.jms.galleryselector.component.ImageCell
 import com.jms.galleryselector.data.GalleryPagingStream
 import com.jms.galleryselector.data.LocalGalleryDataSource
+import com.jms.galleryselector.manager.API21MediaContentManager
+import com.jms.galleryselector.manager.API29MediaContentManager
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.manager.MediaContentManager
 import com.jms.galleryselector.model.Album
@@ -53,7 +56,10 @@ fun GalleryScreen(
         GalleryScreenViewModel(
             fileManager = FileManager(),
             localGalleryDataSource = LocalGalleryDataSource(
-                contentManager = MediaContentManager(context = context),
+                contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    API29MediaContentManager(context = context)
+                } else
+                    API21MediaContentManager(context = context),
                 galleryStream = GalleryPagingStream()
             )
         )

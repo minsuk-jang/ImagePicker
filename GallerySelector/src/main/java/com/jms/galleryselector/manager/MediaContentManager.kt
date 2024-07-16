@@ -8,9 +8,12 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.core.os.bundleOf
 
-internal class MediaContentManager(
+internal abstract class MediaContentManager(
     private val context: Context
 ) {
+    protected val baseSelectionClause = "${MediaStore.Images.Media.MIME_TYPE} != ?"
+    protected val baseSelectionArgs = arrayListOf("image/gif")
+
     fun getAlbumCursor(
         uri: Uri,
         total: Boolean = false,
@@ -18,7 +21,7 @@ internal class MediaContentManager(
         val projection = arrayOf(
             MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
             MediaStore.Images.Media.BUCKET_ID,
-            "COUNT(${MediaStore.Images.Media._ID})"
+            //"COUNT(${MediaStore.Images.Media._ID})"
         )
 
         val baseSelection = "${MediaStore.Images.Media.MIME_TYPE} != ?"
@@ -67,60 +70,11 @@ internal class MediaContentManager(
         }
     }
 
-
-    fun getCursor(
+    abstract fun getCursor(
         uri: Uri,
+        projection: Array<String>,
         albumId: String,
         offset: Int,
         limit: Int,
-    ): Cursor? {
-        //filter deleted media contents
-        val baseSelection = "${MediaStore.Images.Media.MIME_TYPE} != ?"
-        val baseSelectionArgs = arrayListOf("image/gif")
-
-        val projection = arrayOf(
-            MediaStore.Images.ImageColumns._ID,
-            MediaStore.Images.ImageColumns.TITLE,
-            MediaStore.Images.ImageColumns.DATE_MODIFIED,
-            MediaStore.Images.ImageColumns.DATA,
-            MediaStore.Images.ImageColumns.MIME_TYPE,
-            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.Images.ImageColumns.BUCKET_ID
-        )
-
-        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            val selection = baseSelection + "AND ${MediaStore.MediaColumns.IS_PENDING} = ?" +
-                    " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?"
-            val selectionArgs = baseSelectionArgs.apply {
-                add("0")
-                add(albumId)
-            }.toTypedArray()
-
-            val selectionBundle = bundleOf(
-                ContentResolver.QUERY_ARG_OFFSET to offset,
-                ContentResolver.QUERY_ARG_LIMIT to limit,
-                ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(
-                    MediaStore.Files.FileColumns.DATE_MODIFIED
-                ),
-                ContentResolver.QUERY_ARG_SORT_DIRECTION to ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
-                ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
-                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs
-            )
-
-            context.contentResolver.query(
-                uri,
-                projection,
-                selectionBundle,
-                null
-            )
-        } else {
-            context.contentResolver.query(
-                uri,
-                projection,
-                baseSelection,
-                baseSelectionArgs.toTypedArray(),
-                "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
-            )
-        }
-    }
+    ): Cursor?
 }
