@@ -32,7 +32,7 @@ internal class GalleryScreenViewModel constructor(
     private var _imageFile: File? = null
 
     //album
-    private val _selectedAlbumId : MutableStateFlow<String> = MutableStateFlow("-1219917834")
+    private val _selectedAlbumId : MutableStateFlow<String> = MutableStateFlow("")
 
     init {
         getAlbums()

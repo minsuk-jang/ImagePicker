@@ -49,11 +49,6 @@ internal class LocalGalleryDataSource(
                     MediaStore.Images.ImageColumns.BUCKET_ID
                 )
             )?.use { cursor ->
-                Log.e(
-                    "jms8732",
-                    "count: ${cursor.count}"
-                )
-
                 val list = buildList {
                     while (cursor.moveToNext()) {
                         add(makeImageEntity(cursor = cursor))
