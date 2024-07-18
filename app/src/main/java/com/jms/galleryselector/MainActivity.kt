@@ -9,11 +9,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -25,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +41,7 @@ import com.jms.galleryselector.ui.GalleryScreen
 import com.jms.galleryselector.ui.rememberGalleryState
 import com.jms.galleryselector.ui.theme.GallerySelectorTheme
 import com.jms.galleryselector.ui.theme.Purple40
+import kotlin.math.exp
 
 class MainActivity : ComponentActivity() {
 
@@ -68,30 +72,41 @@ class MainActivity : ComponentActivity() {
                         )
 
                         val albums = state.albums.value
-                        val album by state.selectedAlbum.collectAsState()
+                        var selectedAlbum by state.selectedAlbum
+                        var expand by remember {
+                            mutableStateOf(false)
+                        }
 
                         Column {
                             Text(
-                                modifier = Modifier.height(56.dp),
-                                text = "${album?.name} | ${album?.count}",
+                                modifier = Modifier
+                                    .height(56.dp)
+                                    .clickable {
+                                        expand = true
+                                    },
+                                text = "${selectedAlbum?.name} | ${selectedAlbum?.count}",
                                 fontSize = 15.sp,
                                 color = Color.Black
                             )
 
-                            DropdownMenu(expanded = false, onDismissRequest = { /*TODO*/ }) {
+                            DropdownMenu(
+                                modifier = Modifier.wrapContentSize(),
+                                expanded = expand, onDismissRequest = { /*TODO*/ }) {
                                 albums.forEach {
                                     DropdownMenuItem(
                                         text = {
                                             Text(text = it.name)
                                         },
                                         onClick = {
-                                            state.selectAlbum(album = it)
+                                            selectedAlbum = it
+                                            expand = false
                                         }
                                     )
                                 }
                             }
 
                             GalleryScreen(
+                                album = selectedAlbum,
                                 state = state,
                                 content = {
                                     if (it.selected) {

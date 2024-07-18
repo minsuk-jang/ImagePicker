@@ -1,6 +1,7 @@
 package com.jms.galleryselector.ui
 
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -50,11 +51,17 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ *
+ * @param album: selected album, when album is null, load total media content
+ */
 @Composable
 fun GalleryScreen(
     state: GalleryState = rememberGalleryState(),
+    album: Album? = null,
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
+    Log.e("jms8732", "album: $album")
     val context = LocalContext.current
     val viewModel: GalleryScreenViewModel = viewModel {
         GalleryScreenViewModel(
@@ -67,6 +74,11 @@ fun GalleryScreen(
                 galleryStream = GalleryPagingStream()
             )
         )
+    }
+
+    LaunchedEffect(album) {
+        if (album != null)
+            viewModel.setSelectedAlbum(album = album)
     }
 
     LaunchedEffect(viewModel) {
@@ -83,8 +95,8 @@ fun GalleryScreen(
         }
 
         launch {
-            state.selectedAlbum.collectLatest {
-                viewModel.setSelectedAlbum(album = it)
+            viewModel.selectedAlbum.collectLatest {
+                state.selectedAlbum.value = it
             }
         }
     }
@@ -202,15 +214,10 @@ class GalleryState(
     private val _albums: MutableState<List<Album>> = mutableStateOf(emptyList())
     val albums: State<List<Album>> = _albums
 
-    private val _selectedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
-    val selectedAlbum: StateFlow<Album?> = _selectedAlbum.asStateFlow()
-
     //update albums
     internal fun updateAlbums(list: List<Album>) {
         _albums.value = list
     }
 
-    fun selectAlbum(album: Album) {
-        _selectedAlbum.update { album }
-    }
+    var selectedAlbum: MutableState<Album?> = mutableStateOf(null)
 }

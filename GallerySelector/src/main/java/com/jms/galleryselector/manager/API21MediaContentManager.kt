@@ -15,11 +15,18 @@ internal class API21MediaContentManager(
         offset: Int,
         limit: Int
     ): Cursor? {
+        val selectionClause = baseSelectionClause +
+                if (albumId != null) " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?" else ""
+
+        val selectionArgs = baseSelectionArgs.toMutableList().apply {
+            albumId?.let { add(it) }
+        }.toTypedArray()
+
         return context.contentResolver.query(
             uri,
             projection,
-            baseSelectionClause,
-            baseSelectionArgs.toTypedArray(),
+            selectionClause,
+            selectionArgs,
             "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
         )
     }

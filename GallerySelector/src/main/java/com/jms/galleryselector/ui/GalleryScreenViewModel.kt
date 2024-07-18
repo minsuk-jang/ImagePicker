@@ -12,6 +12,7 @@ import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,9 +34,9 @@ internal class GalleryScreenViewModel constructor(
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
 
     private val _selectedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
+    val selectedAlbum: StateFlow<Album?> = _selectedAlbum.asStateFlow()
 
     val contents: Flow<PagingData<Gallery.Image>> = _selectedAlbum.flatMapLatest {
-        Log.e("jms8732", "album: $it", )
         if (it == null) emptyFlow()
         else localGalleryDataSource.getLocalGalleryImages(
             page = 1,
@@ -61,7 +62,9 @@ internal class GalleryScreenViewModel constructor(
     }
 
     fun setSelectedAlbum(album: Album?) {
-        _selectedAlbum.update { album }
+        _selectedAlbum.update {
+            album
+        }
     }
 
     fun select(image: Gallery.Image, max: Int) {
