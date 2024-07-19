@@ -10,11 +10,16 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
@@ -30,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,30 +83,34 @@ class MainActivity : ComponentActivity() {
                         }
 
                         Column {
-                            Text(
-                                modifier = Modifier
-                                    .height(56.dp)
-                                    .clickable {
-                                        expand = true
-                                    },
-                                text = "${selectedAlbum.name} | ${selectedAlbum.count}",
-                                fontSize = 15.sp,
-                                color = Color.Black
-                            )
-
-                            DropdownMenu(
-                                modifier = Modifier.wrapContentSize(),
-                                expanded = expand, onDismissRequest = { /*TODO*/ }) {
-                                albums.forEach {
-                                    DropdownMenuItem(
-                                        text = {
-                                            Text(text = it.name)
-                                        },
-                                        onClick = {
-                                            selectedAlbum = it
-                                            expand = false
+                            Row {
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    modifier = Modifier
+                                        .height(48.dp)
+                                        .clickable {
+                                            expand = true
                                         }
-                                    )
+                                        .wrapContentHeight(Alignment.CenterVertically),
+                                    text = "${selectedAlbum.name} | ${selectedAlbum.count}",
+                                    fontSize = 20.sp,
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                DropdownMenu(
+                                    modifier = Modifier.wrapContentSize(),
+                                    expanded = expand, onDismissRequest = { /*TODO*/ }) {
+                                    albums.forEach {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(text = "${it.name},  ${it.count}")
+                                            },
+                                            onClick = {
+                                                selectedAlbum = it
+                                                expand = false
+                                            }
+                                        )
+                                    }
                                 }
                             }
 
