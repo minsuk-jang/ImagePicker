@@ -9,13 +9,16 @@ import android.graphics.Matrix
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 
 
-internal class FileManager {
+internal class FileManager(
+    private val context: Context
+) {
     companion object {
         const val PATTERN = "yyyyMMdd_HHmmss"
     }
@@ -24,9 +27,15 @@ internal class FileManager {
     fun createImageFile(): File {
         val name = SimpleDateFormat(PATTERN).format(System.currentTimeMillis())
 
-        val dir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
-        return File(dir.absolutePath + "/Camera/$name.jpg")
+        val dirPath = context.filesDir.path + "/" + "image"
+
+        if (!File(dirPath).exists()) {
+            File(dirPath).mkdirs()
+        }
+        Log.e("jms8732", "createImageFile: $dirPath")
+
+        //Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+        return File("$dirPath/$name.jpg")
     }
 
     fun saveImageFile(context: Context, file: File) {
@@ -71,6 +80,10 @@ internal class FileManager {
                 }
             )
         }
+    }
+
+    fun deleteImageFile(file: File) {
+        file.delete()
     }
 
     private fun rotateBitmap(file: File): Bitmap {

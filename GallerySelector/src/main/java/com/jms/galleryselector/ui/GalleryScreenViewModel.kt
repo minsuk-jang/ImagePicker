@@ -33,13 +33,8 @@ internal class GalleryScreenViewModel constructor(
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
 
-    private val _selectedAlbum: MutableSharedFlow<Album> =
-        MutableSharedFlow(
-            replay = 1,
-            extraBufferCapacity = 1
-        )
-    val selectedAlbum: Flow<Album> = _selectedAlbum.asSharedFlow()
-        .distinctUntilChanged()
+    private val _selectedAlbum: MutableStateFlow<Album> = MutableStateFlow(Album(id = null))
+    val selectedAlbum: StateFlow<Album> = _selectedAlbum.asStateFlow()
 
     val contents: Flow<PagingData<Gallery.Image>> = _selectedAlbum.flatMapLatest {
         localGalleryDataSource.getLocalGalleryImages(
@@ -66,7 +61,7 @@ internal class GalleryScreenViewModel constructor(
     }
 
     fun setSelectedAlbum(album: Album) {
-        _selectedAlbum.tryEmit(album)
+        _selectedAlbum.update { album }
     }
 
     fun select(image: Gallery.Image, max: Int) {
@@ -99,10 +94,21 @@ internal class GalleryScreenViewModel constructor(
     fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
             fileManager.saveImageFile(context = context, file = _imageFile!!)
+            fileManager.deleteImageFile(file = _imageFile!!)
 
             if (autoSelectAfterCapture)
                 select(image = localGalleryDataSource.getLocalGalleryImage(), max = max)
         }
+    }
+
+    fun refresh() {
+        refreshAlbum()
+    }
+
+    private fun refreshAlbum() {
+        getAlbums()
+        val newAlbum = _albums.value.first { it.id == _selectedAlbum.value.id }
+        setSelectedAlbum(album = newAlbum)
     }
 
     private fun invalidSelectedOrdering(list: MutableList<Gallery.Image>, start: Int) {

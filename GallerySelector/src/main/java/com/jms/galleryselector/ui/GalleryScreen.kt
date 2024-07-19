@@ -1,6 +1,7 @@
 package com.jms.galleryselector.ui
 
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -60,7 +61,7 @@ fun GalleryScreen(
     val context = LocalContext.current
     val viewModel: GalleryScreenViewModel = viewModel {
         GalleryScreenViewModel(
-            fileManager = FileManager(),
+            fileManager = FileManager(context = context),
             localGalleryDataSource = LocalGalleryDataSource(
                 contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     API29MediaContentManager(context = context)
@@ -71,7 +72,8 @@ fun GalleryScreen(
         )
     }
 
-    val selectedAlbum by viewModel.selectedAlbum.collectAsState(initial = album)
+    val selectedAlbum by viewModel.selectedAlbum.collectAsState()
+
     if (album.id != selectedAlbum.id) {
         viewModel.setSelectedAlbum(album = album)
     }
@@ -105,6 +107,8 @@ fun GalleryScreen(
                     max = state.max,
                     autoSelectAfterCapture = state.autoSelectAfterCapture
                 )
+
+                viewModel.refresh()
                 contents.refresh()
             }
         }
