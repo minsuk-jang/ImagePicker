@@ -22,8 +22,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,19 +34,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.ui.GalleryScreen
 import com.jms.galleryselector.ui.rememberGalleryState
 import com.jms.galleryselector.ui.theme.GallerySelectorTheme
 import com.jms.galleryselector.ui.theme.Purple40
-import kotlin.math.exp
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GallerySelectorTheme {
+            GallerySelectorTheme(
+                darkTheme = false
+            ) {
                 // A surface container using the 'background' color from the theme
 
                 Surface(
@@ -73,6 +71,7 @@ class MainActivity : ComponentActivity() {
 
                         val albums = state.albums.value
                         var selectedAlbum by state.selectedAlbum
+
                         var expand by remember {
                             mutableStateOf(false)
                         }
@@ -84,7 +83,7 @@ class MainActivity : ComponentActivity() {
                                     .clickable {
                                         expand = true
                                     },
-                                text = "${selectedAlbum?.name} | ${selectedAlbum?.count}",
+                                text = "${selectedAlbum.name} | ${selectedAlbum.count}",
                                 fontSize = 15.sp,
                                 color = Color.Black
                             )

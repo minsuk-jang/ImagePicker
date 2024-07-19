@@ -1,7 +1,6 @@
 package com.jms.galleryselector.ui
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -15,9 +14,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import java.io.File
@@ -33,12 +33,16 @@ internal class GalleryScreenViewModel constructor(
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
 
-    private val _selectedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
-    val selectedAlbum: StateFlow<Album?> = _selectedAlbum.asStateFlow()
+    private val _selectedAlbum: MutableSharedFlow<Album> =
+        MutableSharedFlow(
+            replay = 1,
+            extraBufferCapacity = 1
+        )
+    val selectedAlbum: Flow<Album> = _selectedAlbum.asSharedFlow()
+        .distinctUntilChanged()
 
     val contents: Flow<PagingData<Gallery.Image>> = _selectedAlbum.flatMapLatest {
-        if (it == null) emptyFlow()
-        else localGalleryDataSource.getLocalGalleryImages(
+        localGalleryDataSource.getLocalGalleryImages(
             page = 1,
             albumId = it.id
         )
@@ -52,7 +56,7 @@ internal class GalleryScreenViewModel constructor(
 
     init {
         getAlbums()
-        setSelectedAlbum(album = _albums.value.getOrNull(0))
+        setSelectedAlbum(album = _albums.value[0])
     }
 
     private fun getAlbums() {
@@ -61,10 +65,8 @@ internal class GalleryScreenViewModel constructor(
         }
     }
 
-    fun setSelectedAlbum(album: Album?) {
-        _selectedAlbum.update {
-            album
-        }
+    fun setSelectedAlbum(album: Album) {
+        _selectedAlbum.tryEmit(album)
     }
 
     fun select(image: Gallery.Image, max: Int) {

@@ -1,7 +1,6 @@
 package com.jms.galleryselector.ui
 
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -19,8 +18,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,11 +44,7 @@ import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
@@ -58,10 +54,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun GalleryScreen(
     state: GalleryState = rememberGalleryState(),
-    album: Album? = null,
+    album: Album = Album(id = null),
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
-    Log.e("jms8732", "album: $album")
     val context = LocalContext.current
     val viewModel: GalleryScreenViewModel = viewModel {
         GalleryScreenViewModel(
@@ -76,9 +71,9 @@ fun GalleryScreen(
         )
     }
 
-    LaunchedEffect(album) {
-        if (album != null)
-            viewModel.setSelectedAlbum(album = album)
+    val selectedAlbum by viewModel.selectedAlbum.collectAsState(initial = album)
+    if (album.id != selectedAlbum.id) {
+        viewModel.setSelectedAlbum(album = album)
     }
 
     LaunchedEffect(viewModel) {
@@ -219,5 +214,5 @@ class GalleryState(
         _albums.value = list
     }
 
-    var selectedAlbum: MutableState<Album?> = mutableStateOf(null)
+    var selectedAlbum: MutableState<Album> = mutableStateOf(Album(id = null))
 }
