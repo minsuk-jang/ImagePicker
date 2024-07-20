@@ -199,35 +199,31 @@ The variables `albums` and `selectedAlbum`, which are of type `State`, are in Ga
 </div>
 
 ```kotlin
-Surface{
-    val albums = state.albums.value //a list of albums
-    var selectedAlbum by state.selectedAlbum //current selected album
+val albums = state.albums.value //a list of albums
+var selectedAlbum by state.selectedAlbum //current selected album
 
-    Column {
-        Text(
-            text = "${selectedAlbum.name} | ${selectedAlbum.count}",
-        )
-        DropdownMenu(...) {
-            albums.forEach {
-                DropdownMenuItem(
-                    text = {
-                        Text(text = "${it.name},  ${it.count}")
-                    },
-                    onClick = {
-                        selectedAlbum = it
-                        ...
-                    }
-                )
+Text(
+    text = "${selectedAlbum.name} | ${selectedAlbum.count}",
+)
+DropdownMenu(...) {
+    albums.forEach {
+        DropdownMenuItem(
+            text = {
+                Text(text = "${it.name},  ${it.count}")
+            },
+            onClick = {
+                selectedAlbum = it
+                ...
             }
-        }
-
-        GalleryScreen(
-            album = selectedAlbum,
-            state = state,
-            ...
         )
     }
 }
+
+GalleryScreen(
+    album = selectedAlbum,
+    state = state,
+    ...
+)
 ```
 
 <br><br><br>
