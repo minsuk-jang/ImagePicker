@@ -26,16 +26,11 @@ internal class FileManager(
     @SuppressLint("SimpleDateFormat")
     fun createImageFile(): File {
         val name = SimpleDateFormat(PATTERN).format(System.currentTimeMillis())
+        val dirPath = context.filesDir.path + "/" + "Camera"
 
-        val dirPath = context.filesDir.path + "/" + "image"
-
-        if (!File(dirPath).exists()) {
-            File(dirPath).mkdirs()
-        }
-        Log.e("jms8732", "createImageFile: $dirPath")
-
-        //Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
-        return File("$dirPath/$name.jpg")
+        val dir =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+        return File(dir.absolutePath + "/Camera/$name.jpg")
     }
 
     fun saveImageFile(context: Context, file: File) {
@@ -80,10 +75,6 @@ internal class FileManager(
                 }
             )
         }
-    }
-
-    fun deleteImageFile(file: File) {
-        file.delete()
     }
 
     private fun rotateBitmap(file: File): Bitmap {

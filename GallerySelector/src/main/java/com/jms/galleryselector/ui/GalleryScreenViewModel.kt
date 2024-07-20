@@ -94,7 +94,6 @@ internal class GalleryScreenViewModel constructor(
     fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
             fileManager.saveImageFile(context = context, file = _imageFile!!)
-            fileManager.deleteImageFile(file = _imageFile!!)
 
             if (autoSelectAfterCapture)
                 select(image = localGalleryDataSource.getLocalGalleryImage(), max = max)
