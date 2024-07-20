@@ -26,7 +26,6 @@ internal class FileManager(
     @SuppressLint("SimpleDateFormat")
     fun createImageFile(): File {
         val name = SimpleDateFormat(PATTERN).format(System.currentTimeMillis())
-        val dirPath = context.filesDir.path + "/" + "Camera"
 
         val dir =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
