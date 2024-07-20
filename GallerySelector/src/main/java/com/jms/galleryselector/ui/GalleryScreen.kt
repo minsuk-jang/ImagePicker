@@ -218,5 +218,5 @@ class GalleryState(
         _albums.value = list
     }
 
-    var selectedAlbum: MutableState<Album> = mutableStateOf(Album(id = null))
+    val selectedAlbum: MutableState<Album> = mutableStateOf(Album(id = null))
 }
