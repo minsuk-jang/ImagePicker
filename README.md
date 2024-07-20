@@ -205,7 +205,7 @@ var selectedAlbum by state.selectedAlbum //current selected album
 Text(
     text = "${selectedAlbum.name} | ${selectedAlbum.count}",
 )
-DropdownMenu(...) {
+DropdownMenu {
     albums.forEach {
         DropdownMenuItem(
             text = {
