@@ -205,7 +205,7 @@ val albums = state.albums.value
 var selectedAlbum by state.selectedAlbum 
 
 Text(
-    text = "${selectedAlbum.name} | ${selectedAlbum.count}",
+    text = "${selectedAlbum.name} | ${selectedAlbum.count}"
 )
 DropdownMenu {
     albums.forEach {
