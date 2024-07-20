@@ -1,5 +1,7 @@
 package com.jms.galleryselector.ui
 
+import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -17,6 +19,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -35,40 +39,66 @@ import com.jms.galleryselector.R
 import com.jms.galleryselector.component.ImageCell
 import com.jms.galleryselector.data.GalleryPagingStream
 import com.jms.galleryselector.data.LocalGalleryDataSource
+import com.jms.galleryselector.manager.API21MediaContentManager
+import com.jms.galleryselector.manager.API29MediaContentManager
 import com.jms.galleryselector.manager.FileManager
-import com.jms.galleryselector.manager.MediaContentManager
+import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
+/**
+ *
+ * @param album: selected album, when album is null, load total media content
+ */
 @Composable
 fun GalleryScreen(
     state: GalleryState = rememberGalleryState(),
+    album: Album = Album(id = null),
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
     val viewModel: GalleryScreenViewModel = viewModel {
         GalleryScreenViewModel(
-            fileManager = FileManager(),
+            fileManager = FileManager(context = context),
             localGalleryDataSource = LocalGalleryDataSource(
-                contentManager = MediaContentManager(context = context),
+                contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    API29MediaContentManager(context = context)
+                } else
+                    API21MediaContentManager(context = context),
                 galleryStream = GalleryPagingStream()
             )
         )
     }
 
+    val selectedAlbum by viewModel.selectedAlbum.collectAsState()
+
+    if (album.id != selectedAlbum.id) {
+        viewModel.setSelectedAlbum(album = album)
+    }
+
     LaunchedEffect(viewModel) {
         launch {
             viewModel.selectedImages.collectLatest {
-                state.update(list = it)
+                state.updateImages(list = it)
+            }
+        }
+
+        launch {
+            viewModel.albums.collectLatest {
+                state.updateAlbums(list = it)
+            }
+        }
+
+        launch {
+            viewModel.selectedAlbum.collectLatest {
+                state.selectedAlbum.value = it
             }
         }
     }
 
-    val images = viewModel.getGalleryContents(page = 1)
-        .collectAsLazyPagingItems(context = Dispatchers.Default)
-
+    val contents = viewModel.contents.collectAsLazyPagingItems(context = Dispatchers.Default)
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {
@@ -77,13 +107,15 @@ fun GalleryScreen(
                     max = state.max,
                     autoSelectAfterCapture = state.autoSelectAfterCapture
                 )
-                images.refresh()
+
+                viewModel.refresh()
+                contents.refresh()
             }
         }
 
 
     GalleryScreen(
-        images = images,
+        images = contents,
         content = content,
         onClick = {
             viewModel.select(image = it, max = state.max)
@@ -172,7 +204,19 @@ class GalleryState(
 ) {
     private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
-    internal fun update(list: List<Gallery.Image>) {
+
+    //update images
+    internal fun updateImages(list: List<Gallery.Image>) {
         _selectedImages.value = list
     }
+
+    private val _albums: MutableState<List<Album>> = mutableStateOf(emptyList())
+    val albums: State<List<Album>> = _albums
+
+    //update albums
+    internal fun updateAlbums(list: List<Album>) {
+        _albums.value = list
+    }
+
+    var selectedAlbum: MutableState<Album> = mutableStateOf(Album(id = null))
 }

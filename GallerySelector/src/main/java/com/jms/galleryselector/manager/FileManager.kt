@@ -9,13 +9,16 @@ import android.graphics.Matrix
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.util.Log
 import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 
 
-internal class FileManager {
+internal class FileManager(
+    private val context: Context
+) {
     companion object {
         const val PATTERN = "yyyyMMdd_HHmmss"
     }

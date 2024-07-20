@@ -1,66 +1,83 @@
 package com.jms.galleryselector.manager
 
-import android.content.ContentResolver
-import android.content.Context
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import android.provider.MediaStore
-import androidx.core.os.bundleOf
+import com.jms.galleryselector.model.Album
 
-internal class MediaContentManager(
-    private val context: Context
-) {
-    fun getCursor(
-        uri: Uri,
-        offset: Int,
-        limit: Int,
-    ): Cursor? {
-        //filter deleted media contents
-        val baseSelection = "${MediaStore.Images.Media.MIME_TYPE} != ?"
-        val baseSelectionArgs = arrayListOf("image/gif")
+internal abstract class MediaContentManager {
+    protected val baseSelectionClause = "${MediaStore.Images.Media.MIME_TYPE} != ?"
+    protected val baseSelectionArgs = arrayListOf("image/gif")
 
+    fun getAlbums(uri: Uri): List<Album> {
         val projection = arrayOf(
-            MediaStore.Images.ImageColumns._ID,
-            MediaStore.Images.ImageColumns.TITLE,
-            MediaStore.Images.ImageColumns.DATE_MODIFIED,
-            MediaStore.Images.ImageColumns.DATA,
-            MediaStore.Images.ImageColumns.MIME_TYPE,
-            MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.Images.ImageColumns.BUCKET_ID
+            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+            MediaStore.Images.Media.BUCKET_ID
         )
+        val map = mutableMapOf<Pair<String, String>, Int>()
+        val limit = 20
+        var index = 0
 
-        return if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            val selection = baseSelection + "AND ${MediaStore.MediaColumns.IS_PENDING} = ?"
-            val selectionArgs = baseSelectionArgs.apply {
-                add("0")
-            }.toTypedArray()
+        while (true) {
+            getCursor(
+                uri = uri,
+                projection = projection,
+                albumId = null,
+                offset = index * limit,
+                limit = limit
+            )?.use {
+                while (it.moveToNext()) {
+                    val id =
+                        it.getString(it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID))
+                    val title =
+                        it.getString(it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                            .lowercase()
 
-            val selectionBundle = bundleOf(
-                ContentResolver.QUERY_ARG_OFFSET to offset,
-                ContentResolver.QUERY_ARG_LIMIT to limit,
-                ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(
-                    MediaStore.Files.FileColumns.DATE_MODIFIED
-                ),
-                ContentResolver.QUERY_ARG_SORT_DIRECTION to ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
-                ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
-                ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs
-            )
+                    if (map.contains(id to title)) {
+                        map[id to title] = map[id to title]?.plus(1) ?: 1
+                    } else
+                        map[id to title] = 1
+                }
 
-            context.contentResolver.query(
-                uri,
-                projection,
-                selectionBundle,
-                null
+                if (it.count < limit) {
+                    return map.toList().map {
+                        Album(
+                            id = it.first.first,
+                            name = it.first.second,
+                            count = it.second
+                        )
+                    }.toMutableList().apply {
+                        add(
+                            0,
+                            Album(
+                                id = null,
+                                name = "total",
+                                count = sumOf { it.count }
+                            )
+                        )
+                    }
+                }
+            } ?: break
+
+            index++
+        }
+
+        return map.toList().map {
+            Album(
+                id = it.first.first,
+                name = it.first.second,
+                count = it.second
             )
-        } else {
-            context.contentResolver.query(
-                uri,
-                projection,
-                baseSelection,
-                baseSelectionArgs.toTypedArray(),
-                "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
-            )
+        }.toMutableList().apply {
+            add(0, Album(id = null, name = "total", count = sumOf { it.count }))
         }
     }
+
+    abstract fun getCursor(
+        uri: Uri,
+        projection: Array<String>,
+        albumId: String?,
+        offset: Int,
+        limit: Int,
+    ): Cursor?
 }
