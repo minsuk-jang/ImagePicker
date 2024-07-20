@@ -1,9 +1,10 @@
 <h1 align = "center">  GallerySelector </h1>
 <!-- Add Gif -->
 <p align = "center">
-<img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666" width="270"/>
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="270"/>
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="270"/>
+<img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666" width="245"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="245"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="245"/>
+<img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width="245"/>
 </p>
 
 <div align = "center">
@@ -25,7 +26,7 @@ Additionally, it enables numbering for selected contents and get latest total se
 - [ ] Multi Select Behaivor
 - [x] Load Content by Paging
 - [x] Camera
-- [ ] Album
+- [x] Album
 - [ ] Preview Image
 - [ ] Improve Performance
 - [ ] To be Next...
@@ -110,10 +111,20 @@ class Image(
 ) : Gallery
 ```
 
+### Album
+
+``` kotlin
+class Album(
+  val id: String? = null, //album id
+  val name: String = "", //album name
+  val count: Int = 0, //number of images in the album
+)
+```
+
 
 ### GalleryState
-GalleryState sets the required configurations for `GalleryScreen` and provides the total selected contents state. 
-Since the State type is used for the total selected contents, you can always get the most latest value.
+GalleryState sets the required configurations for `GalleryScreen` and provides contents state. 
+Becuase of using `State` type, you can always get the most latest value.
 
 ``` kotlin 
 @Stable
@@ -122,6 +133,8 @@ class GalleryState(
     val autoSelectAfterCapture //auto select flag after taking picture 
 ) {
     val selectedImagesState: State<List<Gallery.Image>> //Current selected Content Images
+    val albums: State<List<Album>> //list of albums in device
+    val selectedAlbum: MutableState<Album> //current selected album
 }
 ```
 
