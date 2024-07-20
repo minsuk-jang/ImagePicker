@@ -213,7 +213,6 @@ DropdownMenu(...) {
             },
             onClick = {
                 selectedAlbum = it
-                ...
             }
         )
     }
@@ -222,7 +221,6 @@ DropdownMenu(...) {
 GalleryScreen(
     album = selectedAlbum,
     state = state,
-    ...
 )
 ```
 
