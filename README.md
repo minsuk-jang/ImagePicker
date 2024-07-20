@@ -1,10 +1,10 @@
 <h1 align = "center">  GallerySelector </h1>
 <!-- Add Gif -->
 <p align = "center">
-<img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666" width="245"/>
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="245"/>
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="245"/>
-<img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width="245"/>
+<img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666" width="240"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="240"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="240"/>
+<img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width="240"/>
 </p>
 
 <div align = "center">
@@ -49,7 +49,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 ``` gradle
 dependencies {
-    implementation 'com.github.minsuk-jang:GallerySelector:1.0.5'
+    implementation 'com.github.minsuk-jang:GallerySelector:1.0.6'
 }
 ```
 
@@ -93,6 +93,7 @@ Here is an example where it is represented by a checkmark when selected
 )
 
 ```
+<br>
 
 ### Image
 When you click content cell, get image class inherited from Gallery. You can use `selectedOrder` and `selected` to check the selection order, status. It's properties as below.
@@ -112,7 +113,7 @@ class Image(
 ```
 
 ### Album
-
+If the album id is null, it fetch all images.
 ``` kotlin
 class Album(
   val id: String? = null, //album id
@@ -120,7 +121,6 @@ class Album(
   val count: Int = 0, //number of images in the album
 )
 ```
-
 
 ### GalleryState
 GalleryState sets the required configurations for `GalleryScreen` and provides contents state. 
@@ -169,10 +169,7 @@ Scaffold(
 ```
 
 #### autoSelectAfterCapture
-
 `autoSelectAfterChange` is a flag indicating whether the taken photo will be automatically selected after being captured. When you set `autoSelectAfterChange` flag true, it will be selected automatically
-
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/a2e28762-998f-4404-99fe-569c2b961dba" align="right" width ="270"/>
 
 ``` kotlin
 val state = rememberGalleryState(
@@ -192,6 +189,44 @@ Scaffold(
                 )
             }
         })
+}
+```
+
+#### albums
+The variables `albums` and `selectedAlbum`, which are of type `State`, are in GalleryState. `albums` provides a list of albums in device. Also by passing the selected album as a parameter to GalleryScreen, you can fetch the images in the album.
+<div display= "inline-block;" >
+<img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316"  align="right" width ="270"/>
+</div>
+
+```kotlin
+Surface{
+    val albums = state.albums.value //a list of albums
+    var selectedAlbum by state.selectedAlbum //current selected album
+
+    Column {
+        Text(
+            text = "${selectedAlbum.name} | ${selectedAlbum.count}",
+        )
+        DropdownMenu(...) {
+            albums.forEach {
+                DropdownMenuItem(
+                    text = {
+                        Text(text = "${it.name},  ${it.count}")
+                    },
+                    onClick = {
+                        selectedAlbum = it
+                        ...
+                    }
+                )
+            }
+        }
+
+        GalleryScreen(
+            album = selectedAlbum,
+            state = state,
+            ...
+        )
+    }
 }
 ```
 
