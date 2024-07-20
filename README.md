@@ -199,8 +199,10 @@ The variables `albums` and `selectedAlbum`, which are of type `State`, are in Ga
 </div>
 
 ```kotlin
-val albums = state.albums.value //a list of albums
-var selectedAlbum by state.selectedAlbum //current selected album
+//a list of albums
+val albums = state.albums.value
+//current selected album
+var selectedAlbum by state.selectedAlbum 
 
 Text(
     text = "${selectedAlbum.name} | ${selectedAlbum.count}",
