@@ -101,6 +101,7 @@ fun GalleryScreen(
     val contents = viewModel.contents.collectAsLazyPagingItems(context = Dispatchers.Default)
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
+            Log.e("jms8732", "$it", )
             if (it) {
                 viewModel.saveImageFile(
                     context = context,
