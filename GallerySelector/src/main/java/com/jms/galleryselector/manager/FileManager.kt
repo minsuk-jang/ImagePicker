@@ -28,8 +28,12 @@ internal class FileManager(
         val name = SimpleDateFormat(PATTERN).format(System.currentTimeMillis())
 
         val dir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
-        return File(dir.absolutePath + "/Camera/$name.jpg")
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera")
+
+        if (!dir.exists())
+            dir.mkdirs()
+
+        return File(dir.absolutePath + "/$name.jpg")
     }
 
     fun saveImageFile(context: Context, file: File) {
