@@ -11,8 +11,8 @@ internal abstract class MediaContentManager {
 
     fun getAlbums(uri: Uri): List<Album> {
         val projection = arrayOf(
-            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-            MediaStore.Images.Media.BUCKET_ID
+            MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
+            MediaStore.MediaColumns.BUCKET_ID
         )
         val map = mutableMapOf<Pair<String, String>, Int>()
         val limit = 20
@@ -28,9 +28,9 @@ internal abstract class MediaContentManager {
             )?.use {
                 while (it.moveToNext()) {
                     val id =
-                        it.getString(it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID))
+                        it.getString(it.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID))
                     val title =
-                        it.getString(it.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+                        it.getString(it.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME))
                             .lowercase()
 
                     if (map.contains(id to title)) {
