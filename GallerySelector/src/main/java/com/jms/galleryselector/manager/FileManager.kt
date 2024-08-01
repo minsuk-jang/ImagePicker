@@ -41,11 +41,11 @@ internal class FileManager(
         val bitmap = rotateBitmap(file = file)
 
         val contentValues = ContentValues().apply {
-            put(MediaStore.Images.Media.TITLE, file.nameWithoutExtension)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
-            put(MediaStore.Images.Media.DATE_TAKEN, currentTimeMillis)
-            put(MediaStore.Images.Media.DATE_ADDED, currentTimeMillis / 1000) //sec
-            put(MediaStore.Images.Media.DATE_MODIFIED, currentTimeMillis / 1000) //sec
+            put(MediaStore.MediaColumns.TITLE, file.nameWithoutExtension)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(MediaStore.MediaColumns.DATE_TAKEN, currentTimeMillis)
+            put(MediaStore.MediaColumns.DATE_ADDED, currentTimeMillis / 1000) //sec
+            put(MediaStore.MediaColumns.DATE_MODIFIED, currentTimeMillis / 1000) //sec
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -54,7 +54,7 @@ internal class FileManager(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     contentValues.apply {
                         put(
-                            MediaStore.Images.Media.RELATIVE_PATH,
+                            MediaStore.MediaColumns.RELATIVE_PATH,
                             Environment.DIRECTORY_DCIM + File.separator + "Camera"
                         )
                     }

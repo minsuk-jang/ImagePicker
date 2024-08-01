@@ -39,13 +39,13 @@ internal class LocalGalleryDataSource(
                 albumId = albumId,
                 limit = pageSize,
                 projection = arrayOf(
-                    MediaStore.Images.ImageColumns._ID,
-                    MediaStore.Images.ImageColumns.TITLE,
-                    MediaStore.Images.ImageColumns.DATE_MODIFIED,
-                    MediaStore.Images.ImageColumns.DATA,
-                    MediaStore.Images.ImageColumns.MIME_TYPE,
-                    MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-                    MediaStore.Images.ImageColumns.BUCKET_ID
+                    MediaStore.MediaColumns._ID,
+                    MediaStore.MediaColumns.TITLE,
+                    MediaStore.MediaColumns.DATE_MODIFIED,
+                    MediaStore.MediaColumns.DATA,
+                    MediaStore.MediaColumns.MIME_TYPE,
+                    MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
+                    MediaStore.MediaColumns.BUCKET_ID
                 )
             )?.use { cursor ->
                 val list = buildList {
@@ -70,13 +70,13 @@ internal class LocalGalleryDataSource(
             albumId = null,
             limit = 1,
             projection = arrayOf(
-                MediaStore.Images.ImageColumns._ID,
-                MediaStore.Images.ImageColumns.TITLE,
-                MediaStore.Images.ImageColumns.DATE_MODIFIED,
-                MediaStore.Images.ImageColumns.DATA,
-                MediaStore.Images.ImageColumns.MIME_TYPE,
-                MediaStore.Images.ImageColumns.BUCKET_DISPLAY_NAME,
-                MediaStore.Images.ImageColumns.BUCKET_ID
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.TITLE,
+                MediaStore.MediaColumns.DATE_MODIFIED,
+                MediaStore.MediaColumns.DATA,
+                MediaStore.MediaColumns.MIME_TYPE,
+                MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
+                MediaStore.MediaColumns.BUCKET_ID
             )
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
@@ -87,14 +87,14 @@ internal class LocalGalleryDataSource(
 
     private fun toImage(cursor: Cursor): Gallery.Image {
         val id =
-            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
         val title =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.TITLE))
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.TITLE))
         val dateAt =
-            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED))
+            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED))
 
         val mimeType =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE))
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE))
 
         val uri = Uri.withAppendedPath(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -102,12 +102,12 @@ internal class LocalGalleryDataSource(
         )
 
         val data =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA))
 
         val album =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME))
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME))
         val albumId =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID))
+            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID))
 
         return Gallery.Image(
             id = id,
