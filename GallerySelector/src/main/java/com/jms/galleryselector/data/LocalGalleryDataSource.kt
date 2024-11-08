@@ -104,10 +104,8 @@ internal class LocalGalleryDataSource(
         val data =
             cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA))
 
-        val album =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME))
-        val albumId =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID))
+        val album = getColumnString(cursor = cursor, index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+        val albumId = getColumnString(cursor = cursor, index = MediaStore.MediaColumns.BUCKET_ID)
 
         return Gallery.Image(
             id = id,
@@ -121,4 +119,10 @@ internal class LocalGalleryDataSource(
         )
     }
 
+    private fun getColumnString(cursor: Cursor, index: String): String? {
+        val columnIndex = cursor.getColumnIndex(index)
+        return if (columnIndex != -1)
+            cursor.getString(columnIndex)
+        else null
+    }
 }
