@@ -6,6 +6,7 @@ import android.provider.MediaStore
 import androidx.paging.PagingData
 import androidx.paging.PagingSource
 import com.jms.galleryselector.Constants
+import com.jms.galleryselector.extensions.getColumnString
 import com.jms.galleryselector.manager.MediaContentManager
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
@@ -104,8 +105,9 @@ internal class LocalGalleryDataSource(
         val data =
             cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA))
 
-        val album = getColumnString(cursor = cursor, index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
-        val albumId = getColumnString(cursor = cursor, index = MediaStore.MediaColumns.BUCKET_ID)
+        val album =
+            cursor.getColumnString(index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+        val albumId = cursor.getColumnString(index = MediaStore.MediaColumns.BUCKET_ID)
 
         return Gallery.Image(
             id = id,
@@ -117,12 +119,5 @@ internal class LocalGalleryDataSource(
             album = album,
             albumId = albumId
         )
-    }
-
-    private fun getColumnString(cursor: Cursor, index: String): String? {
-        val columnIndex = cursor.getColumnIndex(index)
-        return if (columnIndex != -1)
-            cursor.getString(columnIndex)
-        else null
     }
 }

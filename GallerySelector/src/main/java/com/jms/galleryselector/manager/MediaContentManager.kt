@@ -3,6 +3,7 @@ package com.jms.galleryselector.manager
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
+import com.jms.galleryselector.extensions.getColumnString
 import com.jms.galleryselector.model.Album
 
 internal abstract class MediaContentManager {
@@ -27,11 +28,12 @@ internal abstract class MediaContentManager {
                 limit = limit
             )?.use {
                 while (it.moveToNext()) {
-                    val id =
-                        it.getString(it.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID))
-                    val title =
-                        it.getString(it.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME))
-                            .lowercase()
+                    val id = it.getColumnString(index = MediaStore.MediaColumns.BUCKET_ID)
+                    val title = it.getColumnString(
+                        index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME
+                    )?.lowercase()
+
+                    if (id == null || title == null) continue
 
                     if (map.contains(id to title)) {
                         map[id to title] = map[id to title]?.plus(1) ?: 1
