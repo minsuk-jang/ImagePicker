@@ -1,4 +1,4 @@
-<h1 align = "center">  GallerySelector </h1>
+<h1 align = "center">  ImagePicker </h1>
 <!-- Add Gif -->
 <p align = "center">
 <img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666" width="240"/>
