@@ -14,7 +14,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   
 <br>
- The Gallery Selector is an Image Picker library created in the Compose language. <br>
+ The Image Picker library created in the Compose language. <br>
 It allows customization of the content cell and supports both single and multiple selections.<br> 
 Additionally, it enables numbering for selected contents and get latest total selected contents.
 
