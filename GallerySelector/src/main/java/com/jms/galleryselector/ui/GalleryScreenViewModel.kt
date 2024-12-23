@@ -43,9 +43,10 @@ internal class GalleryScreenViewModel(
             page = 1,
             albumId = it.id
         )
-    }.combine(_selectedImages) { data, images ->
-        update(pagingData = data, selectedImages = images)
-    }.flowOn(Dispatchers.Default).cachedIn(viewModelScope)
+    }.cachedIn(viewModelScope)
+        .combine(_selectedImages) { data, images ->
+            update(pagingData = data, selectedImages = images)
+        }.flowOn(Dispatchers.Default)
 
     private var _imageFile: File? = null
 

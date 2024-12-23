@@ -23,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,11 +73,11 @@ fun GalleryScreen(
         )
     }
 
-    val selectedAlbum by viewModel.selectedAlbum.collectAsState(initial = album)
-
-    if (album.id != selectedAlbum.id) {
-        viewModel.setSelectedAlbum(album = album)
-    }
+    Log.e("jms8732", "GalleryScreen: $album")
+    if (album.id != null)
+        LaunchedEffect(key1 = album.id) {
+            //  viewModel.setSelectedAlbum(album = album)
+        }
 
     LaunchedEffect(viewModel) {
         launch {
@@ -93,6 +94,7 @@ fun GalleryScreen(
 
         launch {
             viewModel.selectedAlbum.collectLatest {
+                Log.e("jms8732", "album: $it")
                 state.selectedAlbum.value = it
             }
         }
@@ -113,12 +115,17 @@ fun GalleryScreen(
             }
         }
 
+    val onImageClick = remember(viewModel, state.max) {
+        { image: Gallery.Image ->
+            viewModel.select(image = image, max = state.max)
+        }
+    }
+
+
     GalleryScreen(
         images = contents,
         content = content,
-        onClick = {
-            viewModel.select(image = it, max = state.max)
-        },
+        onClick = onImageClick,
         onPhoto = {
             val file = viewModel.createImageFile()
 
@@ -170,16 +177,19 @@ private fun GalleryScreen(
             count = images.itemCount,
             key = images.itemKey { it.id },
         ) {
+            var selected by remember { mutableStateOf(false) }
             images[it]?.let {
                 Box(
                     modifier = Modifier
                         .clickable {
                             onClick(it)
+                            selected = !selected
                         }
                         .aspectRatio(1f)
                 ) {
                     ImageCell(image = it)
-                    content(it)
+                    if (selected)
+                        content(it)
                 }
             }
         }

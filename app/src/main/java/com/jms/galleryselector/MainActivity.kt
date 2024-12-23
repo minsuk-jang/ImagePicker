@@ -59,7 +59,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
                     val arrays = if (Build.VERSION_CODES.TIRAMISU <= Build.VERSION.SDK_INT) {
                         arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
                     } else
@@ -118,25 +117,23 @@ class MainActivity : ComponentActivity() {
                                 album = selectedAlbum,
                                 state = state,
                                 content = {
-                                    if (it.selected) {
-                                        Box(
+                                    Box(
+                                        modifier = Modifier
+                                            .border(width = 3.5.dp, color = Purple40)
+                                            .background(color = Gray.copy(0.5f))
+                                            .fillMaxSize()
+                                    ) {
+                                        Text(
                                             modifier = Modifier
-                                                .border(width = 3.5.dp, color = Purple40)
-                                                .background(color = Gray.copy(0.5f))
-                                                .fillMaxSize()
-                                        ) {
-                                            Text(
-                                                modifier = Modifier
-                                                    .background(
-                                                        color = Purple40,
-                                                        shape = CircleShape
-                                                    )
-                                                    .size(25.dp)
-                                                    .align(Alignment.TopEnd),
-                                                text = "${it.selectedOrder + 1}",
-                                                textAlign = TextAlign.Center
-                                            )
-                                        }
+                                                .background(
+                                                    color = Purple40,
+                                                    shape = CircleShape
+                                                )
+                                                .size(25.dp)
+                                                .align(Alignment.TopEnd),
+                                            text = "${it.selectedOrder + 1}",
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
                                 }
                             )
