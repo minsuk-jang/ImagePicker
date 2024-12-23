@@ -72,7 +72,7 @@ fun GalleryScreen(
         )
     }
 
-    val selectedAlbum by viewModel.selectedAlbum.collectAsState()
+    val selectedAlbum by viewModel.selectedAlbum.collectAsState(initial = album)
 
     if (album.id != selectedAlbum.id) {
         viewModel.setSelectedAlbum(album = album)
@@ -98,10 +98,9 @@ fun GalleryScreen(
         }
     }
 
-    val contents = viewModel.contents.collectAsLazyPagingItems(context = Dispatchers.Default)
+    val contents = viewModel.contents.collectAsLazyPagingItems()
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
-            Log.e("jms8732", "$it", )
             if (it) {
                 viewModel.saveImageFile(
                     context = context,
@@ -113,7 +112,6 @@ fun GalleryScreen(
                 contents.refresh()
             }
         }
-
 
     GalleryScreen(
         images = contents,
@@ -168,7 +166,10 @@ private fun GalleryScreen(
             }
         }
 
-        items(images.itemCount, key = images.itemKey { it.id }) {
+        items(
+            count = images.itemCount,
+            key = images.itemKey { it.id },
+        ) {
             images[it]?.let {
                 Box(
                     modifier = Modifier

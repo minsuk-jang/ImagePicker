@@ -10,6 +10,7 @@ import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,10 +20,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import java.io.File
 
-internal class GalleryScreenViewModel constructor(
+internal class GalleryScreenViewModel(
     private val fileManager: FileManager,
     val localGalleryDataSource: LocalGalleryDataSource
 ) : ViewModel() {
@@ -41,11 +43,9 @@ internal class GalleryScreenViewModel constructor(
             page = 1,
             albumId = it.id
         )
-    }
-        .cachedIn(viewModelScope)
-        .combine(_selectedImages) { data, images ->
-            update(pagingData = data, selectedImages = images)
-        }
+    }.combine(_selectedImages) { data, images ->
+        update(pagingData = data, selectedImages = images)
+    }.flowOn(Dispatchers.Default).cachedIn(viewModelScope)
 
     private var _imageFile: File? = null
 
