@@ -56,7 +56,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun GalleryScreen(
     state: GalleryState = rememberGalleryState(),
-    album: Album = Album(id = null),
+    album: Album? = null,
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
@@ -73,19 +73,19 @@ fun GalleryScreen(
         )
     }
 
-    Log.e("jms8732", "GalleryScreen: $album")
-    if (album.id != null)
-        LaunchedEffect(key1 = album.id) {
-            //  viewModel.setSelectedAlbum(album = album)
+    if (album != null) {
+        LaunchedEffect(key1 = album) {
+            viewModel.setSelectedAlbum(album = album)
         }
+    }
 
     LaunchedEffect(viewModel) {
-        launch {
+        /*launch {
             viewModel.selectedImages.collectLatest {
                 state.updateImages(list = it)
             }
         }
-
+*/
         launch {
             viewModel.albums.collectLatest {
                 state.updateAlbums(list = it)
@@ -94,7 +94,6 @@ fun GalleryScreen(
 
         launch {
             viewModel.selectedAlbum.collectLatest {
-                Log.e("jms8732", "album: $it")
                 state.selectedAlbum.value = it
             }
         }
@@ -177,19 +176,16 @@ private fun GalleryScreen(
             count = images.itemCount,
             key = images.itemKey { it.id },
         ) {
-            var selected by remember { mutableStateOf(false) }
             images[it]?.let {
                 Box(
                     modifier = Modifier
                         .clickable {
                             onClick(it)
-                            selected = !selected
                         }
                         .aspectRatio(1f)
                 ) {
                     ImageCell(image = it)
-                    if (selected)
-                        content(it)
+                    content(it)
                 }
             }
         }
@@ -230,5 +226,5 @@ class GalleryState(
         _albums.value = list
     }
 
-    val selectedAlbum: MutableState<Album> = mutableStateOf(Album(id = null))
+    val selectedAlbum: MutableState<Album?> = mutableStateOf(null)
 }
