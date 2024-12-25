@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
                         val state = rememberGalleryState(
-                            max = 3,
+                            max = 30,
                             autoSelectAfterCapture = true
                         )
 
@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
                                             expand = true
                                         }
                                         .wrapContentHeight(Alignment.CenterVertically),
-                                    text = "${selectedAlbum.name} | ${selectedAlbum.count}",
+                                    text = "${selectedAlbum?.name} | ${selectedAlbum?.count}",
                                     fontSize = 20.sp,
                                     color = Color.Black,
                                     fontWeight = FontWeight.SemiBold
@@ -117,24 +117,25 @@ class MainActivity : ComponentActivity() {
                                 album = selectedAlbum,
                                 state = state,
                                 content = {
-                                    Box(
-                                        modifier = Modifier
-                                            .border(width = 3.5.dp, color = Purple40)
-                                            .background(color = Gray.copy(0.5f))
-                                            .fillMaxSize()
-                                    ) {
-                                        Text(
+                                    if (it.selected)
+                                        Box(
                                             modifier = Modifier
-                                                .background(
-                                                    color = Purple40,
-                                                    shape = CircleShape
-                                                )
-                                                .size(25.dp)
-                                                .align(Alignment.TopEnd),
-                                            text = "${it.selectedOrder + 1}",
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
+                                                .border(width = 3.5.dp, color = Purple40)
+                                                .background(color = Gray.copy(0.5f))
+                                                .fillMaxSize()
+                                        ) {
+                                            Text(
+                                                modifier = Modifier
+                                                    .background(
+                                                        color = Purple40,
+                                                        shape = CircleShape
+                                                    )
+                                                    .size(25.dp)
+                                                    .align(Alignment.TopEnd),
+                                                text = "${it.selectedOrder + 1}",
+                                                textAlign = TextAlign.Center
+                                            )
+                                        }
                                 }
                             )
                         }

@@ -1,6 +1,7 @@
 package com.jms.galleryselector.ui
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -29,8 +30,8 @@ internal class GalleryScreenViewModel(
     val localGalleryDataSource: LocalGalleryDataSource
 ) : ViewModel() {
     //selected gallery ids
-    private val _selectedImages = MutableStateFlow<List<Gallery.Image>>(mutableListOf())
-    val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
+    private val _selectedIds = MutableStateFlow<List<Long>>(mutableListOf())
+    val selectedIds: StateFlow<List<Long>> = _selectedIds.asStateFlow()
 
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
@@ -44,8 +45,8 @@ internal class GalleryScreenViewModel(
             albumId = it.id
         )
     }.cachedIn(viewModelScope)
-        .combine(_selectedImages) { data, images ->
-            update(pagingData = data, selectedImages = images)
+        .combine(_selectedIds) { data, images ->
+            update(pagingData = data, selectedIds = images)
         }.flowOn(Dispatchers.Default)
 
     private var _imageFile: File? = null
@@ -66,22 +67,16 @@ internal class GalleryScreenViewModel(
     }
 
     fun select(image: Gallery.Image, max: Int) {
-        _selectedImages.update {
+        _selectedIds.update {
             it.toMutableList().apply {
-                val index = indexOfFirst { it.id == image.id }
+                val index = indexOfFirst { it == image.id }
 
                 if (index == -1) {
                     //limit max size
-                    if (_selectedImages.value.size < max)
-                        add(
-                            image.copy(
-                                selectedOrder = size,
-                                selected = true
-                            )
-                        )
+                    if (_selectedIds.value.size < max)
+                        add(image.id)
                 } else {
                     removeAt(index)
-                    invalidSelectedOrdering(list = this, start = index)
                 }
             }
         }
@@ -122,12 +117,12 @@ internal class GalleryScreenViewModel(
 
     private fun update(
         pagingData: PagingData<Gallery.Image>,
-        selectedImages: List<Gallery.Image>
+        selectedIds: List<Long>
     ): PagingData<Gallery.Image> {
         return pagingData.map { image ->
             image.copy(
-                selectedOrder = selectedImages.indexOfFirst { it.id == image.id },
-                selected = selectedImages.firstOrNull { it.id == image.id }?.selected ?: false
+                selectedOrder = selectedIds.indexOfFirst { it == image.id },
+                selected = selectedIds.any { it == image.id }
             )
         }
     }
