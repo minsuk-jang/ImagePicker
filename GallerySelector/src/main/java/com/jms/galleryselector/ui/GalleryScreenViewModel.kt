@@ -1,37 +1,40 @@
 package com.jms.galleryselector.ui
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.jms.galleryselector.Constants
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.io.File
+import java.util.LinkedHashSet
+import kotlin.math.max
+import kotlin.math.min
 
 internal class GalleryScreenViewModel(
     private val fileManager: FileManager,
     val localGalleryDataSource: LocalGalleryDataSource
 ) : ViewModel() {
     //selected gallery ids
-    private val _selectedIds = MutableStateFlow<List<Long>>(mutableListOf())
-    val selectedIds: StateFlow<List<Long>> = _selectedIds.asStateFlow()
+    private val _selectedUris = MutableStateFlow<List<Uri>>(mutableListOf())
+    val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
 
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
@@ -45,8 +48,8 @@ internal class GalleryScreenViewModel(
             albumId = it.id
         )
     }.cachedIn(viewModelScope)
-        .combine(_selectedIds) { data, images ->
-            update(pagingData = data, selectedIds = images)
+        .combine(_selectedUris) { data, uris ->
+            update(pagingData = data, selectedUris = uris)
         }.flowOn(Dispatchers.Default)
 
     private var _imageFile: File? = null
@@ -66,17 +69,39 @@ internal class GalleryScreenViewModel(
         _selectedAlbum.update { album }
     }
 
-    fun select(image: Gallery.Image, max: Int) {
-        _selectedIds.update {
+    fun select(uri: Uri, max: Int) {
+        _selectedUris.update {
             it.toMutableList().apply {
-                val index = indexOfFirst { it == image.id }
+                val index = indexOfFirst { it == uri }
 
                 if (index == -1) {
                     //limit max size
-                    if (_selectedIds.value.size < max)
-                        add(image.id)
+                    if (_selectedUris.value.size < max)
+                        add(uri)
                 } else {
                     removeAt(index)
+                }
+            }
+        }
+    }
+
+    fun select(start: Int?, end: Int?, images: List<Gallery.Image>) {
+        if (start != null && end != null) {
+            viewModelScope.launch(Dispatchers.Default) {
+                val startIndex = (min(start, end) - 1).coerceAtLeast(0)
+                val endIndex = max(start, end)
+                val uris = images
+                    .map { it.uri }
+                    .subList(startIndex, endIndex)
+
+                Log.e(Constants.TAG, "startIndex >>> $startIndex || endIndex >>> $endIndex")
+                Log.e(Constants.TAG, "list: $uris")
+
+                _selectedUris.update {
+                    val set = LinkedHashSet<Uri>()
+
+                    set.plus(uris)
+                        .toMutableList()
                 }
             }
         }
@@ -91,8 +116,8 @@ internal class GalleryScreenViewModel(
         if (_imageFile != null) {
             fileManager.saveImageFile(context = context, file = _imageFile!!)
 
-            if (autoSelectAfterCapture)
-                select(image = localGalleryDataSource.getLocalGalleryImage(), max = max)
+            /*if (autoSelectAfterCapture)
+                select(image = localGalleryDataSource.getLocalGalleryImage(), max = max)*/
         }
     }
 
@@ -106,23 +131,14 @@ internal class GalleryScreenViewModel(
         setSelectedAlbum(album = newAlbum)
     }
 
-    private fun invalidSelectedOrdering(list: MutableList<Gallery.Image>, start: Int) {
-        for (i in start until list.size) {
-            val item = list[i]
-            list[i] = item.copy(
-                selectedOrder = item.selectedOrder - 1
-            )
-        }
-    }
-
     private fun update(
         pagingData: PagingData<Gallery.Image>,
-        selectedIds: List<Long>
+        selectedUris: List<Uri>
     ): PagingData<Gallery.Image> {
         return pagingData.map { image ->
             image.copy(
-                selectedOrder = selectedIds.indexOfFirst { it == image.id },
-                selected = selectedIds.any { it == image.id }
+                selectedOrder = selectedUris.indexOfFirst { it == image.uri },
+                selected = selectedUris.any { it == image.uri }
             )
         }
     }
