@@ -9,6 +9,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.jms.galleryselector.Constants
+import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Album
@@ -85,24 +86,57 @@ internal class GalleryScreenViewModel(
         }
     }
 
-    fun select(start: Int?, end: Int?, images: List<Gallery.Image>) {
-        if (start != null && end != null) {
+    fun select(
+        start: Int?,
+        middle: Int?,
+        end: Int?,
+        isInstantForward: Boolean,
+        isForward: Boolean,
+        images: List<Gallery.Image>,
+        max: Int
+    ) {
+        if (start != null && middle != null && end != null) {
             viewModelScope.launch(Dispatchers.Default) {
-                val startIndex = (min(start, end) - 1).coerceAtLeast(0)
-                val endIndex = max(start, end)
-                val uris = images
-                    .map { it.uri }
-                    .subList(startIndex, endIndex)
+                val startIndex = (min(middle, end) - 1).coerceAtLeast(0)
+                val endIndex = max(middle, end)
 
-                Log.e(Constants.TAG, "startIndex >>> $startIndex || endIndex >>> $endIndex")
-                Log.e(Constants.TAG, "list: $uris")
+                val new = images.subList(startIndex, endIndex)
 
-                _selectedUris.update {
-                    val set = LinkedHashSet<Uri>()
+                val newList = buildList {
+                    addAll(selectedUris.value)
 
-                    set.plus(uris)
-                        .toMutableList()
+                    new.forEach {
+                        when (isForward) {
+                            true -> {
+                                //down scroll
+                                if (isInstantForward) {
+                                    //add
+                                    if (!selectedUris.value.contains(it.uri)) {
+                                        add(it.uri)
+                                    }
+                                } else {
+                                    //remove
+                                    remove(it.uri)
+                                }
+                            }
+
+                            false -> {
+                                //up scroll
+                                if (!isInstantForward) {
+                                    //add
+                                    if (!selectedUris.value.contains(it.uri)) {
+                                        add(it.uri)
+                                    }
+                                } else {
+                                    // remove
+                                    remove(it.uri)
+                                }
+                            }
+                        }
+                    }
                 }
+
+                _selectedUris.update { newList }
             }
         }
     }

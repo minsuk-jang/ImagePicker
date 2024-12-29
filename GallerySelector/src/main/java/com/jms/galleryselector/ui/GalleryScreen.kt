@@ -138,8 +138,16 @@ fun GalleryScreen(
         onSelect = {
             viewModel.select(uri = it, max = state.max)
         },
-        onSelectGroup = { start, end, items ->
-            viewModel.select(start = start, end = end, images = items)
+        onSelectGroup = { start, middle, end, isInstantForward, isForward, items ->
+            viewModel.select(
+                start = start,
+                middle = middle,
+                end = end,
+                isInstantForward = isInstantForward,
+                isForward = isForward,
+                images = items,
+                max = state.max
+            )
         },
         onPhoto = {
             val file = viewModel.createImageFile()
@@ -163,7 +171,7 @@ private fun GalleryScreen(
     onClick: (Gallery.Image) -> Unit,
     onPhoto: () -> Unit,
     onSelect: (Uri) -> Unit,
-    onSelectGroup: (start: Int?, end: Int?, List<Gallery.Image>) -> Unit,
+    onSelectGroup: (start: Int?, middle: Int?, end: Int?, isInstantForward: Boolean, isForward: Boolean, List<Gallery.Image>) -> Unit,
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val state = rememberLazyGridState()
@@ -187,8 +195,15 @@ private fun GalleryScreen(
                 onSelect = onSelect,
                 autoScrollSpeed = autoScrollSpeed,
                 autoScrollThreshold = with(LocalDensity.current) { 30.dp.toPx() },
-                onGroupSelect = { start, end ->
-                    onSelectGroup(start, end, images.itemSnapshotList.items)
+                onGroupSelect = { start, middle, end, isInstantForward, isForward ->
+                    onSelectGroup(
+                        start,
+                        middle,
+                        end,
+                        isInstantForward,
+                        isForward,
+                        images.itemSnapshotList.items
+                    )
                 }
             ),
         state = state,
