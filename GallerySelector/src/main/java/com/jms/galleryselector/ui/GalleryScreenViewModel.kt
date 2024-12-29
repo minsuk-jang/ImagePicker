@@ -17,11 +17,14 @@ import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -35,7 +38,9 @@ internal class GalleryScreenViewModel(
 ) : ViewModel() {
     //selected gallery ids
     private val _selectedUris = MutableStateFlow<List<Uri>>(mutableListOf())
-    val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
+    val selectedImages: StateFlow<List<Gallery.Image>> = _selectedUris.map {
+    }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialValue = emptyList())
 
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
@@ -106,15 +111,17 @@ internal class GalleryScreenViewModel(
                 }
 
                 val newList = buildList {
-                    addAll(selectedUris.value)
+                    addAll(_selectedUris.value)
 
                     new.forEach {
                         when (isForward) {
-                            true -> {
+                            true -> if (isInstantForward) {
                                 //down scroll
                                 if (isInstantForward) {
                                     //add
-                                    if (!selectedUris.value.contains(it.uri)) {
+                                    if (max > size
+                                        && !_selectedUris.value.contains(it.uri)
+                                    ) {
                                         add(it.uri)
                                     }
                                 } else {
@@ -127,7 +134,9 @@ internal class GalleryScreenViewModel(
                                 //up scroll
                                 if (!isInstantForward) {
                                     //add
-                                    if (!selectedUris.value.contains(it.uri)) {
+                                    if (max > size
+                                        && !_selectedUris.value.contains(it.uri)
+                                    ) {
                                         add(it.uri)
                                     }
                                 } else {

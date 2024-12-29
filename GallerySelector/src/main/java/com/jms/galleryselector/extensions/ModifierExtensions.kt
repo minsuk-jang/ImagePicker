@@ -77,8 +77,8 @@ internal fun Modifier.photoGridDragHandler(
                 val distFromTop = change.position.y
 
                 autoScrollSpeed.value = when {
-                    distFromBottom < autoScrollThreshold -> 9.5f
-                    distFromTop < autoScrollThreshold -> -9.5f
+                    distFromBottom < autoScrollThreshold -> 10f
+                    distFromTop < autoScrollThreshold -> -10f
                     else -> 0f
                 }
 
@@ -95,13 +95,6 @@ internal fun Modifier.photoGridDragHandler(
                             false -> info.row > startRow
                         }
                         val isInstantForward = deltaY > 0
-
-                        Log.e(
-                            TAG, "[Drag]\n" +
-                                    "isForward: $isForward || isInstantForward: $isInstantForward\n" +
-                                    "prev row: ${prevRow} || row: ${info.row}\n" +
-                                    "delta: $deltaY"
-                        )
 
                         onGroupSelect(
                             initialIndex,
