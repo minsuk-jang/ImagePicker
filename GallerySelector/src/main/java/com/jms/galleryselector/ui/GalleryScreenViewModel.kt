@@ -100,7 +100,10 @@ internal class GalleryScreenViewModel(
                 val startIndex = (min(middle, end) - 1).coerceAtLeast(0)
                 val endIndex = max(middle, end)
 
-                val new = images.subList(startIndex, endIndex)
+                val new = when (isForward) {
+                    true -> images.subList(startIndex, endIndex)
+                    false -> images.subList(startIndex, endIndex).reversed()
+                }
 
                 val newList = buildList {
                     addAll(selectedUris.value)
