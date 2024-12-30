@@ -2,7 +2,6 @@ package com.jms.galleryselector.extensions
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -14,7 +13,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.toIntRect
-import com.jms.galleryselector.Constants.TAG
 
 
 @SuppressLint("ModifierFactoryUnreferencedReceiver")
@@ -24,8 +22,9 @@ internal fun Modifier.photoGridDragHandler(
     haptics: HapticFeedback,
     autoScrollSpeed: MutableState<Float>,
     autoScrollThreshold: Float,
-    onSelect: (Uri) -> Unit = {},
-    onGroupSelect: (start: Int?, middle: Int?, end: Int?, isInstantForward: Boolean, isForward: Boolean) -> Unit = { _, _, _, _, _ -> }
+    onDragStart: (Uri) -> Unit = {},
+    onDrag: (start: Int?, middle: Int?, end: Int?, pivot: Int?, curRow: Int?, prevRow: Int?) -> Unit = { _, _, _, _, _, _ -> },
+    onDragEnd: () -> Unit = {}
 ) = pointerInput(Unit) {
     var initialKey: Uri? = null
     var initialIndex: Int? = null
@@ -52,7 +51,7 @@ internal fun Modifier.photoGridDragHandler(
                     startRow = info.row
                     prevRow = info.row
 
-                    onSelect(key)
+                    onDragStart(key)
                 }
             }
         },
@@ -61,6 +60,8 @@ internal fun Modifier.photoGridDragHandler(
             initialIndex = null
 
             autoScrollSpeed.value = 0f
+
+            onDragEnd()
         },
         onDragEnd = {
             initialKey = null
@@ -69,6 +70,8 @@ internal fun Modifier.photoGridDragHandler(
             prevRow = -1
 
             autoScrollSpeed.value = 0f
+
+            onDragEnd()
         },
         onDrag = { change, _ ->
             if (initialKey != null) {
@@ -89,19 +92,13 @@ internal fun Modifier.photoGridDragHandler(
                     if (key == null) return@detectDragGesturesAfterLongPress
 
                     if (currentKey != key) {
-                        val deltaY = info.row - prevRow
-                        val isForward = when (info.row == startRow) {
-                            true -> !(deltaY > 0)
-                            false -> info.row > startRow
-                        }
-                        val isInstantForward = deltaY > 0
-
-                        onGroupSelect(
+                        onDrag(
                             initialIndex,
                             currentIndex,
                             index,
-                            isInstantForward,
-                            isForward
+                            startRow,
+                            info.row,
+                            prevRow
                         )
 
                         currentKey = key
