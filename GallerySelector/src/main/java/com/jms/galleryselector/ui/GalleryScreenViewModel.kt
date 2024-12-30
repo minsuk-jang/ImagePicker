@@ -115,7 +115,7 @@ internal class GalleryScreenViewModel(
     ) {
         if (start != null && middle != null && end != null && pivot != null && curRow != null && prevRow != null) {
             viewModelScope.launch(Dispatchers.Default) {
-                val startIndex = (min(middle, end)).coerceAtLeast(0)
+                val startIndex = (min(middle, end) - 1).coerceAtLeast(0)
                 val endIndex = max(middle, end)
 
                 val isUpward = pivot > curRow
@@ -124,6 +124,10 @@ internal class GalleryScreenViewModel(
                     true -> images.subList(startIndex, endIndex).reversed()
                     false -> images.subList(startIndex, endIndex)
                 }
+
+                Log.e(TAG, "pivot: $pivot\n" +
+                        "curRow: $curRow\n" +
+                        "prevRow: $prevRow", )
 
                 val newList = buildList {
                     addAll(_selectedUris.value)
@@ -135,11 +139,14 @@ internal class GalleryScreenViewModel(
                                 when (isInstantUpward) {
                                     true -> {
                                         //up
-                                        if (_initAction == Action.ADD
-                                            && max > size
-                                            && !_selectedUris.value.contains(it.uri)
-                                        ) {
-                                            add(it.uri)
+                                        when (_initAction) {
+                                            Action.ADD -> {
+                                                if (max > size && !_selectedUris.value.contains(it.uri)) {
+                                                    add(it.uri)
+                                                }
+                                            }
+
+                                            Action.REMOVE -> remove(it.uri)
                                         }
                                     }
 
@@ -164,11 +171,14 @@ internal class GalleryScreenViewModel(
                                 when (isInstantDownward) {
                                     true -> {
                                         //down
-                                        if (_initAction == Action.ADD
-                                            && max > size
-                                            && !_selectedUris.value.contains(it.uri)
-                                        ) {
-                                            add(it.uri)
+                                        when (_initAction) {
+                                            Action.ADD -> {
+                                                if (max > size && !_selectedUris.value.contains(it.uri)) {
+                                                    add(it.uri)
+                                                }
+                                            }
+
+                                            Action.REMOVE -> remove(it.uri)
                                         }
                                     }
 
