@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -98,7 +99,7 @@ class MainActivity : ComponentActivity() {
                                 )
                                 DropdownMenu(
                                     modifier = Modifier.wrapContentSize(),
-                                    expanded = expand, onDismissRequest = {  }) {
+                                    expanded = expand, onDismissRequest = { }) {
                                     albums.forEach {
                                         DropdownMenuItem(
                                             text = {

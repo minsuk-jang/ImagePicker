@@ -2,12 +2,10 @@ package com.jms.galleryselector.ui
 
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,7 +40,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.jms.galleryselector.Constants
-import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.R
 import com.jms.galleryselector.component.ImageCell
 import com.jms.galleryselector.data.GalleryPagingStream
@@ -57,8 +54,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  *
@@ -92,12 +87,11 @@ fun GalleryScreen(
     }
 
     LaunchedEffect(viewModel) {
-        /*launch {
+        launch {
             viewModel.selectedImages.collectLatest {
                 state.updateImages(list = it)
             }
         }
-*/
         launch {
             viewModel.albums.collectLatest {
                 state.updateAlbums(list = it)
@@ -135,19 +129,23 @@ fun GalleryScreen(
         onClick = {
             viewModel.select(uri = it.uri, max = state.max)
         },
-        onSelect = {
+        onDragStart = {
             viewModel.select(uri = it, max = state.max)
         },
-        onSelectGroup = { start, middle, end, isInstantForward, isForward, items ->
+        onDrag = { start, middle, end, pivot, curRow, prevRow, items ->
             viewModel.select(
                 start = start,
                 middle = middle,
                 end = end,
-                isInstantForward = isInstantForward,
-                isForward = isForward,
+                pivot = pivot,
+                curRow = curRow,
+                prevRow = prevRow,
                 images = items,
                 max = state.max
             )
+        },
+        onDragEnd = {
+            viewModel.synchronize()
         },
         onPhoto = {
             val file = viewModel.createImageFile()
@@ -170,8 +168,9 @@ private fun GalleryScreen(
     selectedUris: List<Uri>,
     onClick: (Gallery.Image) -> Unit,
     onPhoto: () -> Unit,
-    onSelect: (Uri) -> Unit,
-    onSelectGroup: (start: Int?, middle: Int?, end: Int?, isInstantForward: Boolean, isForward: Boolean, List<Gallery.Image>) -> Unit,
+    onDragStart: (Uri) -> Unit,
+    onDrag: (start: Int?, middle: Int?, end: Int?, pivot: Int?, curRow: Int?, prevRow: Int?, List<Gallery.Image>) -> Unit,
+    onDragEnd: () -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val state = rememberLazyGridState()
@@ -192,19 +191,21 @@ private fun GalleryScreen(
                 lazyGridState = state,
                 selectedImages = selectedUris,
                 haptics = LocalHapticFeedback.current,
-                onSelect = onSelect,
+                onDragStart = onDragStart,
                 autoScrollSpeed = autoScrollSpeed,
                 autoScrollThreshold = with(LocalDensity.current) { 30.dp.toPx() },
-                onGroupSelect = { start, middle, end, isInstantForward, isForward ->
-                    onSelectGroup(
+                onDrag = { start, middle, end, pivot, curRow, prevRow ->
+                    onDrag(
                         start,
                         middle,
                         end,
-                        isInstantForward,
-                        isForward,
+                        pivot,
+                        curRow,
+                        prevRow,
                         images.itemSnapshotList.items
                     )
-                }
+                },
+                onDragEnd = onDragEnd
             ),
         state = state,
         columns = GridCells.Fixed(3),

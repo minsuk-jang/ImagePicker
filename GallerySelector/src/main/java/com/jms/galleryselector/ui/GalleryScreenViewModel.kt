@@ -3,6 +3,7 @@ package com.jms.galleryselector.ui
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -12,6 +13,7 @@ import com.jms.galleryselector.Constants
 import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
+import com.jms.galleryselector.model.Action
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
 import kotlinx.coroutines.Dispatchers
@@ -36,11 +38,16 @@ internal class GalleryScreenViewModel(
     private val fileManager: FileManager,
     val localGalleryDataSource: LocalGalleryDataSource
 ) : ViewModel() {
+
+    //init action
+    private var _initAction: Action = Action.ADD //add
+
     //selected gallery ids
     private val _selectedUris = MutableStateFlow<List<Uri>>(mutableListOf())
-    val selectedImages: StateFlow<List<Gallery.Image>> = _selectedUris.map {
-    }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialValue = emptyList())
+    val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
+
+    private val _selectedImages = MutableStateFlow<MutableList<Gallery.Image>>(mutableListOf())
+    val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
 
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
@@ -82,10 +89,15 @@ internal class GalleryScreenViewModel(
 
                 if (index == -1) {
                     //limit max size
-                    if (_selectedUris.value.size < max)
+                    if (_selectedUris.value.size < max) {
                         add(uri)
+                        _initAction = Action.ADD
+                        performInternalAdditional(uri = uri)
+                    }
                 } else {
                     removeAt(index)
+                    _initAction = Action.REMOVE
+                    performInternalRemoval(uri = uri)
                 }
             }
         }
@@ -95,53 +107,84 @@ internal class GalleryScreenViewModel(
         start: Int?,
         middle: Int?,
         end: Int?,
-        isInstantForward: Boolean,
-        isForward: Boolean,
+        pivot: Int?,
+        curRow: Int?,
+        prevRow: Int?,
         images: List<Gallery.Image>,
         max: Int
     ) {
-        if (start != null && middle != null && end != null) {
+        if (start != null && middle != null && end != null && pivot != null && curRow != null && prevRow != null) {
             viewModelScope.launch(Dispatchers.Default) {
-                val startIndex = (min(middle, end) - 1).coerceAtLeast(0)
+                val startIndex = (min(middle, end)).coerceAtLeast(0)
                 val endIndex = max(middle, end)
 
-                val new = when (isForward) {
-                    true -> images.subList(startIndex, endIndex)
-                    false -> images.subList(startIndex, endIndex).reversed()
+                val isUpward = pivot > curRow
+
+                val new = when (isUpward) {
+                    true -> images.subList(startIndex, endIndex).reversed()
+                    false -> images.subList(startIndex, endIndex)
                 }
 
                 val newList = buildList {
                     addAll(_selectedUris.value)
 
                     new.forEach {
-                        when (isForward) {
-                            true -> if (isInstantForward) {
-                                //down scroll
-                                if (isInstantForward) {
-                                    //add
-                                    if (max > size
-                                        && !_selectedUris.value.contains(it.uri)
-                                    ) {
-                                        add(it.uri)
+                        when (isUpward) {
+                            true -> {
+                                val isInstantUpward = curRow < prevRow
+                                when (isInstantUpward) {
+                                    true -> {
+                                        //up
+                                        if (_initAction == Action.ADD
+                                            && max > size
+                                            && !_selectedUris.value.contains(it.uri)
+                                        ) {
+                                            add(it.uri)
+                                        }
                                     }
-                                } else {
-                                    //remove
-                                    remove(it.uri)
+
+                                    false -> {
+                                        //down
+                                        when (_initAction) {
+                                            Action.ADD -> remove(it.uri)
+                                            Action.REMOVE -> {
+                                                if (max > size
+                                                    && !_selectedUris.value.contains(it.uri)
+                                                ) {
+                                                    add(it.uri)
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
 
                             false -> {
-                                //up scroll
-                                if (!isInstantForward) {
-                                    //add
-                                    if (max > size
-                                        && !_selectedUris.value.contains(it.uri)
-                                    ) {
-                                        add(it.uri)
+                                val isInstantDownward = curRow > prevRow
+                                when (isInstantDownward) {
+                                    true -> {
+                                        //down
+                                        if (_initAction == Action.ADD
+                                            && max > size
+                                            && !_selectedUris.value.contains(it.uri)
+                                        ) {
+                                            add(it.uri)
+                                        }
                                     }
-                                } else {
-                                    // remove
-                                    remove(it.uri)
+
+                                    false -> {
+                                        //up
+                                        when (_initAction) {
+                                            Action.ADD -> remove(it.uri)
+                                            Action.REMOVE -> {
+                                                if (max > size
+                                                    && !_selectedUris.value.contains(it.uri)
+                                                ) {
+                                                    add(it.uri)
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -153,6 +196,40 @@ internal class GalleryScreenViewModel(
         }
     }
 
+    fun synchronize() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val newList = buildList {
+                _selectedUris.value.forEach {
+                    val image = localGalleryDataSource.getLocalGalleryImage(it)
+                    add(image)
+                }
+            }
+
+            _selectedImages.update { newList.toMutableList() }
+        }
+    }
+
+    private fun performInternalAdditional(uri: Uri) {
+        viewModelScope.launch(Dispatchers.Default) {
+            val image = localGalleryDataSource.getLocalGalleryImage(uri = uri)
+            val newList = _selectedImages.value.toMutableList().apply { add(image) }
+            _selectedImages.update { newList }
+        }
+    }
+
+    private fun performInternalRemoval(uri: Uri) {
+        viewModelScope.launch(Dispatchers.Default) {
+            val index = _selectedImages.value.indexOfFirst { it.uri == uri }
+            if (index != -1) {
+                val newList = _selectedImages.value.toMutableList().apply {
+                    removeAt(index)
+                }
+
+                _selectedImages.update { newList }
+            }
+        }
+    }
+
     fun createImageFile(): File {
         _imageFile = fileManager.createImageFile()
         return _imageFile ?: throw IllegalStateException("File is null!!")
@@ -160,10 +237,12 @@ internal class GalleryScreenViewModel(
 
     fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
-            fileManager.saveImageFile(context = context, file = _imageFile!!)
+            viewModelScope.launch(Dispatchers.IO) {
+                fileManager.saveImageFile(context = context, file = _imageFile!!)
 
-            /*if (autoSelectAfterCapture)
-                select(image = localGalleryDataSource.getLocalGalleryImage(), max = max)*/
+                if (autoSelectAfterCapture)
+                    select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
+            }
         }
     }
 
