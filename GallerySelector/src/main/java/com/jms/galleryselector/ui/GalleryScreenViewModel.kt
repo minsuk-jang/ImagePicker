@@ -2,15 +2,11 @@ package com.jms.galleryselector.ui
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.jms.galleryselector.Constants
-import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Action
@@ -25,12 +21,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
-import java.util.LinkedHashSet
 import kotlin.math.max
 import kotlin.math.min
 
@@ -43,8 +37,25 @@ internal class GalleryScreenViewModel(
     private var _initAction: Action = Action.ADD //add
 
     //selected gallery ids
-    private val _selectedUris = MutableStateFlow<List<Uri>>(mutableListOf())
-    val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
+    private val _previousUris = MutableStateFlow<List<Uri>>(mutableListOf())
+    private val _currentUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
+
+
+    /**
+     *
+     * previousUris, currentUris
+     * viewUris = combine(previousUris, currentUris)
+     *
+     * inter = previousUris, currentUris intersection
+     * previousUris - inter
+     *
+     * Move inter items to the front in currentUris
+     *
+     * then finally set previousUris + currentUris
+     */
+    val selectedUris: StateFlow<List<Uri>> = combine(_previousUris, _currentUris) { prev, cur ->
+        prev + cur
+    }.stateIn(viewModelScope, SharingStarted.Lazily, listOf())
 
     private val _selectedImages = MutableStateFlow<MutableList<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
@@ -61,7 +72,7 @@ internal class GalleryScreenViewModel(
             albumId = it.id
         )
     }.cachedIn(viewModelScope)
-        .combine(_selectedUris) { data, uris ->
+        .combine(selectedUris) { data, uris ->
             update(pagingData = data, selectedUris = uris)
         }.flowOn(Dispatchers.Default)
 
@@ -115,93 +126,13 @@ internal class GalleryScreenViewModel(
     ) {
         if (start != null && middle != null && end != null && pivot != null && curRow != null && prevRow != null) {
             viewModelScope.launch(Dispatchers.Default) {
-                val startIndex = (min(middle, end) - 1).coerceAtLeast(0)
-                val endIndex = max(middle, end)
+                val startIndex = (min(start, end) - 1).coerceAtLeast(0)
+                val endIndex = max(start, end)
 
-                val isUpward = pivot > curRow
+                val newList = images
+                    .subList(startIndex, endIndex).map { it.uri }
 
-                val new = when (isUpward) {
-                    true -> images.subList(startIndex, endIndex).reversed()
-                    false -> images.subList(startIndex, endIndex)
-                }
-
-                Log.e(TAG, "pivot: $pivot\n" +
-                        "curRow: $curRow\n" +
-                        "prevRow: $prevRow", )
-
-                val newList = buildList {
-                    addAll(_selectedUris.value)
-
-                    new.forEach {
-                        when (isUpward) {
-                            true -> {
-                                val isInstantUpward = curRow < prevRow
-                                when (isInstantUpward) {
-                                    true -> {
-                                        //up
-                                        when (_initAction) {
-                                            Action.ADD -> {
-                                                if (max > size && !_selectedUris.value.contains(it.uri)) {
-                                                    add(it.uri)
-                                                }
-                                            }
-
-                                            Action.REMOVE -> remove(it.uri)
-                                        }
-                                    }
-
-                                    false -> {
-                                        //down
-                                        when (_initAction) {
-                                            Action.ADD -> remove(it.uri)
-                                            Action.REMOVE -> {
-                                                if (max > size
-                                                    && !_selectedUris.value.contains(it.uri)
-                                                ) {
-                                                    add(it.uri)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            false -> {
-                                val isInstantDownward = curRow > prevRow
-                                when (isInstantDownward) {
-                                    true -> {
-                                        //down
-                                        when (_initAction) {
-                                            Action.ADD -> {
-                                                if (max > size && !_selectedUris.value.contains(it.uri)) {
-                                                    add(it.uri)
-                                                }
-                                            }
-
-                                            Action.REMOVE -> remove(it.uri)
-                                        }
-                                    }
-
-                                    false -> {
-                                        //up
-                                        when (_initAction) {
-                                            Action.ADD -> remove(it.uri)
-                                            Action.REMOVE -> {
-                                                if (max > size
-                                                    && !_selectedUris.value.contains(it.uri)
-                                                ) {
-                                                    add(it.uri)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                _selectedUris.update { newList }
+                _currentUris.update { newList }
             }
         }
     }
@@ -209,7 +140,7 @@ internal class GalleryScreenViewModel(
     fun synchronize() {
         viewModelScope.launch(Dispatchers.Default) {
             val newList = buildList {
-                _selectedUris.value.forEach {
+                selectedUris.value.forEach {
                     val image = localGalleryDataSource.getLocalGalleryImage(it)
                     add(image)
                 }
