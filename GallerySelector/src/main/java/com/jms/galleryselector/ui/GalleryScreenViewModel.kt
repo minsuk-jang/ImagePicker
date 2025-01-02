@@ -2,11 +2,13 @@ package com.jms.galleryselector.ui
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Action
@@ -40,19 +42,6 @@ internal class GalleryScreenViewModel(
     private val _previousUris = MutableStateFlow<List<Uri>>(mutableListOf())
     private val _currentUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
 
-
-    /**
-     *
-     * previousUris, currentUris
-     * viewUris = combine(previousUris, currentUris)
-     *
-     * inter = previousUris, currentUris intersection
-     * previousUris - inter
-     *
-     * Move inter items to the front in currentUris
-     *
-     * then finally set previousUris + currentUris
-     */
     val selectedUris: StateFlow<List<Uri>> = combine(_previousUris, _currentUris) { prev, cur ->
         prev + cur
     }.stateIn(viewModelScope, SharingStarted.Lazily, listOf())
@@ -94,13 +83,13 @@ internal class GalleryScreenViewModel(
     }
 
     fun select(uri: Uri, max: Int) {
-        _selectedUris.update {
+        _previousUris.update {
             it.toMutableList().apply {
                 val index = indexOfFirst { it == uri }
 
                 if (index == -1) {
                     //limit max size
-                    if (_selectedUris.value.size < max) {
+                    if (selectedUris.value.size < max) {
                         add(uri)
                         _initAction = Action.ADD
                         performInternalAdditional(uri = uri)
@@ -114,6 +103,18 @@ internal class GalleryScreenViewModel(
         }
     }
 
+    /**
+     *
+     * previousUris, currentUris
+     * viewUris = combine(previousUris, currentUris)
+     *
+     * inter = previousUris, currentUris intersection
+     * previousUris - inter
+     *
+     * Move inter items to the front in currentUris
+     *
+     * then finally set previousUris + currentUris
+     */
     fun select(
         start: Int?,
         middle: Int?,
@@ -129,15 +130,35 @@ internal class GalleryScreenViewModel(
                 val startIndex = (min(start, end) - 1).coerceAtLeast(0)
                 val endIndex = max(start, end)
 
-                val newList = images
-                    .subList(startIndex, endIndex).map { it.uri }
+                val tempList = when (start < end) {
+                    true -> images.subList(startIndex, endIndex).map { it.uri }
+                    false -> images.subList(startIndex, endIndex).map { it.uri }.reversed()
+                }
 
+                val prevSet = LinkedHashSet(_previousUris.value)
+                val newSet = LinkedHashSet(tempList)
+
+                val prevList = prevSet.subtract(newSet).toList()
+                val newList = LinkedHashSet(prevSet.intersect(newSet)).apply {
+                    addAll(newSet)
+                }.toList()
+
+                _previousUris.update { prevList }
                 _currentUris.update { newList }
             }
         }
     }
 
     fun synchronize() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val prev = LinkedHashSet(_previousUris.value).apply {
+                addAll(_currentUris.value)
+            }.toList()
+
+            _previousUris.update { prev }
+            _currentUris.update { listOf() }
+        }
+
         viewModelScope.launch(Dispatchers.Default) {
             val newList = buildList {
                 selectedUris.value.forEach {
