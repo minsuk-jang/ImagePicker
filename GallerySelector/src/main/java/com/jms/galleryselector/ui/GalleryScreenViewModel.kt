@@ -144,7 +144,7 @@ internal class GalleryScreenViewModel(
                     true -> images.subList(startIndex, endIndex).mapIndexed { index, image ->
                         OrderedUri(
                             order = when (image.selectedOrder == NO_ORDER) {
-                                true -> prevList.lastIndex + index
+                                true -> prevList.size + index
                                 false -> image.selectedOrder
                             },
                             uri = image.uri,
@@ -156,7 +156,7 @@ internal class GalleryScreenViewModel(
                         .mapIndexed { index, image ->
                             OrderedUri(
                                 order = when (image.selectedOrder == NO_ORDER) {
-                                    true -> prevList.lastIndex + index
+                                    true -> prevList.size + index
                                     false -> image.selectedOrder
                                 },
                                 uri = image.uri,
