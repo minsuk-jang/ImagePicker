@@ -8,12 +8,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.jms.galleryselector.Constants.NO_ORDER
 import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Action
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
+import com.jms.galleryselector.model.OrderedUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +23,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,17 +38,17 @@ internal class GalleryScreenViewModel(
     private val fileManager: FileManager,
     val localGalleryDataSource: LocalGalleryDataSource
 ) : ViewModel() {
-
     //init action
     private var _initAction: Action = Action.ADD //add
 
-    //selected gallery ids
-    private val _previousUris = MutableStateFlow<List<Uri>>(mutableListOf())
-    private val _currentUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
-
-    val selectedUris: StateFlow<List<Uri>> = combine(_previousUris, _currentUris) { prev, cur ->
-        prev + cur
-    }.stateIn(viewModelScope, SharingStarted.Lazily, listOf())
+    private val _selectedUris: MutableStateFlow<List<OrderedUri>> = MutableStateFlow(listOf())
+    val selectedUris: StateFlow<List<Uri>> = _selectedUris
+        .map {
+            it.map { it.uri }.apply {
+                Log.e(TAG, "$this ")
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, listOf())
 
     private val _selectedImages = MutableStateFlow<MutableList<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
@@ -61,8 +65,8 @@ internal class GalleryScreenViewModel(
             albumId = it.id
         )
     }.cachedIn(viewModelScope)
-        .combine(selectedUris) { data, uris ->
-            update(pagingData = data, selectedUris = uris)
+        .combine(_selectedUris) { data, uris ->
+            update(pagingData = data, orderUris = uris)
         }.flowOn(Dispatchers.Default)
 
     private var _imageFile: File? = null
@@ -83,14 +87,14 @@ internal class GalleryScreenViewModel(
     }
 
     fun select(uri: Uri, max: Int) {
-        _previousUris.update {
+        _selectedUris.update {
             it.toMutableList().apply {
-                val index = indexOfFirst { it == uri }
+                val index = indexOfFirst { it.uri == uri }
 
                 if (index == -1) {
                     //limit max size
-                    if (selectedUris.value.size < max) {
-                        add(uri)
+                    if (_selectedUris.value.size < max) {
+                        add(OrderedUri(order = _selectedUris.value.size, uri = uri, prev = true))
                         _initAction = Action.ADD
                         performInternalAdditional(uri = uri)
                     }
@@ -129,34 +133,50 @@ internal class GalleryScreenViewModel(
             viewModelScope.launch(Dispatchers.Default) {
                 val startIndex = (min(start, end) - 1).coerceAtLeast(0)
                 val endIndex = max(start, end)
+                val tempList = images.subList(startIndex, endIndex)
 
-                val tempList = when (start < end) {
-                    true -> images.subList(startIndex, endIndex).map { it.uri }
-                    false -> images.subList(startIndex, endIndex).map { it.uri }.reversed()
+                //selected && not contain current list
+                val prevList = _selectedUris.value.filter { uri ->
+                    uri.prev && !tempList.any { it.uri == uri.uri }
                 }
 
-                val prevSet = LinkedHashSet(_previousUris.value)
-                val newSet = LinkedHashSet(tempList)
+                val newList = when (start < end) {
+                    true -> images.subList(startIndex, endIndex).mapIndexed { index, image ->
+                        OrderedUri(
+                            order = when (image.selectedOrder == NO_ORDER) {
+                                true -> prevList.lastIndex + index
+                                false -> image.selectedOrder
+                            },
+                            uri = image.uri,
+                            prev = false
+                        )
+                    }
 
-                val prevList = prevSet.subtract(newSet).toList()
-                val newList = LinkedHashSet(prevSet.intersect(newSet)).apply {
-                    addAll(newSet)
-                }.toList()
+                    false -> images.subList(startIndex, endIndex).reversed()
+                        .mapIndexed { index, image ->
+                            OrderedUri(
+                                order = when (image.selectedOrder == NO_ORDER) {
+                                    true -> prevList.lastIndex + index
+                                    false -> image.selectedOrder
+                                },
+                                uri = image.uri,
+                                prev = false
+                            )
+                        }
+                }
 
-                _previousUris.update { prevList }
-                _currentUris.update { newList }
+                _selectedUris.update { prevList + newList }
             }
         }
     }
 
     fun synchronize() {
         viewModelScope.launch(Dispatchers.Default) {
-            val prev = LinkedHashSet(_previousUris.value).apply {
-                addAll(_currentUris.value)
-            }.toList()
-
-            _previousUris.update { prev }
-            _currentUris.update { listOf() }
+            _selectedUris.update {
+                it.map {
+                    it.copy(prev = true)
+                }
+            }
         }
 
         viewModelScope.launch(Dispatchers.Default) {
@@ -220,12 +240,12 @@ internal class GalleryScreenViewModel(
 
     private fun update(
         pagingData: PagingData<Gallery.Image>,
-        selectedUris: List<Uri>
+        orderUris: List<OrderedUri>
     ): PagingData<Gallery.Image> {
         return pagingData.map { image ->
             image.copy(
-                selectedOrder = selectedUris.indexOfFirst { it == image.uri },
-                selected = selectedUris.any { it == image.uri }
+                selectedOrder = orderUris.firstOrNull { it.uri == image.uri }?.order ?: NO_ORDER,
+                selected = orderUris.any { it.uri == image.uri }
             )
         }
     }
