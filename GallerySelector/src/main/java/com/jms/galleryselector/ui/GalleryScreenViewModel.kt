@@ -8,26 +8,20 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.jms.galleryselector.Constants.NO_ORDER
 import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Action
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
-import com.jms.galleryselector.model.OrderedUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -41,14 +35,10 @@ internal class GalleryScreenViewModel(
     //init action
     private var _initAction: Action = Action.ADD //add
 
-    private val _selectedUris: MutableStateFlow<List<OrderedUri>> = MutableStateFlow(listOf())
-    val selectedUris: StateFlow<List<Uri>> = _selectedUris
-        .map {
-            it.map { it.uri }.apply {
-                Log.e(TAG, "$this ")
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.Lazily, listOf())
+    private val _separateUris: LinkedHashSet<Uri> = LinkedHashSet()
+
+    private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
+    val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
 
     private val _selectedImages = MutableStateFlow<MutableList<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
@@ -66,7 +56,7 @@ internal class GalleryScreenViewModel(
         )
     }.cachedIn(viewModelScope)
         .combine(_selectedUris) { data, uris ->
-            update(pagingData = data, orderUris = uris)
+            update(pagingData = data, uris = uris)
         }.flowOn(Dispatchers.Default)
 
     private var _imageFile: File? = null
@@ -89,17 +79,21 @@ internal class GalleryScreenViewModel(
     fun select(uri: Uri, max: Int) {
         _selectedUris.update {
             it.toMutableList().apply {
-                val index = indexOfFirst { it.uri == uri }
+                val index = indexOfFirst { it == uri }
 
                 if (index == -1) {
                     //limit max size
                     if (_selectedUris.value.size < max) {
-                        add(OrderedUri(order = _selectedUris.value.size, uri = uri, prev = true))
+                        add(uri)
+                        _separateUris.add(uri)
+
                         _initAction = Action.ADD
                         performInternalAdditional(uri = uri)
                     }
                 } else {
                     removeAt(index)
+                    _separateUris.remove(uri)
+
                     _initAction = Action.REMOVE
                     performInternalRemoval(uri = uri)
                 }
@@ -133,50 +127,46 @@ internal class GalleryScreenViewModel(
             viewModelScope.launch(Dispatchers.Default) {
                 val startIndex = (min(start, end) - 1).coerceAtLeast(0)
                 val endIndex = max(start, end)
-                val tempList = images.subList(startIndex, endIndex)
 
-                //selected && not contain current list
-                val prevList = _selectedUris.value.filter { uri ->
-                    uri.prev && !tempList.any { it.uri == uri.uri }
-                }
-
-                val newList = when (start < end) {
-                    true -> images.subList(startIndex, endIndex).mapIndexed { index, image ->
-                        OrderedUri(
-                            order = when (image.selectedOrder == NO_ORDER) {
-                                true -> prevList.size + index
-                                false -> image.selectedOrder
-                            },
-                            uri = image.uri,
-                            prev = false
-                        )
+                /**
+                 *
+                 * 1. 이전 것을 리스트에 추가한다.
+                 * 1-1. 이전 것을 더할 때 현재 선택된 상태를 파악한다.
+                 * 1-2. selectedOrder에 맞게 uri를 넣는다
+                 *
+                 * 2. 현재 리스트를 반복한다.
+                 *  2-1. 현재 리스트의 element가 이전 것에 포함돼 있다.
+                 *  2-2. 이전 것의 element를 삭제시킨다.
+                 *  2-2. element가 없을 경우, 추가한다.
+                 */
+                val newList = buildList {
+                    val tempList = when (start < end) {
+                        true -> images.subList(startIndex, endIndex)
+                        false -> images.subList(startIndex, endIndex).reversed()
                     }
 
-                    false -> images.subList(startIndex, endIndex).reversed()
-                        .mapIndexed { index, image ->
-                            OrderedUri(
-                                order = when (image.selectedOrder == NO_ORDER) {
-                                    true -> prevList.size + index
-                                    false -> image.selectedOrder
-                                },
-                                uri = image.uri,
-                                prev = false
-                            )
+                    tempList.forEach {
+                        if (!_separateUris.contains(it.uri)) {
+                            add(it.uri)
                         }
+                    }
+
+                    tempList.forEach {
+                        if (_separateUris.contains(it.uri)) {
+                            add(it.selectedOrder, it.uri)
+                            _separateUris.remove(it.uri)
+                        }
+                    }
                 }
 
-                _selectedUris.update { prevList + newList }
+                _selectedUris.update { newList }
             }
         }
     }
 
     fun synchronize() {
         viewModelScope.launch(Dispatchers.Default) {
-            _selectedUris.update {
-                it.map {
-                    it.copy(prev = true)
-                }
-            }
+            _separateUris.addAll(selectedUris.value)
         }
 
         viewModelScope.launch(Dispatchers.Default) {
@@ -240,12 +230,12 @@ internal class GalleryScreenViewModel(
 
     private fun update(
         pagingData: PagingData<Gallery.Image>,
-        orderUris: List<OrderedUri>
+        uris: List<Uri>
     ): PagingData<Gallery.Image> {
         return pagingData.map { image ->
             image.copy(
-                selectedOrder = orderUris.firstOrNull { it.uri == image.uri }?.order ?: NO_ORDER,
-                selected = orderUris.any { it.uri == image.uri }
+                selectedOrder = uris.indexOfFirst { it == image.uri },
+                selected = uris.any { it == image.uri }
             )
         }
     }
