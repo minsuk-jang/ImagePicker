@@ -2,13 +2,11 @@ package com.jms.galleryselector.ui
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Action
@@ -110,18 +108,6 @@ internal class GalleryScreenViewModel(
         }
     }
 
-    /**
-     *
-     * previousUris, currentUris
-     * viewUris = combine(previousUris, currentUris)
-     *
-     * inter = previousUris, currentUris intersection
-     * previousUris - inter
-     *
-     * Move inter items to the front in currentUris
-     *
-     * then finally set previousUris + currentUris
-     */
     fun select(
         start: Int?,
         middle: Int?,
@@ -152,6 +138,10 @@ internal class GalleryScreenViewModel(
                             val uri = _separateUris.elementAt(idx)
 
                             _separateUris.remove(uri)
+
+                            if(_initAction == Action.REMOVE){
+                                remove(uri)
+                            }
                         } else {
                             //not contain
                             if (_initAction == Action.ADD && size < max) {
