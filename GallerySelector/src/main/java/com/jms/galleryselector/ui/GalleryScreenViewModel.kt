@@ -14,6 +14,7 @@ import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Action
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
+import com.jms.galleryselector.model.OrderedUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +36,7 @@ internal class GalleryScreenViewModel(
     //init action
     private var _initAction: Action = Action.ADD //add
 
-    private val _separateUris: LinkedHashSet<Uri> = LinkedHashSet()
+    private val _separateUris: LinkedHashSet<OrderedUri> = LinkedHashSet()
 
     private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
     val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
@@ -85,14 +86,22 @@ internal class GalleryScreenViewModel(
                     //limit max size
                     if (_selectedUris.value.size < max) {
                         add(uri)
-                        _separateUris.add(uri)
+                        _separateUris.add(
+                            OrderedUri(
+                                order = _selectedUris.value.size,
+                                uri = uri
+                            )
+                        )
 
                         _initAction = Action.ADD
                         performInternalAdditional(uri = uri)
                     }
                 } else {
                     removeAt(index)
-                    _separateUris.remove(uri)
+
+                    val idx = _separateUris.indexOfFirst { it.uri == uri }
+                    val element = _separateUris.elementAt(idx)
+                    _separateUris.remove(element)
 
                     _initAction = Action.REMOVE
                     performInternalRemoval(uri = uri)
@@ -128,45 +137,53 @@ internal class GalleryScreenViewModel(
                 val startIndex = (min(start, end) - 1).coerceAtLeast(0)
                 val endIndex = max(start, end)
 
-                /**
-                 *
-                 * 1. 이전 것을 리스트에 추가한다.
-                 * 1-1. 이전 것을 더할 때 현재 선택된 상태를 파악한다.
-                 * 1-2. selectedOrder에 맞게 uri를 넣는다
-                 *
-                 * 2. 현재 리스트를 반복한다.
-                 *  2-1. 현재 리스트의 element가 이전 것에 포함돼 있다.
-                 *  2-2. 이전 것의 element를 삭제시킨다.
-                 *  2-2. element가 없을 경우, 추가한다.
-                 */
                 val newList = buildList {
                     val tempList = when (start < end) {
                         true -> images.subList(startIndex, endIndex)
                         false -> images.subList(startIndex, endIndex).reversed()
                     }
 
-                    tempList.forEach {
-                        if (!_separateUris.contains(it.uri)) {
-                            add(it.uri)
+                    addAll(_separateUris)
+
+                    tempList.forEachIndexed { index, image ->
+                        val idx = _separateUris.indexOfFirst { it.uri == image.uri }
+                        if (idx != -1) {
+                            //already selected
+                            val uri = _separateUris.elementAt(idx)
+
+                            _separateUris.remove(uri)
+                        } else {
+                            //not contain
+                            if (_initAction == Action.ADD && size < max) {
+                                add(
+                                    OrderedUri(
+                                        order = when (_selectedUris.value.contains(image.uri)) {
+                                            true -> image.selectedOrder
+                                            false -> _selectedUris.value.size + index
+                                        },
+                                        uri = image.uri
+                                    )
+                                )
+                            }
                         }
                     }
 
-                    tempList.forEach {
-                        if (_separateUris.contains(it.uri)) {
-                            add(it.selectedOrder, it.uri)
-                            _separateUris.remove(it.uri)
-                        }
-                    }
-                }
+                }.sortedBy { it.order }.map { it.uri }
 
                 _selectedUris.update { newList }
             }
         }
     }
 
+
     fun synchronize() {
         viewModelScope.launch(Dispatchers.Default) {
-            _separateUris.addAll(selectedUris.value)
+            _separateUris.addAll(_selectedUris.value.mapIndexed { index, uri ->
+                OrderedUri(
+                    order = index,
+                    uri = uri
+                )
+            })
         }
 
         viewModelScope.launch(Dispatchers.Default) {

@@ -4,8 +4,7 @@ import android.net.Uri
 
 data class OrderedUri(
     val order: Int,
-    val uri: Uri,
-    val prev : Boolean
+    val uri: Uri
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
