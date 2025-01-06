@@ -2,11 +2,13 @@ package com.jms.galleryselector.ui
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
+import com.jms.galleryselector.Constants.TAG
 import com.jms.galleryselector.data.LocalGalleryDataSource
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Action
@@ -98,8 +100,7 @@ internal class GalleryScreenViewModel(
                     removeAt(index)
 
                     val idx = _separateUris.indexOfFirst { it.uri == uri }
-                    val element = _separateUris.elementAt(idx)
-                    _separateUris.remove(element)
+                    _separateUris.remove(_separateUris.elementAt(idx))
 
                     _initAction = Action.REMOVE
                     performInternalRemoval(uri = uri)
@@ -136,10 +137,9 @@ internal class GalleryScreenViewModel(
                         if (idx != -1) {
                             //already selected
                             val uri = _separateUris.elementAt(idx)
-
                             _separateUris.remove(uri)
 
-                            if(_initAction == Action.REMOVE){
+                            if (_initAction == Action.REMOVE) {
                                 remove(uri)
                             }
                         } else {
@@ -147,9 +147,9 @@ internal class GalleryScreenViewModel(
                             if (_initAction == Action.ADD && size < max) {
                                 add(
                                     OrderedUri(
-                                        order = when (_selectedUris.value.contains(image.uri)) {
+                                        order = when (image.selected) {
                                             true -> image.selectedOrder
-                                            false -> _selectedUris.value.size + index
+                                            false -> size + index
                                         },
                                         uri = image.uri
                                     )
@@ -157,9 +157,7 @@ internal class GalleryScreenViewModel(
                             }
                         }
                     }
-
                 }.sortedBy { it.order }.map { it.uri }
-
                 _selectedUris.update { newList }
             }
         }
@@ -168,6 +166,7 @@ internal class GalleryScreenViewModel(
 
     fun synchronize() {
         viewModelScope.launch(Dispatchers.Default) {
+            _separateUris.clear()
             _separateUris.addAll(_selectedUris.value.mapIndexed { index, uri ->
                 OrderedUri(
                     order = index,
