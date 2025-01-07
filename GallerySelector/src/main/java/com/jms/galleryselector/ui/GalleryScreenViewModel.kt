@@ -177,8 +177,11 @@ internal class GalleryScreenViewModel(
 
         viewModelScope.launch(Dispatchers.Default) {
             val newList = buildList {
-                selectedUris.value.forEach {
-                    val image = localGalleryDataSource.getLocalGalleryImage(it)
+                selectedUris.value.forEachIndexed { index, uri ->
+                    val image = localGalleryDataSource.getLocalGalleryImage(uri).copy(
+                        selectedOrder = index,
+                        selected = true
+                    )
                     add(image)
                 }
             }
