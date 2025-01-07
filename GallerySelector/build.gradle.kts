@@ -82,7 +82,7 @@ publishing{
         register<MavenPublication>("release"){
             groupId = "com.github.minsuk-jang"
             artifactId = "GallerySelector"
-            version = "1.0.9"
+            version = "1.0.10"
 
             afterEvaluate{
                 from(components["release"])
