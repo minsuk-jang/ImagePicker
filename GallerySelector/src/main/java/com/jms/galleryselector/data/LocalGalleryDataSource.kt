@@ -64,9 +64,9 @@ internal class LocalGalleryDataSource(
         }
     }
 
-    fun getLocalGalleryImage(): Gallery.Image {
+    fun getLocalGalleryImage(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): Gallery.Image {
         contentManager.getCursor(
-            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            uri = uri,
             offset = 0,
             albumId = null,
             limit = 1,

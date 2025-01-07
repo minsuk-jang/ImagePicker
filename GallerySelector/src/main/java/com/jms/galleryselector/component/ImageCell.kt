@@ -22,7 +22,7 @@ internal fun ImageCell(
     image: Gallery.Image
 ) {
     AsyncImage(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
             .crossfade(true)
             .allowHardware(true)
