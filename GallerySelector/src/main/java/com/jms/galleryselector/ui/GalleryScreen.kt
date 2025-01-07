@@ -273,7 +273,7 @@ class GalleryState(
     val autoSelectAfterCapture: Boolean = false
 ) {
     private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
-    val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
+    val selectedImages: State<List<Gallery.Image>> = _selectedImages
 
     //update images
     internal fun updateImages(list: List<Gallery.Image>) {

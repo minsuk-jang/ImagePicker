@@ -75,6 +75,7 @@ class MainActivity : ComponentActivity() {
                             autoSelectAfterCapture = true
                         )
 
+                        val images by state.selectedImages
                         val albums = state.albums.value
                         var selectedAlbum by state.selectedAlbum
 
