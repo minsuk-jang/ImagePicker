@@ -1,11 +1,12 @@
 package com.jms.galleryselector.ui
 
+import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,12 +23,15 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -39,23 +44,26 @@ import com.jms.galleryselector.R
 import com.jms.galleryselector.component.ImageCell
 import com.jms.galleryselector.data.GalleryPagingStream
 import com.jms.galleryselector.data.LocalGalleryDataSource
+import com.jms.galleryselector.extensions.photoGridDragHandler
 import com.jms.galleryselector.manager.API21MediaContentManager
 import com.jms.galleryselector.manager.API29MediaContentManager
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
  *
  * @param album: selected album, when album is null, load total media content
  */
+
 @Composable
 fun GalleryScreen(
     state: GalleryState = rememberGalleryState(),
-    album: Album = Album(id = null),
+    album: Album? = null,
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
@@ -72,10 +80,10 @@ fun GalleryScreen(
         )
     }
 
-    val selectedAlbum by viewModel.selectedAlbum.collectAsState()
-
-    if (album.id != selectedAlbum.id) {
-        viewModel.setSelectedAlbum(album = album)
+    if (album != null) {
+        LaunchedEffect(key1 = album) {
+            viewModel.setSelectedAlbum(album = album)
+        }
     }
 
     LaunchedEffect(viewModel) {
@@ -84,7 +92,6 @@ fun GalleryScreen(
                 state.updateImages(list = it)
             }
         }
-
         launch {
             viewModel.albums.collectLatest {
                 state.updateAlbums(list = it)
@@ -98,10 +105,10 @@ fun GalleryScreen(
         }
     }
 
-    val contents = viewModel.contents.collectAsLazyPagingItems(context = Dispatchers.Default)
+    val contents = viewModel.contents.collectAsLazyPagingItems()
+    val selectedUris by viewModel.selectedUris.collectAsState()
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
-            Log.e("jms8732", "$it", )
             if (it) {
                 viewModel.saveImageFile(
                     context = context,
@@ -118,8 +125,27 @@ fun GalleryScreen(
     GalleryScreen(
         images = contents,
         content = content,
+        selectedUris = selectedUris,
         onClick = {
-            viewModel.select(image = it, max = state.max)
+            viewModel.select(uri = it.uri, max = state.max)
+        },
+        onDragStart = {
+            viewModel.select(uri = it, max = state.max)
+        },
+        onDrag = { start, middle, end, pivot, curRow, prevRow, items ->
+            viewModel.select(
+                start = start,
+                middle = middle,
+                end = end,
+                pivot = pivot,
+                curRow = curRow,
+                prevRow = prevRow,
+                images = items,
+                max = state.max
+            )
+        },
+        onDragEnd = {
+            viewModel.synchronize()
         },
         onPhoto = {
             val file = viewModel.createImageFile()
@@ -139,12 +165,49 @@ fun GalleryScreen(
 private fun GalleryScreen(
     modifier: Modifier = Modifier,
     images: LazyPagingItems<Gallery.Image>,
+    selectedUris: List<Uri>,
     onClick: (Gallery.Image) -> Unit,
     onPhoto: () -> Unit,
+    onDragStart: (Uri) -> Unit,
+    onDrag: (start: Int?, middle: Int?, end: Int?, pivot: Int?, curRow: Int?, prevRow: Int?, List<Gallery.Image>) -> Unit,
+    onDragEnd: () -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
+    val state = rememberLazyGridState()
+    val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
+
+    LaunchedEffect(key1 = autoScrollSpeed.floatValue) {
+        if (autoScrollSpeed.floatValue != 0f) {
+            while (isActive) {
+                state.scrollBy(autoScrollSpeed.floatValue)
+                delay(10)
+            }
+        }
+    }
+
     LazyVerticalGrid(
-        modifier = modifier,
+        modifier = modifier
+            .photoGridDragHandler(
+                lazyGridState = state,
+                selectedImages = selectedUris,
+                haptics = LocalHapticFeedback.current,
+                onDragStart = onDragStart,
+                autoScrollSpeed = autoScrollSpeed,
+                autoScrollThreshold = with(LocalDensity.current) { 30.dp.toPx() },
+                onDrag = { start, middle, end, pivot, curRow, prevRow ->
+                    onDrag(
+                        start,
+                        middle,
+                        end,
+                        pivot,
+                        curRow,
+                        prevRow,
+                        images.itemSnapshotList.items
+                    )
+                },
+                onDragEnd = onDragEnd
+            ),
+        state = state,
         columns = GridCells.Fixed(3),
         verticalArrangement = Arrangement.spacedBy(3.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp),
@@ -168,7 +231,10 @@ private fun GalleryScreen(
             }
         }
 
-        items(images.itemCount, key = images.itemKey { it.id }) {
+        items(
+            count = images.itemCount,
+            key = images.itemKey { it.uri },
+        ) {
             images[it]?.let {
                 Box(
                     modifier = Modifier
@@ -177,7 +243,10 @@ private fun GalleryScreen(
                         }
                         .aspectRatio(1f)
                 ) {
-                    ImageCell(image = it)
+                    ImageCell(
+                        modifier = Modifier.matchParentSize(),
+                        image = it
+                    )
                     content(it)
                 }
             }
@@ -204,7 +273,7 @@ class GalleryState(
     val autoSelectAfterCapture: Boolean = false
 ) {
     private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
-    val selectedImagesState: State<List<Gallery.Image>> = _selectedImages
+    val selectedImages: State<List<Gallery.Image>> = _selectedImages
 
     //update images
     internal fun updateImages(list: List<Gallery.Image>) {
@@ -219,5 +288,5 @@ class GalleryState(
         _albums.value = list
     }
 
-    val selectedAlbum: MutableState<Album> = mutableStateOf(Album(id = null))
+    val selectedAlbum: MutableState<Album?> = mutableStateOf(null)
 }

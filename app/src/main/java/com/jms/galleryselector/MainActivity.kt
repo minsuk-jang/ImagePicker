@@ -10,7 +10,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,11 +54,12 @@ class MainActivity : ComponentActivity() {
             ) {
                 // A surface container using the 'background' color from the theme
 
+                //PhotosGrid()
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-
                     val arrays = if (Build.VERSION_CODES.TIRAMISU <= Build.VERSION.SDK_INT) {
                         arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
                     } else
@@ -71,10 +71,11 @@ class MainActivity : ComponentActivity() {
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
                         val state = rememberGalleryState(
-                            max = 3,
+                            max = 30,
                             autoSelectAfterCapture = true
                         )
 
+                        val images by state.selectedImages
                         val albums = state.albums.value
                         var selectedAlbum by state.selectedAlbum
 
@@ -92,14 +93,14 @@ class MainActivity : ComponentActivity() {
                                             expand = true
                                         }
                                         .wrapContentHeight(Alignment.CenterVertically),
-                                    text = "${selectedAlbum.name} | ${selectedAlbum.count}",
+                                    text = "${selectedAlbum?.name} | ${selectedAlbum?.count}",
                                     fontSize = 20.sp,
                                     color = Color.Black,
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 DropdownMenu(
                                     modifier = Modifier.wrapContentSize(),
-                                    expanded = expand, onDismissRequest = { /*TODO*/ }) {
+                                    expanded = expand, onDismissRequest = { }) {
                                     albums.forEach {
                                         DropdownMenuItem(
                                             text = {
@@ -118,7 +119,7 @@ class MainActivity : ComponentActivity() {
                                 album = selectedAlbum,
                                 state = state,
                                 content = {
-                                    if (it.selected) {
+                                    if (it.selected)
                                         Box(
                                             modifier = Modifier
                                                 .border(width = 3.5.dp, color = Purple40)
@@ -137,7 +138,6 @@ class MainActivity : ComponentActivity() {
                                                 textAlign = TextAlign.Center
                                             )
                                         }
-                                    }
                                 }
                             )
                         }
