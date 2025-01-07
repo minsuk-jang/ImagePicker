@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import kotlin.math.max
 import kotlin.math.min
@@ -158,6 +159,7 @@ internal class GalleryScreenViewModel(
                         }
                     }
                 }.sortedBy { it.order }.map { it.uri }
+
                 _selectedUris.update { newList }
             }
         }
@@ -218,12 +220,14 @@ internal class GalleryScreenViewModel(
 
     fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
-            viewModelScope.launch(Dispatchers.IO) {
+         //   viewModelScope.launch(Dispatchers.IO) {
                 fileManager.saveImageFile(context = context, file = _imageFile!!)
 
-                if (autoSelectAfterCapture)
+                Log.e(TAG, "saveImageFile: ${localGalleryDataSource.getLocalGalleryImage().uri}")
+                if (autoSelectAfterCapture) {
                     select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
-            }
+                }
+         //   }
         }
     }
 
