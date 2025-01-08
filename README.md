@@ -4,7 +4,10 @@
 <img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666" width="240"/>
 <img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="240"/>
 <img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="240"/>
+<br>
 <img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width="240"/>
+<img src = "https://github.com/user-attachments/assets/1314c2e5-2d7b-4127-9048-4a085cf34ba5" width="240"/>
+
 </p>
 
 <div align = "center">
@@ -23,7 +26,7 @@ Additionally, it enables numbering for selected contents and get latest total se
 ## ✅ Feature
 - [x] Custom Content Cell UI
 - [x] Content's Selected Order
-- [ ] Multi Select Behaivor
+- [x] Multi Select Behaivor
 - [x] Load Content by Paging
 - [x] Camera
 - [x] Album
@@ -49,7 +52,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 ``` gradle
 dependencies {
-    implementation 'com.github.minsuk-jang:GallerySelector:1.0.9'
+    implementation 'com.github.minsuk-jang:GallerySelector:1.0.10'
 }
 ```
 
@@ -225,3 +228,6 @@ GalleryScreen(
     state = state,
 )
 ```
+
+
+  ![2025-01-079 26 45-ezgif com-video-to-gif-converter (1)](https://github.com/user-attachments/assets/1314c2e5-2d7b-4127-9048-4a085cf34ba5)
