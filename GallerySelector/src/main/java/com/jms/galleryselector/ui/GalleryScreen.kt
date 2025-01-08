@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +51,7 @@ import com.jms.galleryselector.manager.API29MediaContentManager
 import com.jms.galleryselector.manager.FileManager
 import com.jms.galleryselector.model.Album
 import com.jms.galleryselector.model.Gallery
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
@@ -66,6 +68,7 @@ fun GalleryScreen(
     album: Album? = null,
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val viewModel: GalleryScreenViewModel = viewModel {
         GalleryScreenViewModel(
@@ -148,14 +151,16 @@ fun GalleryScreen(
             viewModel.synchronize()
         },
         onPhoto = {
-            val file = viewModel.createImageFile()
-
-            cameraLaunch.launch(
-                FileProvider.getUriForFile(
-                    context, "com.jms.galleryselector.fileprovider",
-                    file
+            scope.launch(Dispatchers.IO) {
+                val file = viewModel.createImageFile()
+                cameraLaunch.launch(
+                    FileProvider.getUriForFile(
+                        context, "com.jms.galleryselector.fileprovider",
+                        file
+                    )
                 )
-            )
+            }
+
         }
     )
 }
