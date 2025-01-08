@@ -58,6 +58,10 @@ internal class GalleryScreenViewModel(
         )
     }.cachedIn(viewModelScope)
         .combine(_selectedUris) { data, uris ->
+            Log.e(
+                TAG, "Uri: $uris\n" +
+                        "Thread: ${Thread.currentThread().name}"
+            )
             update(pagingData = data, uris = uris)
         }.flowOn(Dispatchers.Default)
 
@@ -220,14 +224,11 @@ internal class GalleryScreenViewModel(
 
     fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
-         //   viewModelScope.launch(Dispatchers.IO) {
-                fileManager.saveImageFile(context = context, file = _imageFile!!)
+            fileManager.saveImageFile(context = context, file = _imageFile!!)
 
-                Log.e(TAG, "saveImageFile: ${localGalleryDataSource.getLocalGalleryImage().uri}")
-                if (autoSelectAfterCapture) {
-                    select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
-                }
-         //   }
+            if (autoSelectAfterCapture) {
+                select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
+            }
         }
     }
 
