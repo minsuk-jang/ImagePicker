@@ -19,8 +19,6 @@
 <br>
  The Image Picker library created in the Compose language. <br>
 It allows customization of the content cell and supports both single and multiple selections.<br> 
-Additionally, it enables numbering for selected contents and get latest total selected contents.
-
 </div>
 
 ## ✅ Feature
@@ -66,7 +64,8 @@ dependencies {
 ```
 
 ### GalleryScreen
-`GalleryScreen` fetches the list of contents from the device. and customize each content cell through `Content` parameter.<br>
+GalleryScreen fetches the list of contents from the device using Paging 3 Library. Customize each content cell through the `Content` parameter, where the Image class is passed to enable flexible UI customization. It also supports Multi-Select behavior through drag gestures, allowing users to select multiple items intuitively.
+
 ``` kotlin
 @Composable
 fun GalleryScreen(
@@ -75,58 +74,14 @@ fun GalleryScreen(
 )
 ```
 
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" align="right" width="270"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="270"/>
+<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="270"/> 
+<img src = "https://github.com/user-attachments/assets/1314c2e5-2d7b-4127-9048-4a085cf34ba5" width="270" />
 
-Here is an example where it is represented by a checkmark when selected
-``` kotlin
- GalleryScreen(
-    state = state,
-    content = {
-      if (it.selected) {
-        Box(modifier = Modifier.fillMaxSize()) {
-          Icon(
-            modifier = Modifier.align(Alignment.TopEnd),
-            painter = painterResource(id = R.drawable.done_black_24dp),
-            contentDescription = null,
-            tint = Color.Green
-          )
-      }
-    }
-  }
-)
-
-```
 <br>
 
-### Image
-When you click content cell, get image class inherited from Gallery. You can use `selectedOrder` and `selected` to check the selection order, status. It's properties as below.
-``` kotlin
-class Image(
-  val id: Long, //Media content id
-  val title: String, //Media content title
-  val dateAt: Long, // Media content date token
-  val data: String, //Media content data (File size)
-  val uri: Uri,
-  val mimeType: String, 
-  val album: String, //Media content album name
-  val albumId: String //Media conten album id
-  val selectedOrder: Int = Constants.NO_ORDER, //Media content selected order
-  val selected : Boolean = false //Current selected flag
-) : Gallery
-```
-
-### Album
-If the album id is null, it fetch all images.
-``` kotlin
-class Album(
-  val id: String? = null, //album id
-  val name: String = "", //album name
-  val count: Int = 0, //number of images in the album
-)
-```
-
 ### GalleryState
-GalleryState sets the required configurations for `GalleryScreen` and provides contents state. 
+GalleryState sets the required configurations for GalleryScreen and provides contents state. 
 Becuase of using `State` type, you can always get the most latest value.
 
 ``` kotlin 
@@ -141,35 +96,7 @@ class GalleryState(
 }
 ```
 
-#### max
-You can set the maximum selection value using the `max` variable. Here is an example showing the order of selected content and the total number of selected contents.
-
-<div display= "inline-block;" >
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" align = "right" width="270"/> 
-</div>
-
-``` kotlin
-val state = rememberGalleryState(max = 10)
-val list = state.selectedImagesState.value
-
-Scaffold(
-    topBar = {
-        Text(
-            text = "${list.size} / ${state.max}"
-        )
-    }
-) {
-    GalleryScreen(
-        state = state,
-        content = {
-            if (it.selected) {
-                Text(
-                    text = "${it.selectedOrder + 1}",
-                )
-            }
-        })
-}
-```
+<img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width ="270"/>
 
 #### autoSelectAfterCapture
 `autoSelectAfterChange` is a flag indicating whether the taken photo will be automatically selected after being captured. When you set `autoSelectAfterChange` flag true, it will be selected automatically
@@ -197,9 +124,6 @@ Scaffold(
 
 #### albums
 The variables `albums` and `selectedAlbum`, which are of type `State`, are in GalleryState. `albums` provides a list of albums in device. Also by passing the selected album as a parameter to GalleryScreen, you can fetch the images in the album.
-<div display= "inline-block;" >
-<img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316"  align="right" width ="270"/>
-</div>
 
 ```kotlin
 //a list of albums
@@ -229,5 +153,24 @@ GalleryScreen(
 )
 ```
 
+### Image
+|Field|Type|Description|
+|---|---|---|
+|id|Long| Media content Id |
+|title|String| Media content Title |
+|dateAt|Long| Media content date token |
+|data|String| File size |
+|uri|Uri| Media Content Uri |
+|mimeType|String| Media Content mimeType |
+|album|String| Album name |
+|albumId|String| Album Id |
+|selectedOrder| Int | Selected Order |
+|selected| Boolean | Current selected flag |
 
-  ![2025-01-079 26 45-ezgif com-video-to-gif-converter (1)](https://github.com/user-attachments/assets/1314c2e5-2d7b-4127-9048-4a085cf34ba5)
+### Album
+|Field|Type|Description|
+|---|---|---|
+|id|String?| album Id |
+|name|String| album name |
+|count| Int | number of images in the album |
+
