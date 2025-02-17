@@ -23,16 +23,13 @@ internal fun Modifier.photoGridDragHandler(
     autoScrollSpeed: MutableState<Float>,
     autoScrollThreshold: Float,
     onDragStart: (Uri) -> Unit = {},
-    onDrag: (start: Int?, middle: Int?, end: Int?, pivot: Int?, curRow: Int?, prevRow: Int?) -> Unit = { _, _, _, _, _, _ -> },
+    onDrag: (start: Int?, middle: Int?, end: Int?) -> Unit = { _, _, _ -> },
     onDragEnd: () -> Unit = {}
 ) = pointerInput(Unit) {
     var initialKey: Uri? = null
     var initialIndex: Int? = null
     var currentKey: Uri? = null
     var currentIndex: Int? = null
-
-    var startRow = -1
-    var prevRow = -1
 
     detectDragGesturesAfterLongPress(
         onDragStart = { offset ->
@@ -48,8 +45,6 @@ internal fun Modifier.photoGridDragHandler(
                     initialIndex = index
                     currentKey = key
                     currentIndex = index
-                    startRow = info.row
-                    prevRow = info.row
 
                     onDragStart(key)
                 }
@@ -66,8 +61,6 @@ internal fun Modifier.photoGridDragHandler(
         onDragEnd = {
             initialKey = null
             initialIndex = null
-            startRow = -1
-            prevRow = -1
 
             autoScrollSpeed.value = 0f
 
@@ -95,15 +88,11 @@ internal fun Modifier.photoGridDragHandler(
                         onDrag(
                             initialIndex,
                             currentIndex,
-                            index,
-                            startRow,
-                            info.row,
-                            prevRow
+                            index
                         )
 
                         currentKey = key
                         currentIndex = index
-                        prevRow = info.row
                     }
                 }
             }
