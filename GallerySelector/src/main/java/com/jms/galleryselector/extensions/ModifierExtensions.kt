@@ -23,7 +23,7 @@ internal fun Modifier.photoGridDragHandler(
     autoScrollSpeed: MutableState<Float>,
     autoScrollThreshold: Float,
     onDragStart: (Uri) -> Unit = {},
-    onDrag: (start: Int?, middle: Int?, end: Int?) -> Unit = { _, _, _ -> },
+    onDrag: (start: Int?, end: Int?) -> Unit = { _, _ -> },
     onDragEnd: () -> Unit = {}
 ) = pointerInput(Unit) {
     var initialKey: Uri? = null
@@ -87,8 +87,7 @@ internal fun Modifier.photoGridDragHandler(
                     if (currentKey != key) {
                         onDrag(
                             initialIndex,
-                            currentIndex,
-                            index
+                            currentIndex
                         )
 
                         currentKey = key

@@ -116,12 +116,11 @@ internal class GalleryScreenViewModel(
 
     fun select(
         start: Int?,
-        middle: Int?,
         end: Int?,
         images: List<Gallery.Image>,
         max: Int
     ) {
-        if (start != null && middle != null && end != null) {
+        if (start != null && end != null) {
             viewModelScope.launch(Dispatchers.Default) {
                 val startIndex = (min(start, end) - 1).coerceAtLeast(0)
                 val endIndex = max(start, end)
