@@ -135,14 +135,10 @@ fun GalleryScreen(
         onDragStart = {
             viewModel.select(uri = it, max = state.max)
         },
-        onDrag = { start, middle, end, pivot, curRow, prevRow, items ->
+        onDrag = { start, end, items ->
             viewModel.select(
                 start = start,
-                middle = middle,
                 end = end,
-                pivot = pivot,
-                curRow = curRow,
-                prevRow = prevRow,
                 images = items,
                 max = state.max
             )
@@ -174,7 +170,7 @@ private fun GalleryScreen(
     onClick: (Gallery.Image) -> Unit,
     onPhoto: () -> Unit,
     onDragStart: (Uri) -> Unit,
-    onDrag: (start: Int?, middle: Int?, end: Int?, pivot: Int?, curRow: Int?, prevRow: Int?, List<Gallery.Image>) -> Unit,
+    onDrag: (start: Int?, end: Int?, List<Gallery.Image>) -> Unit,
     onDragEnd: () -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
@@ -199,14 +195,10 @@ private fun GalleryScreen(
                 onDragStart = onDragStart,
                 autoScrollSpeed = autoScrollSpeed,
                 autoScrollThreshold = with(LocalDensity.current) { 30.dp.toPx() },
-                onDrag = { start, middle, end, pivot, curRow, prevRow ->
+                onDrag = { start, end ->
                     onDrag(
                         start,
-                        middle,
                         end,
-                        pivot,
-                        curRow,
-                        prevRow,
                         images.itemSnapshotList.items
                     )
                 },
