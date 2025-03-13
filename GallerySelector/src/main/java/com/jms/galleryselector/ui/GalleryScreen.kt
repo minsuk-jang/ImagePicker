@@ -66,6 +66,7 @@ import kotlinx.coroutines.launch
 fun GalleryScreen(
     state: GalleryState = rememberGalleryState(),
     album: Album? = null,
+    onClick: (Gallery.Image) -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -131,6 +132,7 @@ fun GalleryScreen(
         selectedUris = selectedUris,
         onClick = {
             viewModel.select(uri = it.uri, max = state.max)
+            onClick(it.copy(selected = !it.selected))
         },
         onDragStart = {
             viewModel.select(uri = it, max = state.max)
@@ -244,7 +246,9 @@ private fun GalleryScreen(
                         modifier = Modifier.matchParentSize(),
                         image = it
                     )
-                    content(it)
+
+                    if (it.selected)
+                        content(it)
                 }
             }
         }
