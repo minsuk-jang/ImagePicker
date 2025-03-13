@@ -41,7 +41,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 ```gradle
 dependencies {
-    implementation 'com.github.minsuk-jang:GallerySelector:1.0.10'
+    implementation 'com.github.minsuk-jang:GallerySelector:1.0.11'
 }
 ```
 
