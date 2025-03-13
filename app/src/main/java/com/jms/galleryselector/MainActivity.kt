@@ -118,6 +118,9 @@ class MainActivity : ComponentActivity() {
                             GalleryScreen(
                                 album = selectedAlbum,
                                 state = state,
+                                onClick = {
+                                    Log.e("jms8732", "onCreate: $it", )
+                                },
                                 content = {
                                     if (it.selected)
                                         Box(
