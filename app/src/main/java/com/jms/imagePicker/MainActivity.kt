@@ -26,6 +26,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,9 +76,9 @@ class MainActivity : ComponentActivity() {
                             autoSelectAfterCapture = true
                         )
 
-                        val images by state.selectedImages
-                        val albums = state.albums.value
-                        var selectedAlbum by state.selectedAlbum
+                        val images by state.pickedImages.collectAsState()
+                        val albums by state.albums.collectAsState()
+                        val pickedAlbum by state.pickedAlbum.collectAsState()
 
                         var expand by remember {
                             mutableStateOf(false)
@@ -93,7 +94,7 @@ class MainActivity : ComponentActivity() {
                                             expand = true
                                         }
                                         .wrapContentHeight(Alignment.CenterVertically),
-                                    text = "${selectedAlbum?.name} | ${selectedAlbum?.count}",
+                                    text = "${pickedAlbum?.name} | ${pickedAlbum?.count}",
                                     fontSize = 20.sp,
                                     color = Color.Black,
                                     fontWeight = FontWeight.SemiBold
@@ -107,7 +108,7 @@ class MainActivity : ComponentActivity() {
                                                 Text(text = "${it.name},  ${it.count}")
                                             },
                                             onClick = {
-                                                selectedAlbum = it
+                                                pickedAlbum = it
                                                 expand = false
                                             }
                                         )
@@ -116,10 +117,10 @@ class MainActivity : ComponentActivity() {
                             }
 
                             ImagePickerScreen(
-                                album = selectedAlbum,
+                                album = pickedAlbum,
                                 state = state,
                                 onClick = {
-                                    Log.e("jms8732", "onCreate: $it", )
+                                    Log.e("jms8732", "onCreate: $it")
                                 },
                                 content = {
                                     if (it.selected)
