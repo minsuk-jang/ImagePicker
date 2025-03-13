@@ -18,13 +18,10 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -40,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.jms.galleryselector.R
 import com.jms.imagePicker.Constants
 import com.jms.imagePicker.component.ImageCell
 import com.jms.imagePicker.data.GalleryPagingStream
@@ -50,10 +48,13 @@ import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.Gallery
-import com.jms.galleryselector.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -104,7 +105,7 @@ fun ImagePickerScreen(
 
         launch {
             viewModel.selectedAlbum.collectLatest {
-                state.selectedAlbum.value = it
+                state.updateAlbum(album = it)
             }
         }
     }
@@ -273,21 +274,26 @@ class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,
     val autoSelectAfterCapture: Boolean = false
 ) {
-    private val _selectedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
-    val selectedImages: State<List<Gallery.Image>> = _selectedImages
+    private val _pickedImages: MutableStateFlow<List<Gallery.Image>> = MutableStateFlow(emptyList())
+    val pickedImages: StateFlow<List<Gallery.Image>> = _pickedImages.asStateFlow()
 
     //update images
     internal fun updateImages(list: List<Gallery.Image>) {
-        _selectedImages.value = list
+        _pickedImages.update { list }
     }
 
-    private val _albums: MutableState<List<Album>> = mutableStateOf(emptyList())
-    val albums: State<List<Album>> = _albums
+    private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(emptyList())
+    val albums: StateFlow<List<Album>> = _albums.asStateFlow()
 
     //update albums
     internal fun updateAlbums(list: List<Album>) {
         _albums.value = list
     }
 
-    val selectedAlbum: MutableState<Album?> = mutableStateOf(null)
+    private val _pickedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
+    val pickedAlbum: StateFlow<Album?> = _pickedAlbum.asStateFlow()
+
+    internal fun updateAlbum(album: Album) {
+        _pickedAlbum.update { album }
+    }
 }
