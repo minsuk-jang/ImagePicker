@@ -1,4 +1,4 @@
-package com.jms.imagePicker.ui
+package com.jms.imagePicker
 
 import androidx.lifecycle.ViewModel
 import com.jms.imagePicker.model.Album

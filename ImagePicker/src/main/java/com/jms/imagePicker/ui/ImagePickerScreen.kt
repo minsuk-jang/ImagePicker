@@ -18,10 +18,12 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -67,6 +69,8 @@ import kotlinx.coroutines.launch
 fun ImagePickerScreen(
     state: ImagePickerState = rememberImagePickerState(),
     album: Album? = null,
+    onAlbumListLoaded: (List<Album>) -> Unit = {},
+    onAlbumSelected: (Album) -> Unit = {},
     onClick: (Gallery.Image) -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
@@ -99,13 +103,13 @@ fun ImagePickerScreen(
         }
         launch {
             viewModel.albums.collectLatest {
-                state.updateAlbums(list = it)
+                onAlbumListLoaded(it)
             }
         }
 
         launch {
             viewModel.selectedAlbum.collectLatest {
-                state.updateAlbum(album = it)
+                onAlbumSelected(it)
             }
         }
     }
@@ -132,7 +136,9 @@ fun ImagePickerScreen(
         content = content,
         selectedUris = selectedUris,
         onClick = {
-            viewModel.select(uri = it.uri, max = state.max)
+            if (!state.onlyClick)
+                viewModel.select(uri = it.uri, max = state.max)
+
             onClick(it.copy(selected = !it.selected))
         },
         onDragStart = {
@@ -259,12 +265,14 @@ private fun ImagePickerScreen(
 @Composable
 fun rememberImagePickerState(
     max: Int = Constants.MAX_SIZE,
-    autoSelectAfterCapture: Boolean = false
+    autoSelectAfterCapture: Boolean = false,
+    onlyClick: Boolean = false
 ): ImagePickerState {
     return remember {
         ImagePickerState(
             max = max,
-            autoSelectAfterCapture = autoSelectAfterCapture
+            autoSelectAfterCapture = autoSelectAfterCapture,
+            onlyClick = onlyClick
         )
     }
 }
@@ -272,28 +280,14 @@ fun rememberImagePickerState(
 @Stable
 class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,
-    val autoSelectAfterCapture: Boolean = false
+    val autoSelectAfterCapture: Boolean = false,
+    val onlyClick: Boolean = false
 ) {
-    private val _pickedImages: MutableStateFlow<List<Gallery.Image>> = MutableStateFlow(emptyList())
-    val pickedImages: StateFlow<List<Gallery.Image>> = _pickedImages.asStateFlow()
+    private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
+    val images: List<Gallery.Image> get() = _pickedImages.value
 
     //update images
     internal fun updateImages(list: List<Gallery.Image>) {
-        _pickedImages.update { list }
-    }
-
-    private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(emptyList())
-    val albums: StateFlow<List<Album>> = _albums.asStateFlow()
-
-    //update albums
-    internal fun updateAlbums(list: List<Album>) {
-        _albums.value = list
-    }
-
-    private val _pickedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
-    val pickedAlbum: StateFlow<Album?> = _pickedAlbum.asStateFlow()
-
-    internal fun updateAlbum(album: Album) {
-        _pickedAlbum.update { album }
+        _pickedImages.value = list
     }
 }
