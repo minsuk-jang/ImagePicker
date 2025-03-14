@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "GallerySelector"
+rootProject.name = "ImagePicker"
 include(":app")
-include(":GallerySelector")
+include(":ImagePicker")
