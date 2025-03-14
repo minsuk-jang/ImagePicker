@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -47,6 +49,8 @@ import com.jms.imagePicker.ui.theme.Purple40
 
 class MainActivity : ComponentActivity() {
 
+    private val viewModel: MainActivityViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -54,13 +58,14 @@ class MainActivity : ComponentActivity() {
                 darkTheme = false
             ) {
                 // A surface container using the 'background' color from the theme
-
+                val uiModel by viewModel.uiModel.collectAsState()
                 //PhotosGrid()
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
+
                     val arrays = if (Build.VERSION_CODES.TIRAMISU <= Build.VERSION.SDK_INT) {
                         arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
                     } else
@@ -76,9 +81,7 @@ class MainActivity : ComponentActivity() {
                             autoSelectAfterCapture = true
                         )
 
-                        val images by state.pickedImages.collectAsState()
-                        val albums by state.albums.collectAsState()
-                        val pickedAlbum by state.pickedAlbum.collectAsState()
+                        val images = state.images
 
                         var expand by remember {
                             mutableStateOf(false)
@@ -94,7 +97,7 @@ class MainActivity : ComponentActivity() {
                                             expand = true
                                         }
                                         .wrapContentHeight(Alignment.CenterVertically),
-                                    text = "${pickedAlbum?.name} | ${pickedAlbum?.count}",
+                                    text = "${uiModel.selectedAlbum?.name} | ${uiModel.selectedAlbum?.count}",
                                     fontSize = 20.sp,
                                     color = Color.Black,
                                     fontWeight = FontWeight.SemiBold
@@ -102,14 +105,14 @@ class MainActivity : ComponentActivity() {
                                 DropdownMenu(
                                     modifier = Modifier.wrapContentSize(),
                                     expanded = expand, onDismissRequest = { }) {
-                                    albums.forEach {
+                                    uiModel.albums.forEach {
                                         DropdownMenuItem(
                                             text = {
                                                 Text(text = "${it.name},  ${it.count}")
                                             },
                                             onClick = {
-                                                pickedAlbum = it
                                                 expand = false
+                                                viewModel.selectAlbum(it)
                                             }
                                         )
                                     }
@@ -117,10 +120,16 @@ class MainActivity : ComponentActivity() {
                             }
 
                             ImagePickerScreen(
-                                album = pickedAlbum,
+                                album = uiModel.selectedAlbum,
                                 state = state,
+                                onAlbumSelected = {
+                                    viewModel.selectAlbum(it)
+                                },
+                                onAlbumListLoaded = {
+                                    viewModel.setAlbums(it)
+                                },
                                 onClick = {
-                                    Log.e("jms8732", "onCreate: $it")
+
                                 },
                                 content = {
                                     if (it.selected)
