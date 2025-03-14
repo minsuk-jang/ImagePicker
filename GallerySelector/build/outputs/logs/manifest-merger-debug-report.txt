@@ -1,0 +1,56 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:2:1-30:12
+INJECTED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:2:1-30:12
+	package
+		INJECTED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:4:5-6:38
+	android:maxSdkVersion
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:6:9-35
+	android:name
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:5:9-64
+uses-permission#android.permission.READ_MEDIA_IMAGES
+ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:8:5-10:38
+	android:minSdkVersion
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:10:9-35
+	android:name
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:9:9-60
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:12:5-14:38
+	android:maxSdkVersion
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:14:9-35
+	android:name
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:13:9-65
+uses-permission#android.permission.CAMERA
+ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:15:5-65
+	android:name
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:15:22-62
+application
+ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:18:5-28:19
+provider#androidx.core.content.FileProvider
+ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:19:9-27:20
+	android:grantUriPermissions
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:23:13-47
+	android:authorities
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:21:13-71
+	android:exported
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:22:13-37
+	android:name
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:20:13-62
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:24:13-26:54
+	android:resource
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:26:17-51
+	android:name
+		ADDED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:25:17-67
+uses-sdk
+INJECTED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml
+INJECTED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml

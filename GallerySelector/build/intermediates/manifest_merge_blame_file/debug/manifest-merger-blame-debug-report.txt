@@ -1,0 +1,50 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.jms.galleryselector" >
+4
+5    <uses-sdk android:minSdkVersion="21" />
+6
+7    <uses-permission
+7-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:4:5-6:38
+8        android:name="android.permission.READ_EXTERNAL_STORAGE"
+8-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:5:9-64
+9        android:maxSdkVersion="32" />
+9-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:6:9-35
+10    <uses-permission
+10-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:8:5-10:38
+11        android:name="android.permission.READ_MEDIA_IMAGES"
+11-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:9:9-60
+12        android:minSdkVersion="33" />
+12-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:10:9-35
+13    <uses-permission
+13-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:12:5-14:38
+14        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+14-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:13:9-65
+15        android:maxSdkVersion="28" />
+15-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:14:9-35
+16    <uses-permission android:name="android.permission.CAMERA" />
+16-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:15:5-65
+16-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:15:22-62
+17
+18    <application>
+18-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:18:5-28:19
+19        <provider
+19-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:19:9-27:20
+20            android:name="androidx.core.content.FileProvider"
+20-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:20:13-62
+21            android:authorities="com.jms.galleryselector.fileprovider"
+21-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:21:13-71
+22            android:exported="false"
+22-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:22:13-37
+23            android:grantUriPermissions="true" >
+23-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:23:13-47
+24            <meta-data
+24-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:24:13-26:54
+25                android:name="android.support.FILE_PROVIDER_PATHS"
+25-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:25:17-67
+26                android:resource="@xml/file_paths" />
+26-->/Users/jangminseog/project/GallerySelector/GallerySelector/src/main/AndroidManifest.xml:26:17-51
+27        </provider>
+28    </application>
+29
+30</manifest>

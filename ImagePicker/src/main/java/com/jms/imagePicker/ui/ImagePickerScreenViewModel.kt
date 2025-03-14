@@ -2,13 +2,11 @@ package com.jms.imagePicker.ui
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.jms.imagePicker.Constants.TAG
 import com.jms.imagePicker.data.LocalGalleryDataSource
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Action
@@ -57,10 +55,6 @@ internal class ImagePickerScreenViewModel(
         )
     }.cachedIn(viewModelScope)
         .combine(_selectedUris) { data, uris ->
-            Log.e(
-                TAG, "Uri: $uris\n" +
-                        "Thread: ${Thread.currentThread().name}"
-            )
             update(pagingData = data, uris = uris)
         }.flowOn(Dispatchers.Default)
 

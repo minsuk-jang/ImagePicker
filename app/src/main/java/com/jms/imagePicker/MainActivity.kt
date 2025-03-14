@@ -59,7 +59,6 @@ class MainActivity : ComponentActivity() {
             ) {
                 // A surface container using the 'background' color from the theme
                 val uiModel by viewModel.uiModel.collectAsState()
-                //PhotosGrid()
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -129,7 +128,6 @@ class MainActivity : ComponentActivity() {
                                     viewModel.setAlbums(it)
                                 },
                                 onClick = {
-
                                 },
                                 content = {
                                     if (it.selected)

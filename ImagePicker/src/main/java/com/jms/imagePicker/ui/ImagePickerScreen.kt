@@ -52,11 +52,7 @@ import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.Gallery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -136,7 +132,7 @@ fun ImagePickerScreen(
         content = content,
         selectedUris = selectedUris,
         onClick = {
-            if (!state.onlyClick)
+            if (state.autoSelectOnClick)
                 viewModel.select(uri = it.uri, max = state.max)
 
             onClick(it.copy(selected = !it.selected))
@@ -160,7 +156,7 @@ fun ImagePickerScreen(
                 val file = viewModel.createImageFile()
                 cameraLaunch.launch(
                     FileProvider.getUriForFile(
-                        context, "com.jms.galleryselector.fileprovider",
+                        context, "com.jms.imagePicker.fileprovider",
                         file
                     )
                 )
@@ -266,13 +262,13 @@ private fun ImagePickerScreen(
 fun rememberImagePickerState(
     max: Int = Constants.MAX_SIZE,
     autoSelectAfterCapture: Boolean = false,
-    onlyClick: Boolean = false
+    autoSelectOnClick: Boolean = true
 ): ImagePickerState {
     return remember {
         ImagePickerState(
             max = max,
             autoSelectAfterCapture = autoSelectAfterCapture,
-            onlyClick = onlyClick
+            autoSelectOnClick = autoSelectOnClick
         )
     }
 }
@@ -281,7 +277,7 @@ fun rememberImagePickerState(
 class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,
     val autoSelectAfterCapture: Boolean = false,
-    val onlyClick: Boolean = false
+    val autoSelectOnClick: Boolean = false
 ) {
     private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val images: List<Gallery.Image> get() = _pickedImages.value

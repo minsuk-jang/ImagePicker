@@ -1,0 +1,3 @@
+com.jms.galleryselector
+drawable photo_camera
+xml file_paths

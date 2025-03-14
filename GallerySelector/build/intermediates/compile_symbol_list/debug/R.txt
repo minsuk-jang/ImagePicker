@@ -1,0 +1,2 @@
+int drawable photo_camera 0x0
+int xml file_paths 0x0
