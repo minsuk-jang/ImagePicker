@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.jms.galleryselector"
+    namespace = "com.jms.ImagePicker"
     compileSdk = 34
 
     defaultConfig {
