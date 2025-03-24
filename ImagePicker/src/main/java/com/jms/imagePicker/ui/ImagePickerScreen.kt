@@ -39,7 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.jms.ImagePicker.R
+import com.jms.imagePicker.R
 import com.jms.imagePicker.Constants
 import com.jms.imagePicker.component.ImageCell
 import com.jms.imagePicker.data.GalleryPagingStream
