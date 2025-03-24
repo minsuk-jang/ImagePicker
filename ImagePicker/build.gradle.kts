@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.jms.galleryselector"
+    namespace = "com.jms.imagePicker"
     compileSdk = 34
 
     defaultConfig {
@@ -82,7 +82,7 @@ publishing{
         register<MavenPublication>("release"){
             groupId = "com.github.minsuk-jang"
             artifactId = "ImagePicker"
-            version = "1.0.11"
+            version = "1.0.12"
 
             afterEvaluate{
                 from(components["release"])
