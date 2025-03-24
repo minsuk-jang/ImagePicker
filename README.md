@@ -54,24 +54,19 @@ dependencies {
 <uses-permission android:name="android.permission.CAMERA" />
 ```
 
-### GalleryScreen
-GalleryScreen fetches the list of media contents using the Paging 3 Library. Customize each content cell's UI freely by receiving an Image through the Content parameter. It also supports drag gestures for selecting and deselecting multiple items.
+### ImagePickerScreen
+ImagePickerScreen fetches the list of media contents using the Paging 3 Library. Customize each content cell's UI freely by receiving an Image through the Content parameter. It also supports drag gestures for selecting and deselecting multiple items.
 ```kotlin
- GalleryScreen(
-    state = state, // Configuration and state
-    content = { image -> // Customize the UI for selected content
-      if (image.selected) {
-        Box(modifier = Modifier.fillMaxSize()) {
-          Icon(
-            modifier = Modifier.align(Alignment.TopEnd),
-            painter = painterResource(id = R.drawable.done_black_24dp),
-            contentDescription = null,
-            tint = Color.Green
-          )
-      }
-    }
-  }
+@Composable
+fun ImagePickerScreen(
+    state: ImagePickerState = rememberImagePickerState(), // Configuration and state
+    album: Album? = null, // Currently selected album
+    onAlbumListLoaded: (List<Album>) -> Unit = {}, // Callback triggered when album list on deivce is loaded
+    onAlbumSelected: (Album) -> Unit = {}, // Callback when a user select on album
+    onClick: (Gallery.Image) -> Unit = {}, // Callback when an image cell is clicked
+    content: @Composable BoxScope.(Gallery.Image) -> Unit // Image cell Composable
 )
+
 ```
 
 <!--
@@ -80,17 +75,18 @@ GalleryScreen fetches the list of media contents using the Paging 3 Library. Cus
 <img src = "https://github.com/user-attachments/assets/1314c2e5-2d7b-4127-9048-4a085cf34ba5" width="270" />
 -->
 
-### GalleryState
-GalleryState configures the GalleryScreen and provides the current state of content.
+### ImagePickerState
+ImagePickerState configures the ImagePickerScreen and provides the current state of content.
 ``` kotlin 
 @Stable
-class GalleryState(
-    val max: Int, // Maximum number of selectable items
-    val autoSelectAfterCapture: Boolean // Automatically select the photo after capture
+class ImagePickerState(
+    val max: Int = Constants.MAX_SIZE,  // Maximum number of selectable items 
+    val autoSelectAfterCapture: Boolean = false, // Automatically select the photo after capture
+    val onlyClick: Boolean = false
 ) {
-    val selectedImagesState: State<List<Gallery.Image>> // List of currently selected images
-    val albums: State<List<Album>> // List of albums on the device
-    val selectedAlbum: MutableState<Album> // Currently selected album
+    // List of currently selected images
+    private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
+    val images: List<Gallery.Image> get() = _pickedImages.value
 }
 ```
 
