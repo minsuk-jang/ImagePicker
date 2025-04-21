@@ -27,7 +27,7 @@ import java.util.Collections.emptyList
 
 
 @Composable
-internal fun SelectedImagePreviewBar(
+internal fun ImagePreviewBar(
     modifier: Modifier = Modifier,
     uris: List<Uri>,
     onClick: (Uri) -> Unit = {}
@@ -80,6 +80,6 @@ internal fun SelectedImagePreviewBar(
 
 @Preview(showBackground = true)
 @Composable
-private fun Preview_PreviewSelectedImageBar() {
-    SelectedImagePreviewBar(uris = emptyList())
+private fun Preview_ImagePreviewBar() {
+    ImagePreviewBar(uris = emptyList())
 }
