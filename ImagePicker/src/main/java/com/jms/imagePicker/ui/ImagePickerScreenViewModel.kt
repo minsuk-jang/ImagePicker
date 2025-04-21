@@ -57,10 +57,6 @@ internal class ImagePickerScreenViewModel(
         )
     }.cachedIn(viewModelScope)
         .combine(_selectedUris) { data, uris ->
-            Log.e(
-                TAG, "Uri: $uris\n" +
-                        "Thread: ${Thread.currentThread().name}"
-            )
             update(pagingData = data, uris = uris)
         }.flowOn(Dispatchers.Default)
 

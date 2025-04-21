@@ -2,15 +2,25 @@ package com.jms.imagePicker.ui
 
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -21,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,8 +50,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.jms.imagePicker.R
 import com.jms.imagePicker.Constants
+import com.jms.imagePicker.R
 import com.jms.imagePicker.component.ImageCell
 import com.jms.imagePicker.data.GalleryPagingStream
 import com.jms.imagePicker.data.LocalGalleryDataSource
@@ -70,6 +81,7 @@ fun ImagePickerScreen(
     onClick: (Gallery.Image) -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val viewModel: ImagePickerScreenViewModel = viewModel {
@@ -83,6 +95,14 @@ fun ImagePickerScreen(
                 galleryStream = GalleryPagingStream()
             )
         )
+    }
+    val density = LocalDensity.current
+    val selectedImages by viewModel.selectedImages.collectAsState()
+
+    val isExpand by remember {
+        derivedStateOf {
+            selectedImages.isNotEmpty()
+        }
     }
 
     if (album != null) {
@@ -127,43 +147,68 @@ fun ImagePickerScreen(
         }
 
 
-    ImagePickerScreen(
-        images = contents,
-        content = content,
-        selectedUris = selectedUris,
-        onClick = {
-            if (state.autoSelectOnClick)
-                viewModel.select(uri = it.uri, max = state.max)
+    Log.e("jms8732", "isExpand: $isExpand")
 
-            onClick(it.copy(selected = !it.selected))
-        },
-        onDragStart = {
-            viewModel.select(uri = it, max = state.max)
-        },
-        onDrag = { start, end, items ->
-            viewModel.select(
-                start = start,
-                end = end,
-                images = items,
-                max = state.max
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        AnimatedVisibility(
+            visible = isExpand,
+            enter = slideInVertically {
+                // Slide in from 40 dp from the top.
+                with(density) { -40.dp.roundToPx() }
+            } + expandVertically(
+                // Expand from the top.
+                expandFrom = Alignment.Top
+            ) + fadeIn(
+                // Fade in with the initial alpha of 0.3f.
+                initialAlpha = 0.3f
+            ),
+            exit = slideOutVertically() + shrinkVertically() + fadeOut()
+        ) {
+            PreviewSelectedImagesBar(
+                images = selectedImages
             )
-        },
-        onDragEnd = {
-            viewModel.synchronize()
-        },
-        onPhoto = {
-            scope.launch(Dispatchers.IO) {
-                val file = viewModel.createImageFile()
-                cameraLaunch.launch(
-                    FileProvider.getUriForFile(
-                        context, "com.jms.imagePicker.fileprovider",
-                        file
-                    )
-                )
-            }
-
         }
-    )
+
+        ImagePickerScreen(
+            images = contents,
+            content = content,
+            selectedUris = selectedUris,
+            onClick = {
+                if (state.autoSelectOnClick)
+                    viewModel.select(uri = it.uri, max = state.max)
+
+                onClick(it.copy(selected = !it.selected))
+            },
+            onDragStart = {
+                viewModel.select(uri = it, max = state.max)
+            },
+            onDrag = { start, end, items ->
+                viewModel.select(
+                    start = start,
+                    end = end,
+                    images = items,
+                    max = state.max
+                )
+            },
+            onDragEnd = {
+                viewModel.synchronize()
+            },
+            onPhoto = {
+                scope.launch(Dispatchers.IO) {
+                    val file = viewModel.createImageFile()
+                    cameraLaunch.launch(
+                        FileProvider.getUriForFile(
+                            context, "com.jms.imagePicker.fileprovider",
+                            file
+                        )
+                    )
+                }
+
+            }
+        )
+    }
 }
 
 
