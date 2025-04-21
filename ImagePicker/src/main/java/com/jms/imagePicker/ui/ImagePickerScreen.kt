@@ -2,7 +2,6 @@ package com.jms.imagePicker.ui
 
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -150,10 +149,7 @@ fun ImagePickerScreen(
     ) {
         AnimatedVisibility(
             visible = isExpand,
-            enter = slideInVertically {
-                // Slide in from 40 dp from the top.
-                with(density) { -40.dp.roundToPx() }
-            } + expandVertically(
+            enter = slideInVertically() + expandVertically(
                 // Expand from the top.
                 expandFrom = Alignment.Top
             ) + fadeIn(
@@ -162,8 +158,11 @@ fun ImagePickerScreen(
             ),
             exit = slideOutVertically() + shrinkVertically() + fadeOut()
         ) {
-            PreviewSelectedImagesBar(
-                uris = selectedUris
+            SelectedImagePreviewBar(
+                uris = selectedUris,
+                onClick = {
+                    viewModel.select(uri = it, max = state.max)
+                }
             )
         }
 
