@@ -2,13 +2,11 @@ package com.jms.imagePicker.ui
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.jms.imagePicker.Constants.TAG
 import com.jms.imagePicker.data.LocalGalleryDataSource
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Action
@@ -36,7 +34,7 @@ internal class ImagePickerScreenViewModel(
     //init action
     private var _initAction: Action = Action.ADD //add
 
-    private val _separateUris: LinkedHashSet<OrderedUri> = LinkedHashSet()
+    private val _previousSelectedUris: LinkedHashSet<OrderedUri> = LinkedHashSet()
 
     private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
     val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
@@ -65,6 +63,8 @@ internal class ImagePickerScreenViewModel(
     init {
         getAlbums()
         setSelectedAlbum(album = _albums.value[0])
+
+        observeSelectedUris()
     }
 
     private fun getAlbums() {
@@ -86,7 +86,7 @@ internal class ImagePickerScreenViewModel(
                     //limit max size
                     if (_selectedUris.value.size < max) {
                         add(uri)
-                        _separateUris.add(
+                        _previousSelectedUris.add(
                             OrderedUri(
                                 order = _selectedUris.value.size,
                                 uri = uri
@@ -99,8 +99,8 @@ internal class ImagePickerScreenViewModel(
                 } else {
                     removeAt(index)
 
-                    val idx = _separateUris.indexOfFirst { it.uri == uri }
-                    _separateUris.remove(_separateUris.elementAt(idx))
+                    val idx = _previousSelectedUris.indexOfFirst { it.uri == uri }
+                    _previousSelectedUris.remove(_previousSelectedUris.elementAt(idx))
 
                     _initAction = Action.REMOVE
                     performInternalRemoval(uri = uri)
@@ -126,14 +126,14 @@ internal class ImagePickerScreenViewModel(
                         false -> images.subList(startIndex, endIndex).reversed()
                     }
 
-                    addAll(_separateUris)
+                    addAll(_previousSelectedUris)
 
                     tempList.forEachIndexed { index, image ->
-                        val idx = _separateUris.indexOfFirst { it.uri == image.uri }
+                        val idx = _previousSelectedUris.indexOfFirst { it.uri == image.uri }
                         if (idx != -1) {
                             //already selected
-                            val uri = _separateUris.elementAt(idx)
-                            _separateUris.remove(uri)
+                            val uri = _previousSelectedUris.elementAt(idx)
+                            _previousSelectedUris.remove(uri)
 
                             if (_initAction == Action.REMOVE) {
                                 remove(uri)
@@ -163,8 +163,8 @@ internal class ImagePickerScreenViewModel(
 
     fun synchronize() {
         viewModelScope.launch(Dispatchers.Default) {
-            _separateUris.clear()
-            _separateUris.addAll(_selectedUris.value.mapIndexed { index, uri ->
+            _previousSelectedUris.clear()
+            _previousSelectedUris.addAll(_selectedUris.value.mapIndexed { index, uri ->
                 OrderedUri(
                     order = index,
                     uri = uri
@@ -172,6 +172,22 @@ internal class ImagePickerScreenViewModel(
             })
         }
 
+        /*viewModelScope.launch(Dispatchers.Default) {
+            val newList = buildList {
+                selectedUris.value.forEachIndexed { index, uri ->
+                    val image = localGalleryDataSource.getLocalGalleryImage(uri).copy(
+                        selectedOrder = index,
+                        selected = true
+                    )
+                    add(image)
+                }
+            }
+
+            _selectedImages.update { newList.toMutableList() }
+        }*/
+    }
+
+    private fun observeSelectedUris() {
         viewModelScope.launch(Dispatchers.Default) {
             val newList = buildList {
                 selectedUris.value.forEachIndexed { index, uri ->
