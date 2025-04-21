@@ -78,10 +78,12 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val state = rememberImagePickerState(
                             max = 30,
-                            autoSelectAfterCapture = true
+                            autoSelectAfterCapture = true,
+                            showPreviewBar = true
                         )
 
                         val images = state.images
+                        Log.e("jms8732", "images: $images")
 
                         var expand by remember {
                             mutableStateOf(false)

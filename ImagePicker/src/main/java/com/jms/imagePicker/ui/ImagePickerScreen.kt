@@ -150,24 +150,20 @@ fun ImagePickerScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            AnimatedVisibility(
-                visible = isExpand,
-                enter = slideInVertically() + expandVertically(
-                    // Expand from the top.
-                    expandFrom = Alignment.Top
-                ) + fadeIn(
-                    // Fade in with the initial alpha of 0.3f.
-                    initialAlpha = 0.3f
-                ),
-                exit = slideOutVertically() + shrinkVertically() + fadeOut()
-            ) {
-                ImagePreviewBar(
-                    uris = selectedUris,
-                    onClick = {
-                        viewModel.select(uri = it, max = state.max)
-                    }
-                )
-            }
+            if (state.showPreviewBar)
+                AnimatedVisibility(
+                    visible = isExpand,
+                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
+                            + fadeIn(initialAlpha = 0.3f),
+                    exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                ) {
+                    ImagePreviewBar(
+                        uris = selectedUris,
+                        onClick = {
+                            viewModel.select(uri = it, max = state.max)
+                        }
+                    )
+                }
         }
     ) {
         ImagePickerScreen(
@@ -307,13 +303,15 @@ private fun ImagePickerScreen(
 fun rememberImagePickerState(
     max: Int = Constants.MAX_SIZE,
     autoSelectAfterCapture: Boolean = false,
-    autoSelectOnClick: Boolean = true
+    autoSelectOnClick: Boolean = true,
+    showPreviewBar: Boolean = false
 ): ImagePickerState {
     return remember {
         ImagePickerState(
             max = max,
             autoSelectAfterCapture = autoSelectAfterCapture,
-            autoSelectOnClick = autoSelectOnClick
+            autoSelectOnClick = autoSelectOnClick,
+            showPreviewBar = showPreviewBar
         )
     }
 }
@@ -322,7 +320,8 @@ fun rememberImagePickerState(
 class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,
     val autoSelectAfterCapture: Boolean = false,
-    val autoSelectOnClick: Boolean = true
+    val autoSelectOnClick: Boolean = true,
+    val showPreviewBar: Boolean = false
 ) {
     private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val images: List<Gallery.Image> get() = _pickedImages.value
