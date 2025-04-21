@@ -164,7 +164,7 @@ fun ImagePickerScreen(
             exit = slideOutVertically() + shrinkVertically() + fadeOut()
         ) {
             PreviewSelectedImagesBar(
-                images = selectedImages
+                uris = selectedUris
             )
         }
 

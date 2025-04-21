@@ -96,7 +96,6 @@ internal class ImagePickerScreenViewModel(
                         )
 
                         _initAction = Action.ADD
-                        performInternalAdditional(uri = uri)
                     }
                 } else {
                     removeAt(index)
@@ -105,7 +104,6 @@ internal class ImagePickerScreenViewModel(
                     _previousSelectedUris.remove(_previousSelectedUris.elementAt(idx))
 
                     _initAction = Action.REMOVE
-                    performInternalRemoval(uri = uri)
                 }
             }
         }
@@ -156,6 +154,7 @@ internal class ImagePickerScreenViewModel(
                         }
                     }
                 }.sortedBy { it.order }.map { it.uri }
+
                 _selectedUris.update { newList }
             }
         }
@@ -198,7 +197,7 @@ internal class ImagePickerScreenViewModel(
                     )
                     image
                 }
-                
+
                 _selectedImages.update { newList.toMutableList() }
             }
 
@@ -206,15 +205,29 @@ internal class ImagePickerScreenViewModel(
     }
 
     private fun performInternalAdditional(uri: Uri) {
-        viewModelScope.launch(Dispatchers.Default) {
+        _selectedUris.update {
+            it.toMutableList().apply {
+                add(uri)
+            }
+        }
+        /*viewModelScope.launch {
             val image = localGalleryDataSource.getLocalGalleryImage(uri = uri)
             val newList = _selectedImages.value.toMutableList().apply { add(image) }
             _selectedImages.update { newList }
-        }
+        }*/
     }
 
     private fun performInternalRemoval(uri: Uri) {
-        viewModelScope.launch(Dispatchers.Default) {
+        _selectedUris.update {
+            val index = it.indexOf(uri)
+            if (index != -1) {
+                it.toMutableList().apply {
+                    removeAt(index)
+                }
+            } else
+                it
+        }
+        /*viewModelScope.launch {
             val index = _selectedImages.value.indexOfFirst { it.uri == uri }
             if (index != -1) {
                 val newList = _selectedImages.value.toMutableList().apply {
@@ -223,7 +236,7 @@ internal class ImagePickerScreenViewModel(
 
                 _selectedImages.update { newList }
             }
-        }
+        }*/
     }
 
     fun createImageFile(): File {
