@@ -2,6 +2,7 @@ package com.jms.imagePicker.ui
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -154,7 +156,6 @@ internal class ImagePickerScreenViewModel(
                         }
                     }
                 }.sortedBy { it.order }.map { it.uri }
-
                 _selectedUris.update { newList }
             }
         }
@@ -189,17 +190,18 @@ internal class ImagePickerScreenViewModel(
 
     private fun observeSelectedUris() {
         viewModelScope.launch(Dispatchers.Default) {
-            val newList = buildList {
-                selectedUris.value.forEachIndexed { index, uri ->
+            _selectedUris.collectLatest { uris ->
+                val newList = uris.mapIndexed { index, uri ->
                     val image = localGalleryDataSource.getLocalGalleryImage(uri).copy(
                         selectedOrder = index,
                         selected = true
                     )
-                    add(image)
+                    image
                 }
+                
+                _selectedImages.update { newList.toMutableList() }
             }
 
-            _selectedImages.update { newList.toMutableList() }
         }
     }
 

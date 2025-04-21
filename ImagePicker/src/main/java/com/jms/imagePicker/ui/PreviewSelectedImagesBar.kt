@@ -28,11 +28,19 @@ internal fun PreviewSelectedImagesBar(
         horizontalArrangement = Arrangement.spacedBy(3.dp),
         contentPadding = PaddingValues(5.dp)
     ) {
-        items(images) {
+        items(
+            items = images,
+            key = {
+                when (it) {
+                    is Gallery.Image -> it.uri
+                }
+            }) {
             when (it) {
                 is Gallery.Image -> {
                     ImageCell(
-                        modifier = Modifier.size(50.dp),
+                        modifier = Modifier
+                            .size(50.dp)
+                            .animateItem(),
                         image = it
                     )
                 }

@@ -146,9 +146,6 @@ fun ImagePickerScreen(
             }
         }
 
-
-    Log.e("jms8732", "isExpand: $isExpand")
-
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
