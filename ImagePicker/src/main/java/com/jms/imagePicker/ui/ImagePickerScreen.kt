@@ -81,8 +81,8 @@ fun ImagePickerScreen(
     onClick: (Gallery.Image) -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
-
     val scope = rememberCoroutineScope()
+
     val context = LocalContext.current
     val viewModel: ImagePickerScreenViewModel = viewModel {
         ImagePickerScreenViewModel(
@@ -97,11 +97,12 @@ fun ImagePickerScreen(
         )
     }
     val density = LocalDensity.current
-    val selectedImages by viewModel.selectedImages.collectAsState()
+    val contents = viewModel.contents.collectAsLazyPagingItems()
+    val selectedUris by viewModel.selectedUris.collectAsState()
 
     val isExpand by remember {
         derivedStateOf {
-            selectedImages.isNotEmpty()
+            selectedUris.isNotEmpty()
         }
     }
 
@@ -130,8 +131,6 @@ fun ImagePickerScreen(
         }
     }
 
-    val contents = viewModel.contents.collectAsLazyPagingItems()
-    val selectedUris by viewModel.selectedUris.collectAsState()
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {

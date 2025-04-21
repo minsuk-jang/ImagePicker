@@ -171,20 +171,6 @@ internal class ImagePickerScreenViewModel(
                 )
             })
         }
-
-        /*viewModelScope.launch(Dispatchers.Default) {
-            val newList = buildList {
-                selectedUris.value.forEachIndexed { index, uri ->
-                    val image = localGalleryDataSource.getLocalGalleryImage(uri).copy(
-                        selectedOrder = index,
-                        selected = true
-                    )
-                    add(image)
-                }
-            }
-
-            _selectedImages.update { newList.toMutableList() }
-        }*/
     }
 
     private fun observeSelectedUris() {
@@ -202,41 +188,6 @@ internal class ImagePickerScreenViewModel(
             }
 
         }
-    }
-
-    private fun performInternalAdditional(uri: Uri) {
-        _selectedUris.update {
-            it.toMutableList().apply {
-                add(uri)
-            }
-        }
-        /*viewModelScope.launch {
-            val image = localGalleryDataSource.getLocalGalleryImage(uri = uri)
-            val newList = _selectedImages.value.toMutableList().apply { add(image) }
-            _selectedImages.update { newList }
-        }*/
-    }
-
-    private fun performInternalRemoval(uri: Uri) {
-        _selectedUris.update {
-            val index = it.indexOf(uri)
-            if (index != -1) {
-                it.toMutableList().apply {
-                    removeAt(index)
-                }
-            } else
-                it
-        }
-        /*viewModelScope.launch {
-            val index = _selectedImages.value.indexOfFirst { it.uri == uri }
-            if (index != -1) {
-                val newList = _selectedImages.value.toMutableList().apply {
-                    removeAt(index)
-                }
-
-                _selectedImages.update { newList }
-            }
-        }*/
     }
 
     fun createImageFile(): File {
