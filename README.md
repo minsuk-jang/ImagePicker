@@ -13,7 +13,7 @@
 <div align = "center">
   
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
-[![](https://jitpack.io/v/minsuk-jang/GallerySelector.svg)](https://jitpack.io/#minsuk-jang/GallerySelector)
+[![](https://jitpack.io/v/minsuk-jang/ImagePicker.svg)](https://jitpack.io/#minsuk-jang/ImagePicker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ImagePicker is a Jetpack Compose-based library that allows for full customization of content cells and supports both single and multiple selection of media items
@@ -22,6 +22,7 @@ ImagePicker is a Jetpack Compose-based library that allows for full customizatio
 ## Features
 - Fully customizable UI for content cells
 - Support for selecting multiple items with drag gestures
+- Preview Selected Images
 - Display the selected order of items
 - Camera support
 - Pagination for loading large image sets
@@ -82,7 +83,8 @@ ImagePickerState configures the ImagePickerScreen and provides the current state
 class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,  // Maximum number of selectable items 
     val autoSelectAfterCapture: Boolean = false, // Automatically select the photo after capture
-    val onlyClick: Boolean = false
+    val autoSelectOnClick: Boolean = true, // If true, clicking an image will select or deselect it automatically
+    val showPreviewBar: Boolean = false // If true, shows a preview bar displaying selected images
 ) {
     // List of currently selected images
     private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
