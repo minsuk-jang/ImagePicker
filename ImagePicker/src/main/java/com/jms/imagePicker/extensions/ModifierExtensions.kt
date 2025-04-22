@@ -87,7 +87,7 @@ internal fun Modifier.photoGridDragHandler(
                     if (currentKey != key) {
                         onDrag(
                             initialIndex,
-                            currentIndex
+                            index
                         )
 
                         currentKey = key
