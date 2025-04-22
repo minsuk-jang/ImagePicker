@@ -1,9 +1,9 @@
 <h1 align = "center">  ImagePicker </h1>
 <!-- Add Gif -->
 <p align = "center">
-<img src= "https://github.com/minsuk-jang/GallerySelector/assets/26684848/2139f56c-a401-45a0-8cf8-3c092cffb666" width="240"/>
 <img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="240"/>
 <img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="240"/>
+<img src = "https://github.com/user-attachments/assets/8f382893-d6de-4e6b-b3c2-d67bf52a8a32" width="240"/>
 <br>
 <img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width="240"/>
 <img src = "https://github.com/user-attachments/assets/1314c2e5-2d7b-4127-9048-4a085cf34ba5" width="240"/>
@@ -13,7 +13,7 @@
 <div align = "center">
   
 [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
-[![](https://jitpack.io/v/minsuk-jang/GallerySelector.svg)](https://jitpack.io/#minsuk-jang/GallerySelector)
+[![](https://jitpack.io/v/minsuk-jang/ImagePicker.svg)](https://jitpack.io/#minsuk-jang/ImagePicker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ImagePicker is a Jetpack Compose-based library that allows for full customization of content cells and supports both single and multiple selection of media items
@@ -22,6 +22,7 @@ ImagePicker is a Jetpack Compose-based library that allows for full customizatio
 ## Features
 - Fully customizable UI for content cells
 - Support for selecting multiple items with drag gestures
+- Support for selected image preview bar
 - Display the selected order of items
 - Camera support
 - Pagination for loading large image sets
@@ -41,7 +42,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 ```gradle
 dependencies {
-    implementation 'com.github.minsuk-jang:ImagePicker:1.0.11'
+    implementation 'com.github.minsuk-jang:ImagePicker:1.0.13'
 }
 ```
 
@@ -82,7 +83,8 @@ ImagePickerState configures the ImagePickerScreen and provides the current state
 class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,  // Maximum number of selectable items 
     val autoSelectAfterCapture: Boolean = false, // Automatically select the photo after capture
-    val onlyClick: Boolean = false
+    val autoSelectOnClick: Boolean = true, // If true, clicking an image will select or deselect it automatically
+    val showPreviewBar: Boolean = false // If true, shows a preview bar displaying selected images
 ) {
     // List of currently selected images
     private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
