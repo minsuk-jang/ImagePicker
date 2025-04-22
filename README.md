@@ -3,10 +3,10 @@
 <p align = "center">
 <img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="240"/>
 <img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="240"/>
-<img src = "https://github.com/user-attachments/assets/8f382893-d6de-4e6b-b3c2-d67bf52a8a32" width="240"/>
-<br>
 <img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width="240"/>
-<img src = "https://github.com/user-attachments/assets/1314c2e5-2d7b-4127-9048-4a085cf34ba5" width="240"/>
+<br>
+<img src = "https://github.com/user-attachments/assets/8f382893-d6de-4e6b-b3c2-d67bf52a8a32" width="240"/>
+<img src = "https://github.com/user-attachments/assets/7b5c3674-617f-496a-8d2f-ac426a529df4" width="240"/>
 
 </p>
 
