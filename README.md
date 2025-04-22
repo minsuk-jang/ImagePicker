@@ -22,7 +22,7 @@ ImagePicker is a Jetpack Compose-based library that allows for full customizatio
 ## Features
 - Fully customizable UI for content cells
 - Support for selecting multiple items with drag gestures
-- Preview Selected Images
+- Support for selected image preview bar
 - Display the selected order of items
 - Camera support
 - Pagination for loading large image sets
