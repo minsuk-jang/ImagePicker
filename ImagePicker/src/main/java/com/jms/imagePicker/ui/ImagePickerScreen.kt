@@ -4,23 +4,36 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,8 +52,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.jms.imagePicker.R
 import com.jms.imagePicker.Constants
+import com.jms.imagePicker.R
 import com.jms.imagePicker.component.ImageCell
 import com.jms.imagePicker.data.GalleryPagingStream
 import com.jms.imagePicker.data.LocalGalleryDataSource
@@ -61,6 +74,7 @@ import kotlinx.coroutines.launch
  * @param album: selected album, when album is null, load total media content
  */
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImagePickerScreen(
     state: ImagePickerState = rememberImagePickerState(),
@@ -71,6 +85,7 @@ fun ImagePickerScreen(
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val scope = rememberCoroutineScope()
+
     val context = LocalContext.current
     val viewModel: ImagePickerScreenViewModel = viewModel {
         ImagePickerScreenViewModel(
@@ -83,6 +98,14 @@ fun ImagePickerScreen(
                 galleryStream = GalleryPagingStream()
             )
         )
+    }
+    val contents = viewModel.contents.collectAsLazyPagingItems()
+    val selectedUris by viewModel.selectedUris.collectAsState()
+
+    val isExpand by remember {
+        derivedStateOf {
+            selectedUris.isNotEmpty()
+        }
     }
 
     if (album != null) {
@@ -110,8 +133,6 @@ fun ImagePickerScreen(
         }
     }
 
-    val contents = viewModel.contents.collectAsLazyPagingItems()
-    val selectedUris by viewModel.selectedUris.collectAsState()
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
             if (it) {
@@ -126,44 +147,64 @@ fun ImagePickerScreen(
             }
         }
 
-
-    ImagePickerScreen(
-        images = contents,
-        content = content,
-        selectedUris = selectedUris,
-        onClick = {
-            if (state.autoSelectOnClick)
-                viewModel.select(uri = it.uri, max = state.max)
-
-            onClick(it.copy(selected = !it.selected))
-        },
-        onDragStart = {
-            viewModel.select(uri = it, max = state.max)
-        },
-        onDrag = { start, end, items ->
-            viewModel.select(
-                start = start,
-                end = end,
-                images = items,
-                max = state.max
-            )
-        },
-        onDragEnd = {
-            viewModel.synchronize()
-        },
-        onPhoto = {
-            scope.launch(Dispatchers.IO) {
-                val file = viewModel.createImageFile()
-                cameraLaunch.launch(
-                    FileProvider.getUriForFile(
-                        context, "com.jms.imagePicker.fileprovider",
-                        file
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            if (state.showPreviewBar)
+                AnimatedVisibility(
+                    visible = isExpand,
+                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
+                            + fadeIn(initialAlpha = 0.3f),
+                    exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                ) {
+                    ImagePreviewBar(
+                        uris = selectedUris,
+                        onClick = {
+                            viewModel.select(uri = it, max = state.max)
+                        }
                     )
-                )
-            }
-
+                }
         }
-    )
+    ) {
+        ImagePickerScreen(
+            modifier = Modifier.padding(it),
+            images = contents,
+            content = content,
+            selectedUris = selectedUris,
+            onClick = {
+                if (state.autoSelectOnClick)
+                    viewModel.select(uri = it.uri, max = state.max)
+
+                onClick(it.copy(selected = !it.selected))
+            },
+            onDragStart = {
+                viewModel.select(uri = it, max = state.max)
+            },
+            onDrag = { start, end, items ->
+                viewModel.select(
+                    start = start,
+                    end = end,
+                    images = items,
+                    max = state.max
+                )
+            },
+            onDragEnd = {
+                viewModel.synchronize()
+            },
+            onPhoto = {
+                scope.launch(Dispatchers.IO) {
+                    val file = viewModel.createImageFile()
+                    cameraLaunch.launch(
+                        FileProvider.getUriForFile(
+                            context, "com.jms.imagePicker.fileprovider",
+                            file
+                        )
+                    )
+                }
+
+            }
+        )
+    }
 }
 
 
@@ -186,7 +227,7 @@ private fun ImagePickerScreen(
         if (autoScrollSpeed.floatValue != 0f) {
             while (isActive) {
                 state.scrollBy(autoScrollSpeed.floatValue)
-                delay(10)
+                delay(5)
             }
         }
     }
@@ -199,7 +240,7 @@ private fun ImagePickerScreen(
                 haptics = LocalHapticFeedback.current,
                 onDragStart = onDragStart,
                 autoScrollSpeed = autoScrollSpeed,
-                autoScrollThreshold = with(LocalDensity.current) { 30.dp.toPx() },
+                autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() },
                 onDrag = { start, end ->
                     onDrag(
                         start,
@@ -235,7 +276,7 @@ private fun ImagePickerScreen(
 
         items(
             count = images.itemCount,
-            key = images.itemKey { it.uri },
+            key = images.itemKey { it.uri }
         ) {
             images[it]?.let {
                 Box(
@@ -262,13 +303,15 @@ private fun ImagePickerScreen(
 fun rememberImagePickerState(
     max: Int = Constants.MAX_SIZE,
     autoSelectAfterCapture: Boolean = false,
-    autoSelectOnClick: Boolean = true
+    autoSelectOnClick: Boolean = true,
+    showPreviewBar: Boolean = false
 ): ImagePickerState {
     return remember {
         ImagePickerState(
             max = max,
             autoSelectAfterCapture = autoSelectAfterCapture,
-            autoSelectOnClick = autoSelectOnClick
+            autoSelectOnClick = autoSelectOnClick,
+            showPreviewBar = showPreviewBar
         )
     }
 }
@@ -277,7 +320,8 @@ fun rememberImagePickerState(
 class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,
     val autoSelectAfterCapture: Boolean = false,
-    val autoSelectOnClick: Boolean = true
+    val autoSelectOnClick: Boolean = true,
+    val showPreviewBar: Boolean = false
 ) {
     private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val images: List<Gallery.Image> get() = _pickedImages.value

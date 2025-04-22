@@ -73,8 +73,8 @@ internal fun Modifier.photoGridDragHandler(
                 val distFromTop = change.position.y
 
                 autoScrollSpeed.value = when {
-                    distFromBottom < autoScrollThreshold -> 10f
-                    distFromTop < autoScrollThreshold -> -10f
+                    distFromBottom < autoScrollThreshold -> 15f
+                    distFromTop < autoScrollThreshold -> -15f
                     else -> 0f
                 }
 
@@ -87,7 +87,7 @@ internal fun Modifier.photoGridDragHandler(
                     if (currentKey != key) {
                         onDrag(
                             initialIndex,
-                            currentIndex
+                            index
                         )
 
                         currentKey = key
