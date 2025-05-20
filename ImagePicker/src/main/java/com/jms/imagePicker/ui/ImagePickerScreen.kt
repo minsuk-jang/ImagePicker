@@ -18,10 +18,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -221,7 +224,7 @@ fun ImagePickerScreen(
                 composable(
                     route = "screen_preview"
                 ) {
-                    PreviewScreen(image = )
+                    PreviewScreen(image =)
                 }
             }
         }
@@ -311,13 +314,27 @@ private fun ImagePickerScreen(
                     ImageCell(
                         modifier = Modifier.matchParentSize(),
                         image = it,
-                        onNavigateToPreview = {
-                            onNavigateToPreview(it)
-                        }
                     )
 
                     if (it.selected)
                         content(it)
+
+
+                    Row(
+                        modifier = Modifier.align(Alignment.BottomStart)
+                    ) {
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Column {
+                            Icon(
+                                modifier = Modifier.clickable {
+                                    onNavigateToPreview(it)
+                                },
+                                painter = painterResource(id = R.drawable.open_in_fill),
+                                contentDescription = "open_in_fill"
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                        }
+                    }
                 }
             }
         }
