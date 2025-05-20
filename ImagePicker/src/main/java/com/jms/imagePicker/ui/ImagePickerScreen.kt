@@ -1,5 +1,6 @@
 package com.jms.imagePicker.ui
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -52,9 +53,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -69,7 +67,7 @@ import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.Gallery
-import com.jms.imagePicker.ui.preview.PreviewScreen
+import com.jms.imagePicker.ui.preview.PreviewActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -92,7 +90,10 @@ fun ImagePickerScreen(
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val navController = rememberNavController()
+    val result =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+
+        }
 
     val context = LocalContext.current
     val viewModel: ImagePickerScreenViewModel = viewModel {
@@ -174,60 +175,48 @@ fun ImagePickerScreen(
                 }
         }
     ) {
-        NavHost(
+        ImagePickerScreen(
             modifier = Modifier.padding(it),
-            navController = navController,
-            startDestination = "screen_image_picker"
-        ) {
-            composable(
-                route = "screen_image_picker"
-            ) {
-                ImagePickerScreen(
-                    images = contents,
-                    content = content,
-                    selectedUris = selectedUris,
-                    onClick = {
-                        if (state.autoSelectOnClick)
-                            viewModel.select(uri = it.uri, max = state.max)
+            images = contents,
+            content = content,
+            selectedUris = selectedUris,
+            onClick = {
+                if (state.autoSelectOnClick)
+                    viewModel.select(uri = it.uri, max = state.max)
 
-                        onClick(it.copy(selected = !it.selected))
-                    },
-                    onDragStart = {
-                        viewModel.select(uri = it, max = state.max)
-                    },
-                    onDrag = { start, end, items ->
-                        viewModel.select(
-                            start = start,
-                            end = end,
-                            images = items,
-                            max = state.max
-                        )
-                    },
-                    onDragEnd = {
-                        viewModel.synchronize()
-                    },
-                    onPhoto = {
-                        scope.launch(Dispatchers.IO) {
-                            val file = viewModel.createImageFile()
-                            cameraLaunch.launch(
-                                FileProvider.getUriForFile(
-                                    context, "com.jms.imagePicker.fileprovider",
-                                    file
-                                )
-                            )
-                        }
-                    },
-                    onNavigateToPreview = {
-                        navController.navigate()
-                    }
+                onClick(it.copy(selected = !it.selected))
+            },
+            onDragStart = {
+                viewModel.select(uri = it, max = state.max)
+            },
+            onDrag = { start, end, items ->
+                viewModel.select(
+                    start = start,
+                    end = end,
+                    images = items,
+                    max = state.max
                 )
-                composable(
-                    route = "screen_preview"
-                ) {
-                    PreviewScreen(image =)
+            },
+            onDragEnd = {
+                viewModel.synchronize()
+            },
+            onPhoto = {
+                scope.launch(Dispatchers.IO) {
+                    val file = viewModel.createImageFile()
+                    cameraLaunch.launch(
+                        FileProvider.getUriForFile(
+                            context, "com.jms.imagePicker.fileprovider",
+                            file
+                        )
+                    )
                 }
+            },
+            onNavigateToPreview = {
+                result.launch(Intent(context, PreviewActivity::class.java).apply {
+                    putExtra("uri", it.uri.toString())
+                })
             }
-        }
+        )
     }
 }
 
@@ -242,7 +231,7 @@ private fun ImagePickerScreen(
     onDragStart: (Uri) -> Unit,
     onDrag: (start: Int?, end: Int?, List<Gallery.Image>) -> Unit,
     onDragEnd: () -> Unit = {},
-    onNavigateToPreview: (Gallery) -> Unit = {},
+    onNavigateToPreview: (Gallery.Image) -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val state = rememberLazyGridState()
@@ -326,9 +315,11 @@ private fun ImagePickerScreen(
                         Spacer(modifier = Modifier.width(3.dp))
                         Column {
                             Icon(
-                                modifier = Modifier.clickable {
-                                    onNavigateToPreview(it)
-                                },
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clickable {
+                                        onNavigateToPreview(it)
+                                    },
                                 painter = painterResource(id = R.drawable.open_in_fill),
                                 contentDescription = "open_in_fill"
                             )

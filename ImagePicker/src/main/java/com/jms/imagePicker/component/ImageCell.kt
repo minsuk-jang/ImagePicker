@@ -34,20 +34,18 @@ internal fun ImageCell(
     modifier: Modifier = Modifier,
     uri: Uri
 ) {
-    Box {
-        AsyncImage(
-            modifier = modifier,
-            model = ImageRequest.Builder(LocalContext.current)
-                .crossfade(true)
-                .allowHardware(true)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .data(uri)
-                .build(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            filterQuality = FilterQuality.None,
-        )
-    }
+    AsyncImage(
+        modifier = modifier,
+        model = ImageRequest.Builder(LocalContext.current)
+            .crossfade(true)
+            .allowHardware(true)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .data(uri)
+            .build(),
+        contentDescription = null,
+        contentScale = ContentScale.Crop,
+        filterQuality = FilterQuality.None,
+    )
 }
 
 @Composable
