@@ -49,6 +49,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
@@ -63,6 +66,7 @@ import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.ui.preview.PreviewScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -85,6 +89,7 @@ fun ImagePickerScreen(
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val navController = rememberNavController()
 
     val context = LocalContext.current
     val viewModel: ImagePickerScreenViewModel = viewModel {
@@ -166,44 +171,60 @@ fun ImagePickerScreen(
                 }
         }
     ) {
-        ImagePickerScreen(
+        NavHost(
             modifier = Modifier.padding(it),
-            images = contents,
-            content = content,
-            selectedUris = selectedUris,
-            onClick = {
-                if (state.autoSelectOnClick)
-                    viewModel.select(uri = it.uri, max = state.max)
+            navController = navController,
+            startDestination = "screen_image_picker"
+        ) {
+            composable(
+                route = "screen_image_picker"
+            ) {
+                ImagePickerScreen(
+                    images = contents,
+                    content = content,
+                    selectedUris = selectedUris,
+                    onClick = {
+                        if (state.autoSelectOnClick)
+                            viewModel.select(uri = it.uri, max = state.max)
 
-                onClick(it.copy(selected = !it.selected))
-            },
-            onDragStart = {
-                viewModel.select(uri = it, max = state.max)
-            },
-            onDrag = { start, end, items ->
-                viewModel.select(
-                    start = start,
-                    end = end,
-                    images = items,
-                    max = state.max
-                )
-            },
-            onDragEnd = {
-                viewModel.synchronize()
-            },
-            onPhoto = {
-                scope.launch(Dispatchers.IO) {
-                    val file = viewModel.createImageFile()
-                    cameraLaunch.launch(
-                        FileProvider.getUriForFile(
-                            context, "com.jms.imagePicker.fileprovider",
-                            file
+                        onClick(it.copy(selected = !it.selected))
+                    },
+                    onDragStart = {
+                        viewModel.select(uri = it, max = state.max)
+                    },
+                    onDrag = { start, end, items ->
+                        viewModel.select(
+                            start = start,
+                            end = end,
+                            images = items,
+                            max = state.max
                         )
-                    )
+                    },
+                    onDragEnd = {
+                        viewModel.synchronize()
+                    },
+                    onPhoto = {
+                        scope.launch(Dispatchers.IO) {
+                            val file = viewModel.createImageFile()
+                            cameraLaunch.launch(
+                                FileProvider.getUriForFile(
+                                    context, "com.jms.imagePicker.fileprovider",
+                                    file
+                                )
+                            )
+                        }
+                    },
+                    onNavigateToPreview = {
+                        navController.navigate()
+                    }
+                )
+                composable(
+                    route = "screen_preview"
+                ) {
+                    PreviewScreen(image = )
                 }
-
             }
-        )
+        }
     }
 }
 
@@ -218,6 +239,7 @@ private fun ImagePickerScreen(
     onDragStart: (Uri) -> Unit,
     onDrag: (start: Int?, end: Int?, List<Gallery.Image>) -> Unit,
     onDragEnd: () -> Unit = {},
+    onNavigateToPreview: (Gallery) -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val state = rememberLazyGridState()
@@ -288,7 +310,10 @@ private fun ImagePickerScreen(
                 ) {
                     ImageCell(
                         modifier = Modifier.matchParentSize(),
-                        image = it
+                        image = it,
+                        onNavigateToPreview = {
+                            onNavigateToPreview(it)
+                        }
                     )
 
                     if (it.selected)
