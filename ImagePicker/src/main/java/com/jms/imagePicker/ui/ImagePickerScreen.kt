@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -312,18 +313,23 @@ private fun ImagePickerScreen(
                     Row(
                         modifier = Modifier.align(Alignment.BottomStart)
                     ) {
-                        Spacer(modifier = Modifier.width(3.dp))
+                        Spacer(modifier = Modifier.width(5.dp))
                         Column {
                             Icon(
                                 modifier = Modifier
-                                    .size(18.dp)
+                                    .size(24.dp)
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(2.dp)
+                                    )
                                     .clickable {
                                         onNavigateToPreview(it)
                                     },
-                                painter = painterResource(id = R.drawable.open_in_fill),
-                                contentDescription = "open_in_fill"
+                                painter = painterResource(id = R.drawable.expand_content),
+                                contentDescription = "expand_content",
+                                tint = Color.White
                             )
-                            Spacer(modifier = Modifier.width(3.dp))
+                            Spacer(modifier = Modifier.width(5.dp))
                         }
                     }
                 }
