@@ -52,7 +52,6 @@ internal fun PreviewScreen(
                 .data(uiModel.uri)
                 .build(),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
             filterQuality = FilterQuality.None,
         )
 
