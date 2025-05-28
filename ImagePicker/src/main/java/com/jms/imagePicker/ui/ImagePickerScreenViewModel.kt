@@ -197,11 +197,14 @@ internal class ImagePickerScreenViewModel(
 
     fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
-            fileManager.saveImageFile(context = context, file = _imageFile!!)
+            viewModelScope.launch {
+                fileManager.saveImageFile(context = context, file = _imageFile!!)
 
-            if (autoSelectAfterCapture) {
-                select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
+                if (autoSelectAfterCapture) {
+                    select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
+                }
             }
+
         }
     }
 

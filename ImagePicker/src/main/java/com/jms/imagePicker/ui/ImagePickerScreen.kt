@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -91,7 +92,7 @@ fun ImagePickerScreen(
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val result =
+    val previewResult =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
 
         }
@@ -213,7 +214,7 @@ fun ImagePickerScreen(
                 }
             },
             onNavigateToPreview = {
-                result.launch(Intent(context, PreviewActivity::class.java).apply {
+                previewResult.launch(Intent(context, PreviewActivity::class.java).apply {
                     putExtra("uri", it.uri.toString())
                 })
             }
@@ -313,11 +314,11 @@ private fun ImagePickerScreen(
                     Row(
                         modifier = Modifier.align(Alignment.BottomStart)
                     ) {
-                        Spacer(modifier = Modifier.width(5.dp))
+                        Spacer(modifier = Modifier.width(3.dp))
                         Column {
                             Icon(
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(18.dp)
                                     .background(
                                         color = Color.Black.copy(alpha = 0.5f),
                                         shape = RoundedCornerShape(2.dp)
@@ -329,7 +330,7 @@ private fun ImagePickerScreen(
                                 contentDescription = "expand_content",
                                 tint = Color.White
                             )
-                            Spacer(modifier = Modifier.width(5.dp))
+                            Spacer(modifier = Modifier.height(3.dp))
                         }
                     }
                 }

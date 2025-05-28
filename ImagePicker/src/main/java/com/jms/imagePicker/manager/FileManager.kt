@@ -10,6 +10,9 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.exifinterface.media.ExifInterface
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -35,7 +38,7 @@ internal class FileManager(
         return File(dir.absolutePath + "/$name.jpg")
     }
 
-    fun saveImageFile(context: Context, file: File) {
+    suspend fun saveImageFile(context: Context, file: File) = withContext(Dispatchers.IO) {
         val currentTimeMillis = file.lastModified()
         val bitmap = rotateBitmap(file = file)
 
