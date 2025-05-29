@@ -5,6 +5,7 @@ import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -113,6 +114,11 @@ fun ImagePickerScreen(
 
     val previewResult =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+            Log.e(
+                "jms8732",
+                "result Code: ${it.resultCode}\n" +
+                        "data: ${it.data}",
+            )
             when (it.resultCode) {
                 RESULT_OK -> {
                     it.data?.let {
@@ -122,8 +128,7 @@ fun ImagePickerScreen(
                         } else
                             it.getParcelableExtra("uri")
 
-
-                        viewModel.select(uri = uri, max = state.max)
+                        //    viewModel.select(uri = uri, max = state.max)
                     }
                 }
 

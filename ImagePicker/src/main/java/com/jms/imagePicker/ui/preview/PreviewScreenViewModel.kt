@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 
 internal data class PreviewScreenUiModel(
     val uri: Uri = Uri.EMPTY,
+    val originSelected: Boolean = false,
     val selected: Boolean = false,
     val order: Int = Constants.NO_ORDER,
 )
@@ -32,14 +33,15 @@ internal class PreviewScreenViewModel(
 
     private fun getPreviewImage() {
         val uri = savedStateHandle.get<Uri>("uri") ?: Uri.EMPTY
-        val selected = savedStateHandle.get<Boolean>("selected") ?: false
+        val originSelected = savedStateHandle.get<Boolean>("selected") ?: false
         val order =
             savedStateHandle.get<Int>("order")?.coerceAtLeast(0)?.plus(1) ?: Constants.NO_ORDER
 
         _uiModel.update {
             it.copy(
                 uri = uri,
-                selected = selected,
+                originSelected = originSelected,
+                selected = originSelected,
                 order = order
             )
         }
