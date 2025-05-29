@@ -1,5 +1,7 @@
 package com.jms.imagePicker.ui
 
+import android.app.Activity.RESULT_CANCELED
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -92,11 +94,6 @@ fun ImagePickerScreen(
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val previewResult =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
-
-        }
-
     val context = LocalContext.current
     val viewModel: ImagePickerScreenViewModel = viewModel {
         ImagePickerScreenViewModel(
@@ -112,6 +109,27 @@ fun ImagePickerScreen(
     }
     val contents = viewModel.contents.collectAsLazyPagingItems()
     val selectedUris by viewModel.selectedUris.collectAsState()
+
+
+    val previewResult =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+            when (it.resultCode) {
+                RESULT_OK -> {
+                    it.data?.let {
+                        val selected = it.getBooleanExtra("selected", false)
+                        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            it.getParcelableExtra("uri", Uri::class.java)
+                        } else
+                            it.getParcelableExtra("uri")
+
+
+                        viewModel.select(uri = uri, max = state.max)
+                    }
+                }
+
+                RESULT_CANCELED -> {}
+            }
+        }
 
     val isExpand by remember {
         derivedStateOf {
@@ -152,9 +170,6 @@ fun ImagePickerScreen(
                     max = state.max,
                     autoSelectAfterCapture = state.autoSelectAfterCapture
                 )
-
-                viewModel.refresh()
-                contents.refresh()
             }
         }
 
@@ -215,7 +230,9 @@ fun ImagePickerScreen(
             },
             onNavigateToPreview = {
                 previewResult.launch(Intent(context, PreviewActivity::class.java).apply {
-                    putExtra("uri", it.uri.toString())
+                    putExtra("uri", it.uri)
+                    putExtra("selected", it.selected)
+                    putExtra("order", it.selectedOrder)
                 })
             }
         )

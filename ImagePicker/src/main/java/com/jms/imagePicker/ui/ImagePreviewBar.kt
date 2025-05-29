@@ -41,8 +41,7 @@ internal fun ImagePreviewBar(
     ) {
         items(
             items = uris,
-            key = { it },
-            contentType = { it }
+            key = { it }
         ) {
             Box(
                 modifier = Modifier

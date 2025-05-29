@@ -16,6 +16,10 @@ internal class PreviewActivity : ComponentActivity() {
             PreviewScreen(
                 modifier = Modifier.fillMaxSize(),
                 onBack = {
+                    setResult(RESULT_OK, intent.apply {
+                        putExtra("selected", it.selected)
+                        putExtra("uri", it.uri)
+                    })
                     finish()
                 }
             )

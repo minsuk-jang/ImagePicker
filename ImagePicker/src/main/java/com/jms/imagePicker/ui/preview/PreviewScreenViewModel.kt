@@ -4,6 +4,7 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import com.jms.imagePicker.Constants
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,11 +12,13 @@ import kotlinx.coroutines.flow.update
 
 
 internal data class PreviewScreenUiModel(
-    val uri: Uri = Uri.EMPTY
+    val uri: Uri = Uri.EMPTY,
+    val selected: Boolean = false,
+    val order: Int = Constants.NO_ORDER,
 )
 
 internal class PreviewScreenViewModel(
-    val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiModel: MutableStateFlow<PreviewScreenUiModel> =
@@ -28,12 +31,24 @@ internal class PreviewScreenViewModel(
     }
 
     private fun getPreviewImage() {
-        val uri = savedStateHandle.get<String>("uri")
+        val uri = savedStateHandle.get<Uri>("uri") ?: Uri.EMPTY
+        val selected = savedStateHandle.get<Boolean>("selected") ?: false
+        val order =
+            savedStateHandle.get<Int>("order")?.coerceAtLeast(0)?.plus(1) ?: Constants.NO_ORDER
 
-        Log.e("jms8732", "getPreviewImage: $uri", )
         _uiModel.update {
             it.copy(
-                Uri.parse(uri)
+                uri = uri,
+                selected = selected,
+                order = order
+            )
+        }
+    }
+
+    fun select() {
+        _uiModel.update {
+            it.copy(
+                selected = !it.selected
             )
         }
     }

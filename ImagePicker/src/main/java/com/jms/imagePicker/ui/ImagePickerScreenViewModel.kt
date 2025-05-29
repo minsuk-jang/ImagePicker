@@ -50,15 +50,20 @@ internal class ImagePickerScreenViewModel(
     private val _selectedAlbum: MutableStateFlow<Album> = MutableStateFlow(Album(id = null))
     val selectedAlbum: StateFlow<Album> = _selectedAlbum.asStateFlow()
 
-    val contents: Flow<PagingData<Gallery.Image>> = _selectedAlbum.flatMapLatest {
-        localGalleryDataSource.getLocalGalleryImages(
-            page = 1,
-            albumId = it.id
-        )
-    }.cachedIn(viewModelScope)
-        .combine(_selectedUris) { data, uris ->
-            update(pagingData = data, uris = uris)
-        }.flowOn(Dispatchers.Default)
+    private val _refreshTrigger: MutableStateFlow<Long> = MutableStateFlow(0L)
+
+    val contents: Flow<PagingData<Gallery.Image>> =
+        combine(_selectedAlbum, _refreshTrigger) { album, _ ->
+            album
+        }.flatMapLatest {
+            localGalleryDataSource.getLocalGalleryImages(
+                page = 1,
+                albumId = it.id
+            )
+        }.cachedIn(viewModelScope)
+            .combine(_selectedUris) { data, uris ->
+                update(pagingData = data, uris = uris)
+            }.flowOn(Dispatchers.Default)
 
     private var _imageFile: File? = null
 
@@ -197,19 +202,21 @@ internal class ImagePickerScreenViewModel(
 
     fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
-            viewModelScope.launch {
+            viewModelScope.launch(Dispatchers.IO) {
                 fileManager.saveImageFile(context = context, file = _imageFile!!)
 
                 if (autoSelectAfterCapture) {
                     select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
                 }
-            }
 
+                refresh()
+                refreshAlbum()
+            }
         }
     }
 
-    fun refresh() {
-        refreshAlbum()
+    private fun refresh() {
+        _refreshTrigger.update { System.currentTimeMillis() }
     }
 
     private fun refreshAlbum() {
