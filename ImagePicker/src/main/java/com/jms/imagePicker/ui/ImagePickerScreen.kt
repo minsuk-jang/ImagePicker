@@ -332,7 +332,6 @@ private fun ImagePickerScreen(
                     if (it.selected)
                         content(it)
 
-
                     Row(
                         modifier = Modifier.align(Alignment.BottomStart)
                     ) {

@@ -38,8 +38,10 @@ internal fun ImageCell(
         modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
             .crossfade(true)
-            .allowHardware(true)
+            .memoryCacheKey(uri.toString())
             .memoryCachePolicy(CachePolicy.ENABLED)
+            .diskCacheKey(uri.toString())
+            .diskCachePolicy(CachePolicy.ENABLED)
             .data(uri)
             .build(),
         contentDescription = null,
