@@ -133,14 +133,15 @@ private fun PreviewContent(
                             onSelect()
                         }
                 ) {
-                    Text(
-                        modifier = Modifier.align(Alignment.Center),
-                        text = "${uiModel.order}",
-                        style = TextStyle(
-                            fontWeight = FontWeight.W500,
-                            color = Color.Black
+                    if (uiModel.selected)
+                        Text(
+                            modifier = Modifier.align(Alignment.Center),
+                            text = "${uiModel.order}",
+                            style = TextStyle(
+                                fontWeight = FontWeight.W500,
+                                color = Color.Black
+                            )
                         )
-                    )
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
