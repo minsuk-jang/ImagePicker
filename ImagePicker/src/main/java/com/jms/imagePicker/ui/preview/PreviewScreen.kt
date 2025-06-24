@@ -1,5 +1,6 @@
 package com.jms.imagePicker.ui.preview
 
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -39,6 +40,7 @@ import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.jms.imagePicker.Constants
+import androidx.core.net.toUri
 
 
 @Composable
@@ -69,9 +71,20 @@ internal fun PreviewScreen(
 
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
+                .fillMaxSize()
         ) {
+            AsyncImage(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .align(Alignment.Center),
+                model = ImageRequest.Builder(LocalContext.current)
+                    .crossfade(true)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .data(uiModel.uri.toUri())
+                    .build(),
+                contentDescription = "content",
+            )
+
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -95,7 +108,7 @@ internal fun PreviewScreen(
                     },
                     contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.textButtonColors(
-                        contentColor =Color.Transparent
+                        contentColor = Color.Transparent
                     )
                 ) {
                     if (uiModel.selected)
@@ -110,20 +123,6 @@ internal fun PreviewScreen(
 
                 Spacer(modifier = Modifier.width(15.dp))
             }
-
-            AsyncImage(
-                modifier = Modifier
-                    .wrapContentSize()
-                    .align(Alignment.Center),
-                model = ImageRequest.Builder(LocalContext.current)
-                    .crossfade(true)
-                    .allowHardware(true)
-                    .memoryCachePolicy(CachePolicy.ENABLED)
-                    .data(uiModel.uri)
-                    .build(),
-                contentDescription = null,
-                filterQuality = FilterQuality.None,
-            )
         }
     }
 }

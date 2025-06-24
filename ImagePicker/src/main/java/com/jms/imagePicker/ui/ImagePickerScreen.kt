@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -111,24 +112,13 @@ fun ImagePickerScreen(
     val contents = viewModel.contents.collectAsLazyPagingItems()
     val selectedUris by viewModel.selectedUris.collectAsState()
 
-
     val previewResult =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
-            Log.e(
-                "jms8732",
-                "result Code: ${it.resultCode}\n" +
-                        "data: ${it.data}",
-            )
             when (it.resultCode) {
                 RESULT_OK -> {
                     it.data?.let {
-                        val selected = it.getBooleanExtra("selected", false)
-                        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            it.getParcelableExtra("uri", Uri::class.java)
-                        } else
-                            it.getParcelableExtra("uri")
-
-                        //    viewModel.select(uri = uri, max = state.max)
+                        val uri = it.getStringExtra(Constants.KEY_URI)?.toUri() ?: Uri.EMPTY
+                        viewModel.select(uri = uri, max = state.max)
                     }
                 }
 
@@ -233,11 +223,11 @@ fun ImagePickerScreen(
                     )
                 }
             },
-            onNavigateToPreview = {
+            onNavigateToPreview = { image, order ->
                 previewResult.launch(Intent(context, PreviewActivity::class.java).apply {
-                    putExtra("uri", it.uri)
-                    putExtra("selected", it.selected)
-                    putExtra("order", it.selectedOrder)
+                    putExtra(Constants.KEY_URI, image.uri.toString())
+                    putExtra(Constants.KEY_SELECTED, image.selected)
+                    putExtra(Constants.KEY_ORDER, order)
                 })
             }
         )
@@ -255,7 +245,7 @@ private fun ImagePickerScreen(
     onDragStart: (Uri) -> Unit,
     onDrag: (start: Int?, end: Int?, List<Gallery.Image>) -> Unit,
     onDragEnd: () -> Unit = {},
-    onNavigateToPreview: (Gallery.Image) -> Unit = {},
+    onNavigateToPreview: (Gallery.Image, Int) -> Unit = { _, _ -> },
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val state = rememberLazyGridState()
@@ -345,7 +335,15 @@ private fun ImagePickerScreen(
                                         shape = RoundedCornerShape(2.dp)
                                     )
                                     .clickable {
-                                        onNavigateToPreview(it)
+                                        val index = when (it.selected) {
+                                            true -> it.selectedOrder
+                                            false -> selectedUris.size
+                                        }
+
+                                        onNavigateToPreview(
+                                            it,
+                                            index + 1
+                                        )
                                     },
                                 painter = painterResource(id = R.drawable.expand_content),
                                 contentDescription = "expand_content",

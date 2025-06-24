@@ -45,8 +45,7 @@ internal fun ImageCell(
             .data(uri)
             .build(),
         contentDescription = null,
-        contentScale = ContentScale.Crop,
-        filterQuality = FilterQuality.None,
+        contentScale = ContentScale.Crop
     )
 }
 
