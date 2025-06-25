@@ -1,19 +1,15 @@
 package com.jms.imagePicker.data
 
 import android.provider.MediaStore
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.jms.imagePicker.Constants
 import com.jms.imagePicker.extensions.toImage
 import com.jms.imagePicker.manager.MediaContentManager
 import com.jms.imagePicker.model.Gallery
-import kotlinx.coroutines.flow.Flow
 
 
-internal class ImagePickerPagingSource(
+internal class ImagePickerPagingDataSource(
     private val contentManager: MediaContentManager,
     private val albumId: String?
 ) : PagingSource<Int, Gallery.Image>() {
@@ -35,6 +31,8 @@ internal class ImagePickerPagingSource(
             val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
 
             val page = params.key ?: DEFAULT_PAGE
+
+            Log.e("jms8732", "page: $page")
 
             contentManager.getCursor(
                 uri = uri,
@@ -59,7 +57,7 @@ internal class ImagePickerPagingSource(
 
                 return@load LoadResult.Page(
                     data = list,
-                    prevKey = if (list.isNotEmpty()) page - 1 else null,
+                    prevKey = if (page - 1 > 0) page - 1 else null,
                     nextKey = if (list.isNotEmpty()) page + 1 else null
                 )
             } ?: LoadResult.Error(throwable = Exception("Empty Gallery"))

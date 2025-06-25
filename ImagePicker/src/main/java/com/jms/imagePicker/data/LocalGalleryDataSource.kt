@@ -1,14 +1,10 @@
 package com.jms.imagePicker.data
 
-import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.PagingSource
-import com.jms.imagePicker.Constants
-import com.jms.imagePicker.extensions.getColumnString
 import com.jms.imagePicker.extensions.toImage
 import com.jms.imagePicker.manager.MediaContentManager
 import com.jms.imagePicker.model.Album
@@ -31,10 +27,10 @@ internal class LocalGalleryDataSource(
     ): Flow<PagingData<Gallery.Image>> {
         return Pager(
             config = PagingConfig(
-                pageSize = ImagePickerPagingSource.DEFAULT_PAGE_LIMIT
+                pageSize = ImagePickerPagingDataSource.DEFAULT_PAGE_LIMIT
             )
         ) {
-            ImagePickerPagingSource(
+            ImagePickerPagingDataSource(
                 contentManager = contentManager,
                 albumId = albumId
             )
