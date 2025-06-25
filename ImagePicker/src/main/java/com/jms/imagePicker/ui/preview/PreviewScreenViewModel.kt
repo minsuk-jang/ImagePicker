@@ -1,6 +1,5 @@
 package com.jms.imagePicker.ui.preview
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.jms.imagePicker.Constants
@@ -15,7 +14,9 @@ internal data class PreviewScreenUiModel(
     val originSelected: Boolean = false,
     val selected: Boolean = false,
     val order: Int = Constants.NO_ORDER,
-)
+){
+    val isChanged get() = originSelected != selected
+}
 
 internal class PreviewScreenViewModel(
     private val savedStateHandle: SavedStateHandle
@@ -33,8 +34,6 @@ internal class PreviewScreenViewModel(
         val originSelected = savedStateHandle.get<Boolean>(Constants.KEY_SELECTED) ?: false
         val order =
             savedStateHandle.get<Int>(Constants.KEY_ORDER) ?: Constants.NO_ORDER
-
-        Log.e("jms8732", "order: $order")
 
         _uiModel.update {
             it.copy(

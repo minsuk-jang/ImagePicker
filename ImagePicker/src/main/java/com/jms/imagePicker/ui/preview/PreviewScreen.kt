@@ -1,6 +1,5 @@
 package com.jms.imagePicker.ui.preview
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -8,45 +7,37 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.tooling.preview.UiMode
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.jms.imagePicker.Constants
-import androidx.core.net.toUri
 
 
 @Composable
@@ -88,6 +79,7 @@ private fun PreviewContent(
                 onClick = { onBack(uiModel) }
             ) {
                 Icon(
+                    modifier = Modifier.size(20.dp),
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "back",
                     tint = Color.White
@@ -101,7 +93,6 @@ private fun PreviewContent(
         ) {
             AsyncImage(
                 modifier = Modifier
-                    .wrapContentSize()
                     .align(Alignment.Center),
                 model = ImageRequest.Builder(LocalContext.current)
                     .crossfade(true)
@@ -117,16 +108,16 @@ private fun PreviewContent(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(45.dp)
+                        .size(40.dp)
                         .background(
                             color = when (uiModel.selected) {
                                 true -> Color.LightGray
-                                false -> Color.Transparent
+                                false -> Color.LightGray.copy(alpha = 0.8f)
                             },
                             shape = CircleShape
                         )
                         .border(
-                            border = BorderStroke(width = 2.dp, color = Color.LightGray),
+                            border = BorderStroke(width = 3.dp, color = Color.LightGray),
                             shape = CircleShape
                         )
                         .clickable {
@@ -144,7 +135,7 @@ private fun PreviewContent(
                         )
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
             }
         }
     }
