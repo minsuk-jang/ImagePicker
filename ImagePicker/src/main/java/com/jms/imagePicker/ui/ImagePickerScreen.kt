@@ -65,7 +65,6 @@ import androidx.paging.compose.itemKey
 import com.jms.imagePicker.Constants
 import com.jms.imagePicker.R
 import com.jms.imagePicker.component.ImageCell
-import com.jms.imagePicker.data.GalleryPagingStream
 import com.jms.imagePicker.data.LocalGalleryDataSource
 import com.jms.imagePicker.extensions.photoGridDragHandler
 import com.jms.imagePicker.manager.API21MediaContentManager
@@ -120,8 +119,7 @@ fun ImagePickerScreen(
                             contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                                 API29MediaContentManager(context = context.applicationContext)
                             } else
-                                API21MediaContentManager(context = context.applicationContext),
-                            galleryStream = GalleryPagingStream()
+                                API21MediaContentManager(context = context.applicationContext)
                         )
                     )
                 }

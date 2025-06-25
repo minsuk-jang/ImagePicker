@@ -55,7 +55,6 @@ internal class ImagePickerViewModel(
             album
         }.flatMapLatest {
             localGalleryDataSource.getLocalGalleryImages(
-                page = 1,
                 albumId = it.id
             )
         }.cachedIn(viewModelScope)
