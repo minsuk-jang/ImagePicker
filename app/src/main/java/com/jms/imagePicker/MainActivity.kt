@@ -130,14 +130,11 @@ class MainActivity : ComponentActivity() {
                                 onAlbumListLoaded = {
                                     viewModel.setAlbums(it)
                                 },
-                                onClick = {
-
-                                },
                                 content = {
                                     if (it.selected)
                                         Box(
                                             modifier = Modifier
-                                                .border(width = 3.5.dp, color = Purple40)
+                                                .border(width = 3.5.dp, color = Gray)
                                                 .background(color = Gray.copy(0.5f))
                                                 .fillMaxSize()
                                         ) {

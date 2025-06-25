@@ -1,8 +1,6 @@
 package com.jms.imagePicker.ui
 
-import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -29,7 +27,7 @@ import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
-internal class ImagePickerScreenViewModel(
+internal class ImagePickerViewModel(
     private val fileManager: FileManager,
     val localGalleryDataSource: LocalGalleryDataSource
 ) : ViewModel() {
@@ -52,7 +50,7 @@ internal class ImagePickerScreenViewModel(
 
     private val _refreshTrigger: MutableStateFlow<Long> = MutableStateFlow(0L)
 
-    val contents: Flow<PagingData<Gallery.Image>> =
+    val images: Flow<PagingData<Gallery.Image>> =
         combine(_selectedAlbum, _refreshTrigger) { album, _ ->
             album
         }.flatMapLatest {
@@ -200,10 +198,10 @@ internal class ImagePickerScreenViewModel(
         return _imageFile ?: throw IllegalStateException("File is null!!")
     }
 
-    fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
+    fun saveImageFile(max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
             viewModelScope.launch(Dispatchers.IO) {
-                fileManager.saveImageFile(context = context, file = _imageFile!!)
+                fileManager.saveImageFile(file = _imageFile!!)
 
                 if (autoSelectAfterCapture) {
                     select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)

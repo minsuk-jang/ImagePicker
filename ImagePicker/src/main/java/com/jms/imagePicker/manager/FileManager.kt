@@ -38,7 +38,7 @@ internal class FileManager(
         return File(dir.absolutePath + "/$name.jpg")
     }
 
-    suspend fun saveImageFile(context: Context, file: File) = withContext(Dispatchers.IO) {
+    suspend fun saveImageFile(file: File) = withContext(Dispatchers.IO) {
         val currentTimeMillis = file.lastModified()
         val bitmap = rotateBitmap(file = file)
 
