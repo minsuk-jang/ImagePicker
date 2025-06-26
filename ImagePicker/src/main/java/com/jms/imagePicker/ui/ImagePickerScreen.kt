@@ -195,11 +195,11 @@ private fun ImagePickerScaffold(
 
     val previewScopeImpl = remember(viewModel) {
         object : PreviewTopBarScope {
-            override val selectedImages: List<MediaContent>
+            override val selectedMediaContents: List<MediaContent>
                 get() = selectedImages
 
-            override fun onClick(image: MediaContent) {
-                // viewModel.select(uri = image.uri, max = state.max)
+            override fun onClick(mediaContent: MediaContent) {
+                viewModel.select(uri = mediaContent.uri, max = state.max)
             }
         }
     }

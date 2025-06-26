@@ -1,6 +1,5 @@
 package com.jms.imagePicker.ui
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,14 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.jms.imagePicker.model.MediaContent
 import java.util.Collections.emptyList
 
 
 @Composable
 internal fun ImagePreviewBar(
     modifier: Modifier = Modifier,
-    uris: List<Uri>,
-    onClick: (Uri) -> Unit = {}
+    mediaContents: List<MediaContent>,
+    onClick: (MediaContent) -> Unit = {}
 ) {
     LazyRow(
         modifier = modifier
@@ -37,8 +37,8 @@ internal fun ImagePreviewBar(
         contentPadding = PaddingValues(start = 10.dp, top = 1.dp, bottom = 5.dp, end = 10.dp)
     ) {
         items(
-            items = uris,
-            key = { it }
+            items = mediaContents,
+            key = { it.uri }
         ) {
             Box(
                 modifier = Modifier
@@ -71,5 +71,5 @@ internal fun ImagePreviewBar(
 @Preview(showBackground = true)
 @Composable
 private fun Preview_ImagePreviewBar() {
-    ImagePreviewBar(uris = emptyList())
+    ImagePreviewBar(mediaContents = emptyList())
 }
