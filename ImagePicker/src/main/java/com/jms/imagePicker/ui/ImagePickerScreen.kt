@@ -27,8 +27,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -44,9 +44,11 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -91,6 +93,8 @@ fun ImagePickerScreen(
     album: Album? = null,
     onAlbumListLoaded: (List<Album>) -> Unit = {},
     onAlbumSelected: (Album) -> Unit = {},
+    topBar: @Composable () -> Unit = {},
+    previewTopBar: @Composable () -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
@@ -130,9 +134,18 @@ fun ImagePickerScreen(
                     onAlbumListLoaded = onAlbumListLoaded,
                     state = state,
                     album = album,
+                    topBar = topBar,
+                    previewTopBar = previewTopBar,
                     content = content,
                     onNavigateToPreview = {
-                        navController.navigate("route_preview?$it")
+                        navController.navigate("route_preview?$it") {
+                            launchSingleTop = true
+                            restoreState = true
+
+                            popUpTo("route_image_list") {
+                                saveState = true
+                            }
+                        }
                     }
                 )
             }
@@ -154,7 +167,10 @@ fun ImagePickerScreen(
 
                 PreviewScreen(
                     viewModel = viewModel,
-                    initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex
+                    initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
+                    onBack = {
+                        navController.popBackStack()
+                    }
                 )
             }
         }
@@ -163,12 +179,15 @@ fun ImagePickerScreen(
 
 @Composable
 private fun ImagePickerScreen(
+    modifier: Modifier = Modifier,
     state: ImagePickerState = rememberImagePickerState(),
     viewModel: ImagePickerViewModel,
     album: Album? = null,
     onAlbumListLoaded: (List<Album>) -> Unit = {},
     onAlbumSelected: (Album) -> Unit = {},
     onNavigateToPreview: (Int) -> Unit = {},
+    topBar: @Composable () -> Unit = {},
+    previewTopBar: @Composable () -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
@@ -211,53 +230,75 @@ private fun ImagePickerScreen(
             }
         }
 
-    ImagePickerContent(
-        images = images,
-        isShowPreviewBar = state.showPreviewBar,
-        selectedUris = selectedUris,
-        onClick = {
-            viewModel.select(uri = it, max = state.max)
-        },
-        onDragStart = {
-            viewModel.select(uri = it, max = state.max)
-        },
-        onDrag = { start, end, items ->
-            viewModel.select(
-                start = start,
-                end = end,
-                images = items,
-                max = state.max
-            )
-        },
-        onDragEnd = {
-            viewModel.synchronize()
-        },
-        onPhoto = {
-            scope.launch(Dispatchers.IO) {
-                val file = viewModel.createImageFile()
-                cameraLaunch.launch(
-                    FileProvider.getUriForFile(
-                        context, "com.jms.imagePicker.fileprovider",
-                        file
-                    )
-                )
-            }
-        },
-        onNavigateToPreview = { image ->
-            val index =
-                images.itemSnapshotList.indexOfFirst { it?.uri == image.uri }.coerceAtLeast(0)
-            onNavigateToPreview(index)
-        },
-        content = content
-    )
+    SubcomposeLayout(
+        modifier = modifier
+    ) { constraints ->
+        val topBarMeasurable = subcompose("top_bar", topBar).firstOrNull()
+        val previewTopBarMeasurable = subcompose("preview_top_bar", previewTopBar).firstOrNull()
 
+        val pickerContentMeasurable = subcompose("picker_content") {
+            ImagePickerContent(
+                images = images,
+                selectedUris = selectedUris,
+                onClick = {
+                    viewModel.select(uri = it, max = state.max)
+                },
+                onDragStart = {
+                    viewModel.select(uri = it, max = state.max)
+                },
+                onDrag = { start, end, items ->
+                    viewModel.select(
+                        start = start,
+                        end = end,
+                        images = items,
+                        max = state.max
+                    )
+                },
+                onDragEnd = {
+                    viewModel.synchronize()
+                },
+                onPhoto = {
+                    scope.launch(Dispatchers.IO) {
+                        val file = viewModel.createImageFile()
+                        cameraLaunch.launch(
+                            FileProvider.getUriForFile(
+                                context, "com.jms.imagePicker.fileprovider",
+                                file
+                            )
+                        )
+                    }
+                },
+                onNavigateToPreview = { image ->
+                    val index =
+                        images.itemSnapshotList.indexOfFirst { it?.uri == image.uri }
+                            .coerceAtLeast(0)
+                    onNavigateToPreview(index)
+                },
+                content = content
+            )
+        }.first()
+
+        val pickerContentPlaceable = pickerContentMeasurable.measure(constraints)
+
+        val topBarPlaceable = topBarMeasurable?.measure(constraints)
+        var topBarHeight = topBarPlaceable?.height ?: 0
+
+        var previewTopBarPlaceable = previewTopBarMeasurable?.measure(constraints)
+        var previewTopBarHeight = previewTopBarPlaceable?.height ?: 0
+
+
+        layout(width = constraints.maxWidth, height = constraints.maxHeight) {
+            topBarPlaceable?.place(0, 0)
+            previewTopBarPlaceable?.place(0, topBarHeight)
+            pickerContentPlaceable.place(0, topBarHeight + previewTopBarHeight)
+        }
+    }
 }
 
 
 @Composable
 private fun ImagePickerContent(
     modifier: Modifier = Modifier,
-    isShowPreviewBar: Boolean,
     images: LazyPagingItems<Gallery.Image>,
     selectedUris: List<Uri>,
     onClick: (Uri) -> Unit,
@@ -268,115 +309,97 @@ private fun ImagePickerContent(
     onNavigateToPreview: (Gallery.Image) -> Unit = { },
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
-    val state = rememberLazyGridState()
+    val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(key1 = autoScrollSpeed.floatValue) {
         if (autoScrollSpeed.floatValue != 0f) {
             while (isActive) {
-                state.scrollBy(autoScrollSpeed.floatValue)
+                gridState.scrollBy(autoScrollSpeed.floatValue)
                 delay(5)
             }
         }
     }
 
-    Column(
-        modifier = modifier.fillMaxSize()
+    LazyVerticalGrid(
+        modifier = modifier
+            .fillMaxSize()
+            .photoGridDragHandler(
+                lazyGridState = gridState,
+                selectedImages = selectedUris,
+                haptics = LocalHapticFeedback.current,
+                onDragStart = onDragStart,
+                autoScrollSpeed = autoScrollSpeed,
+                autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() },
+                onDrag = { start, end ->
+                    onDrag(
+                        start,
+                        end,
+                        images.itemSnapshotList.items
+                    )
+                },
+                onDragEnd = onDragEnd
+            ),
+        state = gridState,
+        columns = GridCells.Fixed(3),
+        verticalArrangement = Arrangement.spacedBy(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        if (isShowPreviewBar)
-            AnimatedVisibility(
-                visible = selectedUris.isNotEmpty(),
-                enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
-                        + fadeIn(initialAlpha = 0.3f),
-                exit = slideOutVertically() + shrinkVertically() + fadeOut()
+        item {
+            Box(
+                modifier = Modifier
+                    .background(color = Color.LightGray)
+                    .clickable { onPhoto() }
+                    .aspectRatio(1f)
             ) {
-                ImagePreviewBar(
-                    uris = selectedUris,
-                    onClick = {
-                        onClick(it)
-                    }
+                Icon(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(40.dp),
+                    painter = painterResource(id = R.drawable.photo_camera),
+                    contentDescription = null,
                 )
             }
+        }
 
-        LazyVerticalGrid(
-            modifier = Modifier
-                .photoGridDragHandler(
-                    lazyGridState = state,
-                    selectedImages = selectedUris,
-                    haptics = LocalHapticFeedback.current,
-                    onDragStart = onDragStart,
-                    autoScrollSpeed = autoScrollSpeed,
-                    autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() },
-                    onDrag = { start, end ->
-                        onDrag(
-                            start,
-                            end,
-                            images.itemSnapshotList.items
-                        )
-                    },
-                    onDragEnd = onDragEnd
-                ),
-            state = state,
-            columns = GridCells.Fixed(3),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-            horizontalArrangement = Arrangement.spacedBy(3.dp),
+        items(
+            count = images.itemCount,
+            key = images.itemKey { it.uri }
         ) {
-            item {
+            images[it]?.let {
                 Box(
                     modifier = Modifier
-                        .background(color = Color.LightGray)
-                        .clickable { onPhoto() }
+                        .clickable { onClick(it.uri) }
                         .aspectRatio(1f)
                 ) {
-                    Icon(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .size(40.dp),
-                        painter = painterResource(id = R.drawable.photo_camera),
-                        contentDescription = null,
+                    ImageCell(
+                        modifier = Modifier.matchParentSize(),
+                        image = it,
                     )
-                }
-            }
 
-            items(
-                count = images.itemCount,
-                key = images.itemKey { it.uri }
-            ) {
-                images[it]?.let {
-                    Box(
-                        modifier = Modifier
-                            .clickable { onClick(it.uri) }
-                            .aspectRatio(1f)
+                    if (it.selected)
+                        content(it)
+
+                    Row(
+                        modifier = Modifier.align(Alignment.BottomStart)
                     ) {
-                        ImageCell(
-                            modifier = Modifier.matchParentSize(),
-                            image = it,
-                        )
-
-                        if (it.selected)
-                            content(it)
-
-                        Row(
-                            modifier = Modifier.align(Alignment.BottomStart)
-                        ) {
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Column {
-                                Icon(
-                                    modifier = Modifier
-                                        .size(18.dp)
-                                        .background(
-                                            color = Color.Black.copy(alpha = 0.5f),
-                                            shape = RoundedCornerShape(2.dp)
-                                        )
-                                        .clickable {
-                                            onNavigateToPreview(it)
-                                        },
-                                    painter = painterResource(id = R.drawable.expand_content),
-                                    contentDescription = "expand_content",
-                                    tint = Color.White
-                                )
-                                Spacer(modifier = Modifier.height(3.dp))
-                            }
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Column {
+                            Icon(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(2.dp)
+                                    )
+                                    .clickable {
+                                        onNavigateToPreview(it)
+                                    },
+                                painter = painterResource(id = R.drawable.expand_content),
+                                contentDescription = "expand_content",
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.height(3.dp))
                         }
                     }
                 }
@@ -388,14 +411,12 @@ private fun ImagePickerContent(
 @Composable
 fun rememberImagePickerState(
     max: Int = Constants.MAX_SIZE,
-    autoSelectAfterCapture: Boolean = false,
-    showPreviewBar: Boolean = false
+    autoSelectAfterCapture: Boolean = false
 ): ImagePickerState {
     return remember {
         ImagePickerState(
             max = max,
-            autoSelectAfterCapture = autoSelectAfterCapture,
-            showPreviewBar = showPreviewBar
+            autoSelectAfterCapture = autoSelectAfterCapture
         )
     }
 }
@@ -403,8 +424,7 @@ fun rememberImagePickerState(
 @Stable
 class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,
-    val autoSelectAfterCapture: Boolean = false,
-    val showPreviewBar: Boolean = false
+    val autoSelectAfterCapture: Boolean = false
 ) {
     private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
     val images: State<List<Gallery.Image>> = _pickedImages

@@ -1,5 +1,6 @@
 package com.jms.imagePicker.ui.preview
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,10 @@ internal fun PreviewScreen(
     initializeFirstVisibleItemIndex: Int = 0
 ) {
     val images = viewModel.images.collectAsLazyPagingItems()
+
+    BackHandler {
+        onBack()
+    }
 
     PreviewContent(
         modifier = modifier,

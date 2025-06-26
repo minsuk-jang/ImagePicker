@@ -89,70 +89,85 @@ class MainActivity : ComponentActivity() {
                             mutableStateOf(false)
                         }
 
-                        Column {
-                            Row {
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text(
-                                    modifier = Modifier
-                                        .height(48.dp)
-                                        .clickable {
-                                            expand = true
-                                        }
-                                        .wrapContentHeight(Alignment.CenterVertically),
-                                    text = "${uiModel.selectedAlbum?.name} | ${uiModel.selectedAlbum?.count}",
-                                    fontSize = 20.sp,
-                                    color = Color.Black,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                DropdownMenu(
-                                    modifier = Modifier.wrapContentSize(),
-                                    expanded = expand, onDismissRequest = { }) {
-                                    uiModel.albums.forEach {
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(text = "${it.name},  ${it.count}")
-                                            },
-                                            onClick = {
-                                                expand = false
-                                                viewModel.selectAlbum(it)
+                        ImagePickerScreen(
+                            album = uiModel.selectedAlbum,
+                            state = state,
+                            onAlbumSelected = {
+                                viewModel.selectAlbum(it)
+                            },
+                            onAlbumListLoaded = {
+                                viewModel.setAlbums(it)
+                            },
+                            topBar = {
+                                Row {
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        modifier = Modifier
+                                            .height(48.dp)
+                                            .clickable {
+                                                expand = true
                                             }
-                                        )
-                                    }
-                                }
-                            }
-
-                            ImagePickerScreen(
-                                album = uiModel.selectedAlbum,
-                                state = state,
-                                onAlbumSelected = {
-                                    viewModel.selectAlbum(it)
-                                },
-                                onAlbumListLoaded = {
-                                    viewModel.setAlbums(it)
-                                },
-                                content = {
-                                    if (it.selected)
-                                        Box(
-                                            modifier = Modifier
-                                                .border(width = 3.5.dp, color = Gray)
-                                                .background(color = Gray.copy(0.5f))
-                                                .fillMaxSize()
-                                        ) {
-                                            Text(
-                                                modifier = Modifier
-                                                    .background(
-                                                        color = Purple40,
-                                                        shape = CircleShape
-                                                    )
-                                                    .size(25.dp)
-                                                    .align(Alignment.TopEnd),
-                                                text = "${it.selectedOrder + 1}",
-                                                textAlign = TextAlign.Center
+                                            .wrapContentHeight(Alignment.CenterVertically),
+                                        text = "${uiModel.selectedAlbum?.name} | ${uiModel.selectedAlbum?.count}",
+                                        fontSize = 20.sp,
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    DropdownMenu(
+                                        modifier = Modifier.wrapContentSize(),
+                                        expanded = expand, onDismissRequest = { }) {
+                                        uiModel.albums.forEach {
+                                            DropdownMenuItem(
+                                                text = {
+                                                    Text(text = "${it.name},  ${it.count}")
+                                                },
+                                                onClick = {
+                                                    expand = false
+                                                    viewModel.selectAlbum(it)
+                                                }
                                             )
                                         }
+                                    }
                                 }
-                            )
-                        }
+                            },
+                            previewTopBar = {
+
+                                /*AnimatedVisibility(
+                                    visible = selectedUris.isNotEmpty(),
+                                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
+                                            + fadeIn(initialAlpha = 0.3f),
+                                    exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                                ) {
+                                    ImagePreviewBar(
+                                        uris = selectedUris,
+                                        onClick = {
+                                            onClick(it)
+                                        }
+                                    )
+                                }*/
+                            },
+                            content = {
+                                if (it.selected)
+                                    Box(
+                                        modifier = Modifier
+                                            .border(width = 3.5.dp, color = Gray)
+                                            .background(color = Gray.copy(0.5f))
+                                            .fillMaxSize()
+                                    ) {
+                                        Text(
+                                            modifier = Modifier
+                                                .background(
+                                                    color = Purple40,
+                                                    shape = CircleShape
+                                                )
+                                                .size(25.dp)
+                                                .align(Alignment.TopEnd),
+                                            text = "${it.selectedOrder + 1}",
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                            }
+                        )
                     }
                 }
             }
