@@ -8,11 +8,17 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -43,13 +48,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.jms.imagePicker.ui.ImagePickerScreen
+import com.jms.imagePicker.ui.ImagePreviewBar
 import com.jms.imagePicker.ui.rememberImagePickerState
 import com.jms.imagePicker.ui.theme.GallerySelectorTheme
 import com.jms.imagePicker.ui.theme.Purple40
 
 class MainActivity : ComponentActivity() {
-
-    private val viewModel: MainActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,8 +62,6 @@ class MainActivity : ComponentActivity() {
                 darkTheme = false
             ) {
                 // A surface container using the 'background' color from the theme
-                val uiModel by viewModel.uiModel.collectAsState()
-                //PhotosGrid()
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -78,8 +80,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val state = rememberImagePickerState(
                             max = 30,
-                            autoSelectAfterCapture = true,
-                            showPreviewBar = true
+                            autoSelectAfterCapture = true
                         )
 
                         val images = state.images
@@ -90,14 +91,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         ImagePickerScreen(
-                            album = uiModel.selectedAlbum,
                             state = state,
-                            onAlbumSelected = {
-                                viewModel.selectAlbum(it)
-                            },
-                            onAlbumListLoaded = {
-                                viewModel.setAlbums(it)
-                            },
                             topBar = {
                                 Row {
                                     Spacer(modifier = Modifier.width(10.dp))
@@ -108,7 +102,7 @@ class MainActivity : ComponentActivity() {
                                                 expand = true
                                             }
                                             .wrapContentHeight(Alignment.CenterVertically),
-                                        text = "${uiModel.selectedAlbum?.name} | ${uiModel.selectedAlbum?.count}",
+                                        text = "${selectedAlbum?.name}(${selectedAlbum?.count})",
                                         fontSize = 20.sp,
                                         color = Color.Black,
                                         fontWeight = FontWeight.SemiBold
@@ -116,14 +110,14 @@ class MainActivity : ComponentActivity() {
                                     DropdownMenu(
                                         modifier = Modifier.wrapContentSize(),
                                         expanded = expand, onDismissRequest = { }) {
-                                        uiModel.albums.forEach {
+                                        albums.forEach {
                                             DropdownMenuItem(
                                                 text = {
                                                     Text(text = "${it.name},  ${it.count}")
                                                 },
                                                 onClick = {
                                                     expand = false
-                                                    viewModel.selectAlbum(it)
+                                                    onSelect(it)
                                                 }
                                             )
                                         }
@@ -131,20 +125,19 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             previewTopBar = {
-
-                                /*AnimatedVisibility(
-                                    visible = selectedUris.isNotEmpty(),
-                                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
-                                            + fadeIn(initialAlpha = 0.3f),
-                                    exit = slideOutVertically() + shrinkVertically() + fadeOut()
-                                ) {
-                                    ImagePreviewBar(
-                                        uris = selectedUris,
-                                        onClick = {
-                                            onClick(it)
-                                        }
-                                    )
-                                }*/
+                                /* AnimatedVisibility(
+                                     visible = selectedUris.isNotEmpty(),
+                                     enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
+                                             + fadeIn(initialAlpha = 0.3f),
+                                     exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                                 ) {
+                                     ImagePreviewBar(
+                                         uris = selectedUris,
+                                         onClick = { uri ->
+                                             onClick(uri)
+                                         }
+                                     )
+                                 }*/
                             },
                             content = {
                                 if (it.selected)

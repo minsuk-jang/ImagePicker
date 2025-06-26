@@ -4,13 +4,6 @@ import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
@@ -42,9 +35,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -75,26 +70,20 @@ import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.Gallery
 import com.jms.imagePicker.ui.preview.PreviewScreen
+import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
+import com.jms.imagePicker.ui.scope.PreviewTopBarScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/**
- *
- * @param album: selected album, when album is null, load total media content
- */
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImagePickerScreen(
     state: ImagePickerState = rememberImagePickerState(),
-    album: Album? = null,
-    onAlbumListLoaded: (List<Album>) -> Unit = {},
-    onAlbumSelected: (Album) -> Unit = {},
-    topBar: @Composable () -> Unit = {},
-    previewTopBar: @Composable () -> Unit = {},
+    topBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
+    previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
@@ -128,15 +117,12 @@ fun ImagePickerScreen(
                     )
                 }
 
-                ImagePickerScreen(
+                ImagePickerScaffold(
                     viewModel = viewModel,
-                    onAlbumSelected = onAlbumSelected,
-                    onAlbumListLoaded = onAlbumListLoaded,
                     state = state,
-                    album = album,
                     topBar = topBar,
-                    previewTopBar = previewTopBar,
                     content = content,
+                    previewTopBar = previewTopBar,
                     onNavigateToPreview = {
                         navController.navigate("route_preview?$it") {
                             launchSingleTop = true
@@ -178,44 +164,30 @@ fun ImagePickerScreen(
 }
 
 @Composable
-private fun ImagePickerScreen(
+private fun ImagePickerScaffold(
     modifier: Modifier = Modifier,
     state: ImagePickerState = rememberImagePickerState(),
     viewModel: ImagePickerViewModel,
-    album: Album? = null,
-    onAlbumListLoaded: (List<Album>) -> Unit = {},
-    onAlbumSelected: (Album) -> Unit = {},
     onNavigateToPreview: (Int) -> Unit = {},
-    topBar: @Composable () -> Unit = {},
-    previewTopBar: @Composable () -> Unit = {},
+    topBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
+    previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val images = viewModel.images.collectAsLazyPagingItems()
-    val selectedUris by viewModel.selectedUris.collectAsState()
-
-    if (album != null) {
-        LaunchedEffect(key1 = album) {
-            viewModel.setSelectedAlbum(album = album)
+    val selectedUris by produceState(emptyList(), viewModel) {
+        viewModel.selectedImages.collectLatest {
+            value = it.map { it.uri }
         }
     }
+    val albumState = viewModel.albums.collectAsState()
+    val selectedAlbumState = viewModel.selectedAlbum.collectAsState()
 
     LaunchedEffect(viewModel) {
         launch {
             viewModel.selectedImages.collectLatest {
                 state.updateImages(list = it)
-            }
-        }
-        launch {
-            viewModel.albums.collectLatest {
-                onAlbumListLoaded(it)
-            }
-        }
-
-        launch {
-            viewModel.selectedAlbum.collectLatest {
-                onAlbumSelected(it)
             }
         }
     }
@@ -230,11 +202,40 @@ private fun ImagePickerScreen(
             }
         }
 
+    val previewScopeImpl = remember(viewModel) {
+        object : PreviewTopBarScope {
+            override val selectedImages: SnapshotStateList<Gallery.Image>
+                get() = TODO("Not yet implemented")
+
+            override fun onClick(image: Gallery) {
+                //viewModel.select(uri =)
+            }
+        }
+    }
+
+    val albumScopeImpl = remember(viewModel) {
+        object : ImagePickerAlbumScope {
+            override val albums: List<Album>
+                get() = albumState.value
+
+            override val selectedAlbum: Album?
+                get() = selectedAlbumState.value
+
+            override fun onSelect(album: Album) {
+                viewModel.selectedAlbum(album = album)
+            }
+        }
+    }
+
     SubcomposeLayout(
         modifier = modifier
     ) { constraints ->
-        val topBarMeasurable = subcompose("top_bar", topBar).firstOrNull()
-        val previewTopBarMeasurable = subcompose("preview_top_bar", previewTopBar).firstOrNull()
+        val topBarMeasurable = subcompose("top_bar", {
+            albumScopeImpl.topBar()
+        }).firstOrNull()
+        val previewTopBarMeasurable = subcompose("preview_top_bar", {
+            previewScopeImpl.previewTopBar()
+        }).firstOrNull()
 
         val pickerContentMeasurable = subcompose("picker_content") {
             ImagePickerContent(
@@ -274,6 +275,7 @@ private fun ImagePickerScreen(
                             .coerceAtLeast(0)
                     onNavigateToPreview(index)
                 },
+
                 content = content
             )
         }.first()
@@ -283,9 +285,8 @@ private fun ImagePickerScreen(
         val topBarPlaceable = topBarMeasurable?.measure(constraints)
         var topBarHeight = topBarPlaceable?.height ?: 0
 
-        var previewTopBarPlaceable = previewTopBarMeasurable?.measure(constraints)
-        var previewTopBarHeight = previewTopBarPlaceable?.height ?: 0
-
+        val previewTopBarPlaceable = previewTopBarMeasurable?.measure(constraints)
+        val previewTopBarHeight = previewTopBarPlaceable?.height ?: 0
 
         layout(width = constraints.maxWidth, height = constraints.maxHeight) {
             topBarPlaceable?.place(0, 0)
@@ -411,12 +412,12 @@ private fun ImagePickerContent(
 @Composable
 fun rememberImagePickerState(
     max: Int = Constants.MAX_SIZE,
-    autoSelectAfterCapture: Boolean = false
+    autoSelectAfterCapture: Boolean = false,
 ): ImagePickerState {
     return remember {
         ImagePickerState(
             max = max,
-            autoSelectAfterCapture = autoSelectAfterCapture
+            autoSelectAfterCapture = autoSelectAfterCapture,
         )
     }
 }

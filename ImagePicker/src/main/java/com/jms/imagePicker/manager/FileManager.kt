@@ -11,7 +11,6 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
@@ -44,7 +43,7 @@ internal class FileManager(
 
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.TITLE, file.nameWithoutExtension)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
             put(MediaStore.MediaColumns.DATE_TAKEN, currentTimeMillis)
             put(MediaStore.MediaColumns.DATE_ADDED, currentTimeMillis / 1000) //sec
             put(MediaStore.MediaColumns.DATE_MODIFIED, currentTimeMillis / 1000) //sec
@@ -63,7 +62,7 @@ internal class FileManager(
                 ) ?: throw IOException("Failed to create new MediaStore record.")
 
                 context.contentResolver.openOutputStream(imageUri)?.use {
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
                 } ?: throw IOException("Failed to open output stream.")
 
             } catch (e: Exception) {
@@ -71,7 +70,7 @@ internal class FileManager(
             }
         } else {
             file.outputStream().use {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
             }
             context.contentResolver.insert(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,

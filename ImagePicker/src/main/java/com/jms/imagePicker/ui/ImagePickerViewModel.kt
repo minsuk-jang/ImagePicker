@@ -37,7 +37,6 @@ internal class ImagePickerViewModel(
     private val _previousSelectedUris: LinkedHashSet<OrderedUri> = LinkedHashSet()
 
     private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
-    val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
 
     private val _selectedImages = MutableStateFlow<MutableList<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
@@ -45,8 +44,8 @@ internal class ImagePickerViewModel(
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
 
-    private val _selectedAlbum: MutableStateFlow<Album> = MutableStateFlow(Album(id = null))
-    val selectedAlbum: StateFlow<Album> = _selectedAlbum.asStateFlow()
+    private val _selectedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
+    val selectedAlbum: StateFlow<Album?> = _selectedAlbum.asStateFlow()
 
     private val _refreshTrigger: MutableStateFlow<Long> = MutableStateFlow(0L)
 
@@ -55,7 +54,7 @@ internal class ImagePickerViewModel(
             album
         }.flatMapLatest {
             localGalleryDataSource.getLocalGalleryImages(
-                albumId = it.id
+                albumId = it?.id
             )
         }.cachedIn(viewModelScope)
             .combine(_selectedUris) { data, uris ->
@@ -65,19 +64,28 @@ internal class ImagePickerViewModel(
     private var _imageFile: File? = null
 
     init {
-        getAlbums()
-        setSelectedAlbum(album = _albums.value[0])
-
+        initializeAlbum()
         observeSelectedUris()
     }
 
-    private fun getAlbums() {
-        _albums.update {
-            localGalleryDataSource.getAlbums()
+    private fun initializeAlbum() {
+        viewModelScope.launch {
+            val albums = localGalleryDataSource.getAlbums()
+
+            _albums.update { albums }
+            _selectedAlbum.update { albums.getOrNull(0) }
         }
     }
 
-    fun setSelectedAlbum(album: Album) {
+    private fun getAlbums() {
+        viewModelScope.launch(Dispatchers.Default) {
+            _albums.update {
+                localGalleryDataSource.getAlbums()
+            }
+        }
+    }
+
+    fun selectedAlbum(album: Album) {
         _selectedAlbum.update { album }
     }
 
@@ -218,8 +226,8 @@ internal class ImagePickerViewModel(
 
     private fun refreshAlbum() {
         getAlbums()
-        val newAlbum = _albums.value.first { it.id == _selectedAlbum.value.id }
-        setSelectedAlbum(album = newAlbum)
+        val newAlbum = _albums.value.first { it.id == _selectedAlbum.value?.id }
+        selectedAlbum(album = newAlbum)
     }
 
     private fun update(
