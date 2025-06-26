@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,7 +24,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
 
 
@@ -36,7 +35,7 @@ internal fun PreviewScreen(
     onBack: () -> Unit = {},
     initializeFirstVisibleItemIndex: Int = 0
 ) {
-    val images = viewModel.images.collectAsLazyPagingItems()
+    val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
 
     BackHandler {
         onBack()
@@ -44,7 +43,7 @@ internal fun PreviewScreen(
 
     PreviewContent(
         modifier = modifier,
-        images = images,
+        mediaContents = mediaContents,
         onBack = onBack,
         initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
         onSelect = {
@@ -57,14 +56,14 @@ internal fun PreviewScreen(
 @Composable
 private fun PreviewContent(
     modifier: Modifier = Modifier,
-    images: LazyPagingItems<Gallery.Image>,
+    mediaContents: LazyPagingItems<MediaContent>,
     initializeFirstVisibleItemIndex: Int = 0,
     onBack: () -> Unit = {},
     onSelect: () -> Unit = {}
 ) {
     val listState = rememberPagerState(
         initialPage = initializeFirstVisibleItemIndex
-    ) { images.itemCount }
+    ) { mediaContents.itemCount }
 
     Column(
         modifier = modifier
@@ -93,7 +92,7 @@ private fun PreviewContent(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
             ) {
-                val image = images[it]
+                val image = mediaContents[it]
 
                 Box(
                     modifier = Modifier

@@ -8,7 +8,7 @@ import androidx.paging.PagingData
 import com.jms.imagePicker.extensions.toImage
 import com.jms.imagePicker.manager.MediaContentManager
 import com.jms.imagePicker.model.Album
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -24,7 +24,7 @@ internal class LocalGalleryDataSource(
 
     fun getLocalGalleryImages(
         albumId: String?
-    ): Flow<PagingData<Gallery.Image>> {
+    ): Flow<PagingData<MediaContent>> {
         return Pager(
             config = PagingConfig(
                 pageSize = ImagePickerPagingDataSource.DEFAULT_PAGE_LIMIT
@@ -37,7 +37,7 @@ internal class LocalGalleryDataSource(
         }.flow
     }
 
-    fun getLocalGalleryImage(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): Gallery.Image {
+    fun getLocalGalleryImage(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): MediaContent {
         contentManager.getCursor(
             uri = uri,
             offset = 0,

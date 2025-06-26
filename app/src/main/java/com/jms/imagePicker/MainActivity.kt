@@ -7,13 +7,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,7 +39,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.jms.imagePicker.ui.ImagePickerScreen
-import com.jms.imagePicker.ui.ImagePreviewBar
 import com.jms.imagePicker.ui.rememberImagePickerState
 import com.jms.imagePicker.ui.theme.GallerySelectorTheme
 import com.jms.imagePicker.ui.theme.Purple40
@@ -81,7 +73,7 @@ class MainActivity : ComponentActivity() {
                             autoSelectAfterCapture = true
                         )
 
-                        val images = state.images
+                        val images = state.mediaContents
                         Log.e("jms8732", "images: $images")
 
                         var expand by remember {

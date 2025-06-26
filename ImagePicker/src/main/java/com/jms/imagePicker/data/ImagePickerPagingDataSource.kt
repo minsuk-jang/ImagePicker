@@ -6,27 +6,27 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.jms.imagePicker.extensions.toImage
 import com.jms.imagePicker.manager.MediaContentManager
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 
 
 internal class ImagePickerPagingDataSource(
     private val contentManager: MediaContentManager,
     private val albumId: String?
-) : PagingSource<Int, Gallery.Image>() {
+) : PagingSource<Int, MediaContent>() {
 
     companion object {
         const val DEFAULT_PAGE = 1
         const val DEFAULT_PAGE_LIMIT = 30
     }
 
-    override fun getRefreshKey(state: PagingState<Int, Gallery.Image>): Int? {
+    override fun getRefreshKey(state: PagingState<Int, MediaContent>): Int? {
         return state.anchorPosition?.let { anchorPos ->
             val anchorPage = state.closestPageToPosition(anchorPos)
             anchorPage?.prevKey?.plus(1) ?: anchorPage?.nextKey?.minus(1)
         }
     }
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Gallery.Image> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MediaContent> {
         return try {
             val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
 

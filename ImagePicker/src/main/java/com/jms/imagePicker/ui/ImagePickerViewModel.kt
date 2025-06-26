@@ -10,7 +10,7 @@ import com.jms.imagePicker.data.LocalGalleryDataSource
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Action
 import com.jms.imagePicker.model.Album
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.model.OrderedUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -39,8 +39,8 @@ internal class ImagePickerViewModel(
     private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
     val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
 
-    private val _selectedImages = MutableStateFlow<MutableList<Gallery.Image>>(mutableListOf())
-    val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
+    private val _selectedImages = MutableStateFlow<MutableList<MediaContent>>(mutableListOf())
+    val selectedImages: StateFlow<List<MediaContent>> = _selectedImages.asStateFlow()
 
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
@@ -50,7 +50,7 @@ internal class ImagePickerViewModel(
 
     private val _refreshTrigger: MutableStateFlow<Long> = MutableStateFlow(0L)
 
-    val images: Flow<PagingData<Gallery.Image>> =
+    val mediaContents: Flow<PagingData<MediaContent>> =
         combine(_selectedAlbum, _refreshTrigger) { album, _ ->
             album
         }.flatMapLatest {
@@ -115,7 +115,7 @@ internal class ImagePickerViewModel(
     fun select(
         start: Int?,
         end: Int?,
-        images: List<Gallery.Image>,
+        mediaContents: List<MediaContent>,
         max: Int
     ) {
         if (start != null && end != null) {
@@ -125,8 +125,8 @@ internal class ImagePickerViewModel(
 
                 val newList = buildList {
                     val tempList = when (start < end) {
-                        true -> images.subList(startIndex, endIndex)
-                        false -> images.subList(startIndex, endIndex).reversed()
+                        true -> mediaContents.subList(startIndex, endIndex)
+                        false -> mediaContents.subList(startIndex, endIndex).reversed()
                     }
 
                     addAll(_previousSelectedUris)
@@ -224,9 +224,9 @@ internal class ImagePickerViewModel(
     }
 
     private fun update(
-        pagingData: PagingData<Gallery.Image>,
+        pagingData: PagingData<MediaContent>,
         uris: List<Uri>
-    ): PagingData<Gallery.Image> {
+    ): PagingData<MediaContent> {
         return pagingData.map { image ->
             image.copy(
                 selectedOrder = uris.indexOfFirst { it == image.uri },

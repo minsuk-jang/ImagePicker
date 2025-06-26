@@ -1,6 +1,5 @@
 package com.jms.imagePicker.extensions
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
@@ -13,10 +12,8 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.toIntRect
-import com.jms.imagePicker.model.Gallery
 
 
-@SuppressLint("ModifierFactoryUnreferencedReceiver")
 internal fun Modifier.photoGridDragHandler(
     lazyGridState: LazyGridState,
     selectedUris: List<Uri>,

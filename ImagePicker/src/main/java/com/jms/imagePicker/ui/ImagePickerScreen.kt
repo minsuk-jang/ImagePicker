@@ -35,10 +35,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,7 +64,7 @@ import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Album
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.preview.PreviewScreen
 import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.PreviewTopBarScope
@@ -81,7 +79,7 @@ fun ImagePickerScreen(
     state: ImagePickerState = rememberImagePickerState(),
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
-    content: @Composable BoxScope.(Gallery.Image) -> Unit
+    content: @Composable BoxScope.(MediaContent) -> Unit
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -168,10 +166,10 @@ private fun ImagePickerScaffold(
     onNavigateToPreview: (Int) -> Unit = {},
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
-    content: @Composable BoxScope.(Gallery.Image) -> Unit
+    content: @Composable BoxScope.(MediaContent) -> Unit
 ) {
     val context = LocalContext.current
-    val images = viewModel.images.collectAsLazyPagingItems()
+    val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
     val selectedImages by viewModel.selectedImages.collectAsState()
     val selectedUris by viewModel.selectedUris.collectAsState()
     val albums by viewModel.albums.collectAsState()
@@ -197,11 +195,11 @@ private fun ImagePickerScaffold(
 
     val previewScopeImpl = remember(viewModel) {
         object : PreviewTopBarScope {
-            override val selectedImages: List<Gallery>
+            override val selectedImages: List<MediaContent>
                 get() = selectedImages
 
-            override fun onClick(image: Gallery) {
-               // viewModel.select(uri = image.uri, max = state.max)
+            override fun onClick(image: MediaContent) {
+                // viewModel.select(uri = image.uri, max = state.max)
             }
         }
     }
@@ -227,7 +225,7 @@ private fun ImagePickerScaffold(
         previewScopeImpl.previewTopBar()
 
         ImagePickerContent(
-            images = images,
+            mediaContents = mediaContents,
             selectedUris = selectedUris,
             onClick = {
                 viewModel.select(uri = it, max = state.max)
@@ -239,7 +237,7 @@ private fun ImagePickerScaffold(
                 viewModel.select(
                     start = start,
                     end = end,
-                    images = items,
+                    mediaContents = items,
                     max = state.max
                 )
             },
@@ -256,7 +254,7 @@ private fun ImagePickerScaffold(
             },
             onNavigateToPreview = { image ->
                 val index =
-                    images.itemSnapshotList.indexOfFirst { it?.uri == image.uri }
+                    mediaContents.itemSnapshotList.indexOfFirst { it?.uri == image.uri }
                         .coerceAtLeast(0)
                 onNavigateToPreview(index)
             },
@@ -269,15 +267,15 @@ private fun ImagePickerScaffold(
 @Composable
 private fun ImagePickerContent(
     modifier: Modifier = Modifier,
-    images: LazyPagingItems<Gallery.Image>,
+    mediaContents: LazyPagingItems<MediaContent>,
     selectedUris: List<Uri>,
     onClick: (Uri) -> Unit,
     onPhoto: () -> Unit,
     onDragStart: (Uri) -> Unit,
-    onDrag: (start: Int?, end: Int?, List<Gallery.Image>) -> Unit,
+    onDrag: (start: Int?, end: Int?, List<MediaContent>) -> Unit,
     onDragEnd: () -> Unit = {},
-    onNavigateToPreview: (Gallery.Image) -> Unit = { },
-    content: @Composable BoxScope.(Gallery.Image) -> Unit
+    onNavigateToPreview: (MediaContent) -> Unit = { },
+    content: @Composable BoxScope.(MediaContent) -> Unit
 ) {
     val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
@@ -305,7 +303,7 @@ private fun ImagePickerContent(
                     onDrag(
                         start,
                         end,
-                        images.itemSnapshotList.items
+                        mediaContents.itemSnapshotList.items
                     )
                 },
                 onDragEnd = onDragEnd
@@ -333,10 +331,10 @@ private fun ImagePickerContent(
         }
 
         items(
-            count = images.itemCount,
-            key = images.itemKey { it.uri }
+            count = mediaContents.itemCount,
+            key = mediaContents.itemKey { it.uri }
         ) {
-            images[it]?.let {
+            mediaContents[it]?.let {
                 Box(
                     modifier = Modifier
                         .clickable { onClick(it.uri) }
@@ -344,7 +342,7 @@ private fun ImagePickerContent(
                 ) {
                     ImageCell(
                         modifier = Modifier.matchParentSize(),
-                        image = it,
+                        mediaContent = it,
                     )
 
                     if (it.selected)
@@ -396,11 +394,12 @@ class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,
     val autoSelectAfterCapture: Boolean = false
 ) {
-    private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
-    val images: State<List<Gallery.Image>> = _pickedImages
+    private var _mediaContents: MutableState<List<MediaContent>> =
+        mutableStateOf(emptyList())
+    val mediaContents: State<List<MediaContent>> = _mediaContents
 
     //update images
-    internal fun updateImages(list: List<Gallery.Image>) {
-        _pickedImages.value = list
+    internal fun updateImages(list: List<MediaContent>) {
+        _mediaContents.value = list
     }
 }

@@ -1,11 +1,11 @@
 package com.jms.imagePicker.ui.scope
 
 import androidx.compose.runtime.Stable
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 
 
 @Stable
 interface PreviewTopBarScope {
-    val selectedImages: List<Gallery>
-    fun onClick(image: Gallery)
+    val selectedImages: List<MediaContent>
+    fun onClick(image: MediaContent)
 }

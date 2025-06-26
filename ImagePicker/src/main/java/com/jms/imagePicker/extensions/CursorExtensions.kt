@@ -3,7 +3,7 @@ package com.jms.imagePicker.extensions
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 
 
 /**
@@ -18,7 +18,7 @@ fun Cursor.getColumnString(index: String): String? {
 }
 
 
-fun Cursor.toImage(): Gallery.Image {
+fun Cursor.toImage(): MediaContent {
     val id = getLong(getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
     val title =
         getString(getColumnIndexOrThrow(MediaStore.MediaColumns.TITLE))
@@ -40,7 +40,7 @@ fun Cursor.toImage(): Gallery.Image {
         getColumnString(index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
     val albumId = getColumnString(index = MediaStore.MediaColumns.BUCKET_ID)
 
-    return Gallery.Image(
+    return MediaContent(
         id = id,
         title = title,
         dateAt = dateAt,

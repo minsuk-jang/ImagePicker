@@ -1,16 +1,14 @@
 package com.jms.imagePicker.component
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 
 
 /**
@@ -20,11 +18,11 @@ import com.jms.imagePicker.model.Gallery
 @Composable
 internal fun ImageCell(
     modifier: Modifier = Modifier,
-    image: Gallery.Image
+    mediaContent: MediaContent
 ) {
     ImageCell(
         modifier = modifier,
-        uri = image.uri
+        uri = mediaContent.uri
     )
 }
 
