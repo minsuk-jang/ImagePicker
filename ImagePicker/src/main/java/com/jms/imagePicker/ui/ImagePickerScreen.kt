@@ -37,7 +37,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -72,7 +71,6 @@ import com.jms.imagePicker.model.Gallery
 import com.jms.imagePicker.ui.preview.PreviewScreen
 import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.PreviewTopBarScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
@@ -174,7 +172,6 @@ private fun ImagePickerScaffold(
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val images = viewModel.images.collectAsLazyPagingItems()
     val selectedUris by produceState(emptyList(), viewModel) {
         viewModel.selectedImages.collectLatest {
@@ -227,72 +224,48 @@ private fun ImagePickerScaffold(
         }
     }
 
-    SubcomposeLayout(
+    Column(
         modifier = modifier
-    ) { constraints ->
-        val topBarMeasurable = subcompose("top_bar", {
-            albumScopeImpl.topBar()
-        }).firstOrNull()
-        val previewTopBarMeasurable = subcompose("preview_top_bar", {
-            previewScopeImpl.previewTopBar()
-        }).firstOrNull()
+    ) {
+        albumScopeImpl.topBar()
+        previewScopeImpl.previewTopBar()
 
-        val pickerContentMeasurable = subcompose("picker_content") {
-            ImagePickerContent(
-                images = images,
-                selectedUris = selectedUris,
-                onClick = {
-                    viewModel.select(uri = it, max = state.max)
-                },
-                onDragStart = {
-                    viewModel.select(uri = it, max = state.max)
-                },
-                onDrag = { start, end, items ->
-                    viewModel.select(
-                        start = start,
-                        end = end,
-                        images = items,
-                        max = state.max
+        ImagePickerContent(
+            images = images,
+            selectedUris = selectedUris,
+            onClick = {
+                viewModel.select(uri = it, max = state.max)
+            },
+            onDragStart = {
+                viewModel.select(uri = it, max = state.max)
+            },
+            onDrag = { start, end, items ->
+                viewModel.select(
+                    start = start,
+                    end = end,
+                    images = items,
+                    max = state.max
+                )
+            },
+            onDragEnd = {
+                viewModel.synchronize()
+            },
+            onPhoto = {
+                cameraLaunch.launch(
+                    FileProvider.getUriForFile(
+                        context, "com.jms.imagePicker.fileprovider",
+                        viewModel.createImageFile()
                     )
-                },
-                onDragEnd = {
-                    viewModel.synchronize()
-                },
-                onPhoto = {
-                    scope.launch(Dispatchers.IO) {
-                        val file = viewModel.createImageFile()
-                        cameraLaunch.launch(
-                            FileProvider.getUriForFile(
-                                context, "com.jms.imagePicker.fileprovider",
-                                file
-                            )
-                        )
-                    }
-                },
-                onNavigateToPreview = { image ->
-                    val index =
-                        images.itemSnapshotList.indexOfFirst { it?.uri == image.uri }
-                            .coerceAtLeast(0)
-                    onNavigateToPreview(index)
-                },
-
-                content = content
-            )
-        }.first()
-
-        val pickerContentPlaceable = pickerContentMeasurable.measure(constraints)
-
-        val topBarPlaceable = topBarMeasurable?.measure(constraints)
-        var topBarHeight = topBarPlaceable?.height ?: 0
-
-        val previewTopBarPlaceable = previewTopBarMeasurable?.measure(constraints)
-        val previewTopBarHeight = previewTopBarPlaceable?.height ?: 0
-
-        layout(width = constraints.maxWidth, height = constraints.maxHeight) {
-            topBarPlaceable?.place(0, 0)
-            previewTopBarPlaceable?.place(0, topBarHeight)
-            pickerContentPlaceable.place(0, topBarHeight + previewTopBarHeight)
-        }
+                )
+            },
+            onNavigateToPreview = { image ->
+                val index =
+                    images.itemSnapshotList.indexOfFirst { it?.uri == image.uri }
+                        .coerceAtLeast(0)
+                onNavigateToPreview(index)
+            },
+            content = content
+        )
     }
 }
 

@@ -77,14 +77,6 @@ internal class ImagePickerViewModel(
         }
     }
 
-    private fun getAlbums() {
-        viewModelScope.launch(Dispatchers.Default) {
-            _albums.update {
-                localGalleryDataSource.getAlbums()
-            }
-        }
-    }
-
     fun selectedAlbum(album: Album) {
         _selectedAlbum.update { album }
     }
@@ -225,7 +217,7 @@ internal class ImagePickerViewModel(
     }
 
     private fun refreshAlbum() {
-        getAlbums()
+        //getAlbums() TODO 사진 추가시 갱신 로직 필요
         val newAlbum = _albums.value.first { it.id == _selectedAlbum.value?.id }
         selectedAlbum(album = newAlbum)
     }
