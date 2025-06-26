@@ -37,6 +37,7 @@ internal class ImagePickerViewModel(
     private val _previousSelectedUris: LinkedHashSet<OrderedUri> = LinkedHashSet()
 
     private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
+    val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
 
     private val _selectedImages = MutableStateFlow<MutableList<Gallery.Image>>(mutableListOf())
     val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()

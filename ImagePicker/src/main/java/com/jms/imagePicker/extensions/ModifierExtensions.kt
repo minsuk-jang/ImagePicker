@@ -13,12 +13,13 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.toIntRect
+import com.jms.imagePicker.model.Gallery
 
 
 @SuppressLint("ModifierFactoryUnreferencedReceiver")
 internal fun Modifier.photoGridDragHandler(
     lazyGridState: LazyGridState,
-    selectedImages: List<Uri>,
+    selectedUris: List<Uri>,
     haptics: HapticFeedback,
     autoScrollSpeed: MutableState<Float>,
     autoScrollThreshold: Float,
@@ -40,7 +41,7 @@ internal fun Modifier.photoGridDragHandler(
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 if (key == null) return@detectDragGesturesAfterLongPress
 
-                if (!selectedImages.contains(key)) {
+                if (!selectedUris.contains(key)) {
                     initialKey = key
                     initialIndex = index
                     currentKey = key

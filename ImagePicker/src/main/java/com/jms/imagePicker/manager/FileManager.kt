@@ -11,6 +11,8 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.exifinterface.media.ExifInterface
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
@@ -43,14 +45,14 @@ internal class FileManager(
 
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.TITLE, file.nameWithoutExtension)
-            put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
             put(MediaStore.MediaColumns.DATE_TAKEN, currentTimeMillis)
             put(MediaStore.MediaColumns.DATE_ADDED, currentTimeMillis / 1000) //sec
             put(MediaStore.MediaColumns.DATE_MODIFIED, currentTimeMillis / 1000) //sec
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            try {
+        withContext(NonCancellable) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val imageUri = context.contentResolver.insert(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     contentValues.apply {
@@ -62,22 +64,20 @@ internal class FileManager(
                 ) ?: throw IOException("Failed to create new MediaStore record.")
 
                 context.contentResolver.openOutputStream(imageUri)?.use {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
-                } ?: throw IOException("Failed to open output stream.")
-
-            } catch (e: Exception) {
-                throw e
-            }
-        } else {
-            file.outputStream().use {
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)
-            }
-            context.contentResolver.insert(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues.apply {
-                    put(MediaStore.Images.Media.DATA, file.absolutePath)
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
                 }
-            )
+            } else {
+                file.outputStream().use {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
+                }
+
+                context.contentResolver.insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    contentValues.apply {
+                        put(MediaStore.Images.Media.DATA, file.absolutePath)
+                    }
+                )
+            }
         }
     }
 

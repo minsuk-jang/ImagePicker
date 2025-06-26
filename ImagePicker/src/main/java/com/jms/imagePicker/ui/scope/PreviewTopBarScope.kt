@@ -1,13 +1,11 @@
 package com.jms.imagePicker.ui.scope
 
-import android.net.Uri
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.jms.imagePicker.model.Gallery
 
 
 @Stable
 interface PreviewTopBarScope {
-    val selectedImages: SnapshotStateList<Gallery.Image>
+    val selectedImages: List<Gallery>
     fun onClick(image: Gallery)
 }

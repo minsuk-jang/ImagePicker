@@ -42,7 +42,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -80,7 +79,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ImagePickerScreen(
     state: ImagePickerState = rememberImagePickerState(),
-    topBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
+    albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
@@ -118,7 +117,7 @@ fun ImagePickerScreen(
                 ImagePickerScaffold(
                     viewModel = viewModel,
                     state = state,
-                    topBar = topBar,
+                    albumTopBar = albumTopBar,
                     content = content,
                     previewTopBar = previewTopBar,
                     onNavigateToPreview = {
@@ -167,19 +166,16 @@ private fun ImagePickerScaffold(
     state: ImagePickerState = rememberImagePickerState(),
     viewModel: ImagePickerViewModel,
     onNavigateToPreview: (Int) -> Unit = {},
-    topBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
+    albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
     content: @Composable BoxScope.(Gallery.Image) -> Unit
 ) {
     val context = LocalContext.current
     val images = viewModel.images.collectAsLazyPagingItems()
-    val selectedUris by produceState(emptyList(), viewModel) {
-        viewModel.selectedImages.collectLatest {
-            value = it.map { it.uri }
-        }
-    }
-    val albumState = viewModel.albums.collectAsState()
-    val selectedAlbumState = viewModel.selectedAlbum.collectAsState()
+    val selectedImages by viewModel.selectedImages.collectAsState()
+    val selectedUris by viewModel.selectedUris.collectAsState()
+    val albums by viewModel.albums.collectAsState()
+    val selectedAlbum by viewModel.selectedAlbum.collectAsState()
 
     LaunchedEffect(viewModel) {
         launch {
@@ -201,11 +197,11 @@ private fun ImagePickerScaffold(
 
     val previewScopeImpl = remember(viewModel) {
         object : PreviewTopBarScope {
-            override val selectedImages: SnapshotStateList<Gallery.Image>
-                get() = TODO("Not yet implemented")
+            override val selectedImages: List<Gallery>
+                get() = selectedImages
 
             override fun onClick(image: Gallery) {
-                //viewModel.select(uri =)
+               // viewModel.select(uri = image.uri, max = state.max)
             }
         }
     }
@@ -213,10 +209,10 @@ private fun ImagePickerScaffold(
     val albumScopeImpl = remember(viewModel) {
         object : ImagePickerAlbumScope {
             override val albums: List<Album>
-                get() = albumState.value
+                get() = albums
 
             override val selectedAlbum: Album?
-                get() = selectedAlbumState.value
+                get() = selectedAlbum
 
             override fun onSelect(album: Album) {
                 viewModel.selectedAlbum(album = album)
@@ -227,7 +223,7 @@ private fun ImagePickerScaffold(
     Column(
         modifier = modifier
     ) {
-        albumScopeImpl.topBar()
+        albumScopeImpl.albumTopBar()
         previewScopeImpl.previewTopBar()
 
         ImagePickerContent(
@@ -253,7 +249,7 @@ private fun ImagePickerScaffold(
             onPhoto = {
                 cameraLaunch.launch(
                     FileProvider.getUriForFile(
-                        context, "com.jms.imagePicker.fileprovider",
+                        context.applicationContext, "com.jms.imagePicker.fileprovider",
                         viewModel.createImageFile()
                     )
                 )
@@ -300,7 +296,7 @@ private fun ImagePickerContent(
             .fillMaxSize()
             .photoGridDragHandler(
                 lazyGridState = gridState,
-                selectedImages = selectedUris,
+                selectedUris = selectedUris,
                 haptics = LocalHapticFeedback.current,
                 onDragStart = onDragStart,
                 autoScrollSpeed = autoScrollSpeed,

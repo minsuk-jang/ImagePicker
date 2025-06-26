@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -33,7 +32,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,7 +90,7 @@ class MainActivity : ComponentActivity() {
 
                         ImagePickerScreen(
                             state = state,
-                            topBar = {
+                            albumTopBar = {
                                 Row {
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(
@@ -125,19 +123,19 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             previewTopBar = {
-                                /* AnimatedVisibility(
-                                     visible = selectedUris.isNotEmpty(),
-                                     enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
-                                             + fadeIn(initialAlpha = 0.3f),
-                                     exit = slideOutVertically() + shrinkVertically() + fadeOut()
-                                 ) {
-                                     ImagePreviewBar(
-                                         uris = selectedUris,
-                                         onClick = { uri ->
-                                             onClick(uri)
-                                         }
-                                     )
-                                 }*/
+                               /* AnimatedVisibility(
+                                    visible = ,
+                                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
+                                            + fadeIn(initialAlpha = 0.3f),
+                                    exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                                ) {
+                                    ImagePreviewBar(
+                                        uris = selectedUris,
+                                        onClick = { uri ->
+                                            onClick(uri)
+                                        }
+                                    )
+                                }*/
                             },
                             content = {
                                 if (it.selected)
