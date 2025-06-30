@@ -1,6 +1,7 @@
 package com.jms.imagePicker.model
 
 import android.net.Uri
+import androidx.compose.runtime.Stable
 import com.jms.imagePicker.Constants
 
 /**
@@ -9,6 +10,7 @@ import com.jms.imagePicker.Constants
  *
  * @param album: album title
  */
+@Stable
 data class MediaContent(
     val id: Long,
     val title: String,

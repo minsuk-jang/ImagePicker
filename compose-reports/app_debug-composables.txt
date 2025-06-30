@@ -1,0 +1,14 @@
+restartable scheme("[androidx.compose.ui.UiComposable]") fun ImagePreviewBar(
+  stable modifier: Modifier? = @static Companion
+  unstable mediaContents: List<MediaContent>
+  stable onClick: Function1<MediaContent, Unit>? = @static { it: MediaContent ->
+
+}
+
+)
+restartable skippable scheme("[androidx.compose.ui.UiComposable]") fun Preview_ImagePreviewBar()
+restartable skippable scheme("[0, [0]]") fun GallerySelectorTheme(
+  stable darkTheme: Boolean = @dynamic isSystemInDarkTheme($composer, 0)
+  stable dynamicColor: Boolean = @dynamic LiveLiterals$ThemeKt.Boolean$param-dynamicColor$fun-GallerySelectorTheme()
+  stable content: Function2<Composer, Int, Unit>
+)
