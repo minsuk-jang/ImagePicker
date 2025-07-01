@@ -1,4 +1,0 @@
-package,name,composable,skippable,restartable,readonly,inline,isLambda,hasDefaults,defaultsGroup,groups,calls,
-com.jms.imagePicker.ui.ImagePreviewBar,ImagePreviewBar,1,0,1,0,0,0,0,0,1,1,
-com.jms.imagePicker.ui.Preview_ImagePreviewBar,Preview_ImagePreviewBar,1,1,1,0,0,0,0,0,1,1,
-com.jms.imagePicker.ui.theme.GallerySelectorTheme,GallerySelectorTheme,1,1,1,0,0,0,1,0,4,5,

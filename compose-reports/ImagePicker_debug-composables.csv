@@ -1,8 +1,0 @@
-package,name,composable,skippable,restartable,readonly,inline,isLambda,hasDefaults,defaultsGroup,groups,calls,
-com.jms.imagePicker.component.ImageCell,ImageCell,1,1,1,0,0,0,0,0,1,2,
-com.jms.imagePicker.ui.ImagePickerScreen,ImagePickerScreen,1,1,1,0,0,0,1,0,2,4,
-com.jms.imagePicker.ui.ImagePickerScaffold,ImagePickerScaffold,1,0,1,0,0,0,0,0,1,12,
-com.jms.imagePicker.ui.ImagePickerContent,ImagePickerContent,1,0,1,0,0,0,0,0,1,7,
-com.jms.imagePicker.ui.rememberImagePickerState,rememberImagePickerState,1,0,0,0,0,0,0,0,1,1,
-com.jms.imagePicker.ui.preview.PreviewScreen,PreviewScreen,1,0,1,0,0,0,0,0,1,4,
-com.jms.imagePicker.ui.preview.PreviewContent,PreviewContent,1,1,1,0,0,0,1,0,2,2,
