@@ -77,7 +77,7 @@ replay_pid*
 Icon
 
 # Compose compiler metrics & reports
-**/compose_metrics/
+**/compose-metrics/
 **/compose-reports/
 
 # Thumbnails
