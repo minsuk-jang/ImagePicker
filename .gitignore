@@ -76,6 +76,9 @@ replay_pid*
 # Icon must end with two \r
 Icon
 
+# Compose compiler metrics & reports
+**/compose_metrics/
+**/compose-reports/
 
 # Thumbnails
 ._*
