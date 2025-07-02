@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -226,7 +228,6 @@ private fun ImagePickerScaffold(
 
         ImagePickerContent(
             mediaContents = mediaContents,
-            selectedUris = selectedUris,
             onClick = {
                 viewModel.select(uri = it, max = state.max)
             },
@@ -268,7 +269,6 @@ private fun ImagePickerScaffold(
 private fun ImagePickerContent(
     modifier: Modifier = Modifier,
     mediaContents: LazyPagingItems<MediaContent>,
-    selectedUris: List<Uri>,
     onClick: (Uri) -> Unit,
     onPhoto: () -> Unit,
     onDragStart: (Uri) -> Unit,
@@ -280,55 +280,55 @@ private fun ImagePickerContent(
     val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
 
-    LaunchedEffect(key1 = autoScrollSpeed.floatValue) {
+    /*LaunchedEffect(key1 = autoScrollSpeed.floatValue) {
         if (autoScrollSpeed.floatValue != 0f) {
             while (isActive) {
                 gridState.scrollBy(autoScrollSpeed.floatValue)
                 delay(5)
             }
         }
-    }
+    }*/
 
     LazyVerticalGrid(
         modifier = modifier
-            .fillMaxSize()
-            .photoGridDragHandler(
-                lazyGridState = gridState,
-                selectedUris = selectedUris,
-                haptics = LocalHapticFeedback.current,
-                onDragStart = onDragStart,
-                autoScrollSpeed = autoScrollSpeed,
-                autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() },
-                onDrag = { start, end ->
-                    onDrag(
-                        start,
-                        end,
-                        mediaContents.itemSnapshotList.items
-                    )
-                },
-                onDragEnd = onDragEnd
-            ),
+            .fillMaxSize(),
+        /*.photoGridDragHandler(
+            lazyGridState = gridState,
+            selectedUris = emptyList(),
+            haptics = LocalHapticFeedback.current,
+            onDragStart = onDragStart,
+            autoScrollSpeed = autoScrollSpeed,
+            autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() },
+            onDrag = { start, end ->
+                onDrag(
+                    start,
+                    end,
+                    mediaContents.itemSnapshotList.items
+                )
+            },
+            onDragEnd = onDragEnd
+        )*/
         state = gridState,
         columns = GridCells.Fixed(3),
         verticalArrangement = Arrangement.spacedBy(3.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        item {
-            Box(
-                modifier = Modifier
-                    .background(color = Color.LightGray)
-                    .clickable { onPhoto() }
-                    .aspectRatio(1f)
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(40.dp),
-                    painter = painterResource(id = R.drawable.photo_camera),
-                    contentDescription = null,
-                )
-            }
-        }
+        /* item {
+             Box(
+                 modifier = Modifier
+                     .background(color = Color.LightGray)
+                     .clickable { onPhoto() }
+                     .aspectRatio(1f)
+             ) {
+                 Icon(
+                     modifier = Modifier
+                         .align(Alignment.Center)
+                         .size(40.dp),
+                     painter = painterResource(id = R.drawable.photo_camera),
+                     contentDescription = null,
+                 )
+             }
+         }*/
 
         items(
             count = mediaContents.itemCount,
@@ -337,15 +337,21 @@ private fun ImagePickerContent(
             mediaContents[it]?.let {
                 Box(
                     modifier = Modifier
-                        .clickable { onClick(it.uri) }
-                        .aspectRatio(1f)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = {
+
+                                }
+                            )
+                        }
+                        .size(118.dp)
                 ) {
                     ImageCell(
-                        modifier = Modifier.matchParentSize(),
+                        modifier = Modifier.size(118.dp),
                         mediaContent = it,
                     )
 
-                    if (it.selected)
+                    /*if (it.selected)
                         content(it)
 
                     Row(
@@ -369,7 +375,7 @@ private fun ImagePickerContent(
                             )
                             Spacer(modifier = Modifier.height(3.dp))
                         }
-                    }
+                    }*/
                 }
             }
         }

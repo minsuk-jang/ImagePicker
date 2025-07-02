@@ -1,7 +1,6 @@
 package com.jms.imagePicker.data
 
 import android.provider.MediaStore
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.jms.imagePicker.extensions.toImage
@@ -16,7 +15,7 @@ internal class ImagePickerPagingDataSource(
 
     companion object {
         const val DEFAULT_PAGE = 1
-        const val DEFAULT_PAGE_LIMIT = 30
+        const val DEFAULT_PAGE_LIMIT = 20
     }
 
     override fun getRefreshKey(state: PagingState<Int, MediaContent>): Int? {
@@ -29,10 +28,7 @@ internal class ImagePickerPagingDataSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MediaContent> {
         return try {
             val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-
             val page = params.key ?: DEFAULT_PAGE
-
-            Log.e("jms8732", "page: $page")
 
             contentManager.getCursor(
                 uri = uri,
