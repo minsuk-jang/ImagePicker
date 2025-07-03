@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -279,6 +281,8 @@ private fun ImagePickerContent(
 ) {
     val gridState = rememberSaveable(saver = LazyGridState.Saver) { LazyGridState() }
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val width = remember { screenWidthDp / 3 }
 
     /*LaunchedEffect(key1 = autoScrollSpeed.floatValue) {
         if (autoScrollSpeed.floatValue != 0f) {
@@ -313,42 +317,43 @@ private fun ImagePickerContent(
         verticalArrangement = Arrangement.spacedBy(3.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        /* item {
-             Box(
-                 modifier = Modifier
-                     .background(color = Color.LightGray)
-                     .clickable { onPhoto() }
-                     .aspectRatio(1f)
-             ) {
-                 Icon(
-                     modifier = Modifier
-                         .align(Alignment.Center)
-                         .size(40.dp),
-                     painter = painterResource(id = R.drawable.photo_camera),
-                     contentDescription = null,
-                 )
-             }
-         }*/
+        item {
+            Box(
+                modifier = Modifier
+                    .background(color = Color.LightGray)
+                    //.clickable { onPhoto() }
+                    .requiredSize(width.dp)
+            ) {
+                /*    Icon(
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(40.dp),
+                        painter = painterResource(id = R.drawable.photo_camera),
+                        contentDescription = null,
+                    )*/
+            }
+        }
 
         items(
             count = mediaContents.itemCount,
             key = mediaContents.itemKey { it.uri }
         ) {
-            mediaContents[it]?.let {
+            mediaContents[it]?.let { content ->
                 Box(
                     modifier = Modifier
-                        .pointerInput(Unit) {
+                        /*.pointerInput(Unit) {
                             detectTapGestures(
                                 onTap = {
-
+                                    onClick(content.uri)
                                 }
                             )
-                        }
-                        .size(118.dp)
+                        }*/
+                        .requiredSize(width.dp)
                 ) {
                     ImageCell(
-                        modifier = Modifier.size(118.dp),
-                        mediaContent = it,
+                        modifier = Modifier.fillMaxSize(),
+                        cellDp = width.dp,
+                        mediaContent = content,
                     )
 
                     /*if (it.selected)

@@ -15,7 +15,7 @@ internal class ImagePickerPagingDataSource(
 
     companion object {
         const val DEFAULT_PAGE = 1
-        const val DEFAULT_PAGE_LIMIT = 20
+        const val DEFAULT_PAGE_LIMIT = 30
     }
 
     override fun getRefreshKey(state: PagingState<Int, MediaContent>): Int? {

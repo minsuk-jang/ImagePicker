@@ -27,7 +27,9 @@ internal class LocalGalleryDataSource(
     ): Flow<PagingData<MediaContent>> {
         return Pager(
             config = PagingConfig(
-                pageSize = ImagePickerPagingDataSource.DEFAULT_PAGE_LIMIT
+                pageSize = ImagePickerPagingDataSource.DEFAULT_PAGE_LIMIT,
+                initialLoadSize = 20,
+                prefetchDistance = 5
             )
         ) {
             ImagePickerPagingDataSource(
