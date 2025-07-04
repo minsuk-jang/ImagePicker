@@ -322,7 +322,7 @@ private fun ImagePickerContent(
                 modifier = Modifier
                     .background(color = Color.LightGray)
                     //.clickable { onPhoto() }
-                    .requiredSize(width.dp)
+                    .aspectRatio(1f)
             ) {
                 /*    Icon(
                         modifier = Modifier
@@ -348,7 +348,7 @@ private fun ImagePickerContent(
                                 }
                             )
                         }*/
-                        .requiredSize(width.dp)
+                        .aspectRatio(1f)
                 ) {
                     ImageCell(
                         modifier = Modifier.fillMaxSize(),
