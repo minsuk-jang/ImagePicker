@@ -29,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
@@ -39,6 +40,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,7 +61,11 @@ import androidx.navigation.navArgument
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import coil.Coil
+import coil.ImageLoader
+import coil.imageLoader
 import com.jms.imagePicker.Constants
+import com.jms.imagePicker.ImagePickerApplication
 import com.jms.imagePicker.R
 import com.jms.imagePicker.component.ImageCell
 import com.jms.imagePicker.data.LocalGalleryDataSource
@@ -77,6 +83,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+
+internal val LocalImageLoader = staticCompositionLocalOf<ImageLoader> {
+    error("Initialize at the root")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImagePickerScreen(
@@ -88,75 +99,77 @@ fun ImagePickerScreen(
     val context = LocalContext.current
     val navController = rememberNavController()
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        NavHost(
-            modifier = Modifier.padding(it),
-            navController = navController,
-            startDestination = "route_image_list",
-            route = "graph_image_picker"
+    CompositionLocalProvider(LocalImageLoader provides (context.applicationContext as ImagePickerApplication).imageLoader) {
+        Scaffold(
+            modifier = Modifier.fillMaxSize()
         ) {
-            composable(
-                route = "route_image_list"
+            NavHost(
+                modifier = Modifier.padding(it),
+                navController = navController,
+                startDestination = "route_image_list",
+                route = "graph_image_picker"
             ) {
-                val parentEntry = remember(it) {
-                    navController.getBackStackEntry("graph_image_picker")
-                }
+                composable(
+                    route = "route_image_list"
+                ) {
+                    val parentEntry = remember(it) {
+                        navController.getBackStackEntry("graph_image_picker")
+                    }
 
-                val viewModel: ImagePickerViewModel = viewModel(parentEntry) {
-                    ImagePickerViewModel(
-                        fileManager = FileManager(context = context.applicationContext),
-                        localGalleryDataSource = LocalGalleryDataSource(
-                            contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                API29MediaContentManager(context = context.applicationContext)
-                            } else
-                                API21MediaContentManager(context = context.applicationContext)
+                    val viewModel: ImagePickerViewModel = viewModel(parentEntry) {
+                        ImagePickerViewModel(
+                            fileManager = FileManager(context = context.applicationContext),
+                            localGalleryDataSource = LocalGalleryDataSource(
+                                contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                    API29MediaContentManager(context = context.applicationContext)
+                                } else
+                                    API21MediaContentManager(context = context.applicationContext)
+                            )
                         )
+                    }
+
+                    ImagePickerScaffold(
+                        viewModel = viewModel,
+                        state = state,
+                        albumTopBar = albumTopBar,
+                        content = content,
+                        previewTopBar = previewTopBar,
+                        onNavigateToPreview = {
+                            navController.navigate("route_preview?$it") {
+                                launchSingleTop = true
+                                restoreState = true
+
+                                popUpTo("route_image_list") {
+                                    saveState = true
+                                }
+                            }
+                        }
                     )
                 }
 
-                ImagePickerScaffold(
-                    viewModel = viewModel,
-                    state = state,
-                    albumTopBar = albumTopBar,
-                    content = content,
-                    previewTopBar = previewTopBar,
-                    onNavigateToPreview = {
-                        navController.navigate("route_preview?$it") {
-                            launchSingleTop = true
-                            restoreState = true
-
-                            popUpTo("route_image_list") {
-                                saveState = true
-                            }
+                composable(
+                    route = "route_preview?{index}",
+                    arguments = listOf(
+                        navArgument("index") {
+                            type = NavType.IntType
                         }
+                    )
+                ) {
+                    val parentEntry = remember(it) {
+                        navController.getBackStackEntry("graph_image_picker")
                     }
-                )
-            }
 
-            composable(
-                route = "route_preview?{index}",
-                arguments = listOf(
-                    navArgument("index") {
-                        type = NavType.IntType
-                    }
-                )
-            ) {
-                val parentEntry = remember(it) {
-                    navController.getBackStackEntry("graph_image_picker")
+                    val viewModel: ImagePickerViewModel = viewModel(parentEntry)
+                    val initializeFirstVisibleItemIndex = it.arguments?.getInt("index") ?: 0
+
+                    PreviewScreen(
+                        viewModel = viewModel,
+                        initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
+                        onBack = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
-
-                val viewModel: ImagePickerViewModel = viewModel(parentEntry)
-                val initializeFirstVisibleItemIndex = it.arguments?.getInt("index") ?: 0
-
-                PreviewScreen(
-                    viewModel = viewModel,
-                    initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
-                    onBack = {
-                        navController.popBackStack()
-                    }
-                )
             }
         }
     }
