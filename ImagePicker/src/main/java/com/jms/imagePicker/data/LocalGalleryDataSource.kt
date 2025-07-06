@@ -29,7 +29,6 @@ internal class LocalGalleryDataSource(
             config = PagingConfig(
                 pageSize = ImagePickerPagingDataSource.DEFAULT_PAGE_LIMIT,
                 initialLoadSize = 20,
-                prefetchDistance = 5
             )
         ) {
             ImagePickerPagingDataSource(

@@ -61,6 +61,8 @@ private fun PreviewContent(
     onBack: () -> Unit = {},
     onSelect: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+
     val listState = rememberPagerState(
         initialPage = initializeFirstVisibleItemIndex
     ) { mediaContents.itemCount }
@@ -104,7 +106,7 @@ private fun PreviewContent(
                             modifier = Modifier
                                 .wrapContentSize()
                                 .align(Alignment.Center),
-                            model = ImageRequest.Builder(LocalContext.current)
+                            model = ImageRequest.Builder(context)
                                 .data(it.uri)
                                 .build(),
                             contentDescription = "content"
