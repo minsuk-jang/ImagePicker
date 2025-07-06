@@ -295,11 +295,7 @@ private fun ImagePickerContent(
     onNavigateToPreview: (MediaContent) -> Unit = { },
     content: @Composable BoxScope.(MediaContent) -> Unit
 ) {
-    val savedPos = rememberSaveable { mutableStateOf<Pair<Int, Int>?>(null) }
-    val gridState = rememberLazyGridState(
-        initialFirstVisibleItemIndex = savedPos.value?.first ?: 0,
-        initialFirstVisibleItemScrollOffset = savedPos.value?.second ?: 0
-    )
+    val gridState = rememberLazyGridState()
 
     val autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() }
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
@@ -309,23 +305,6 @@ private fun ImagePickerContent(
         ImageVector.vectorResource(R.drawable.expand_content)
     )
     val iconOfCamera = rememberVectorPainter(ImageVector.vectorResource(R.drawable.photo_camera))
-
-    LaunchedEffect(mediaContents.loadState.refresh) {
-        val (idx, offset) = savedPos.value ?: return@LaunchedEffect
-        if (mediaContents.loadState.refresh is LoadState.NotLoading && mediaContents.itemCount >= idx) {
-            gridState.scrollToItem(index = idx, scrollOffset = offset)
-            savedPos.value = null
-        }
-    }
-
-    LaunchedEffect(gridState) {
-        snapshotFlow { gridState.isScrollInProgress}
-            .filter { !it }
-            .distinctUntilChanged()
-            .collectLatest {
-                savedPos.value = gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
-            }
-    }
 
     LaunchedEffect(Unit) {
         snapshotFlow { autoScrollSpeed.floatValue }
