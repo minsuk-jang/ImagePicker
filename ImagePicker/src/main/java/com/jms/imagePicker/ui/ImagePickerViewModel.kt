@@ -1,8 +1,6 @@
 package com.jms.imagePicker.ui
 
-import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -12,7 +10,7 @@ import com.jms.imagePicker.data.LocalGalleryDataSource
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Action
 import com.jms.imagePicker.model.Album
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.model.OrderedUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +27,7 @@ import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
-internal class ImagePickerScreenViewModel(
+internal class ImagePickerViewModel(
     private val fileManager: FileManager,
     val localGalleryDataSource: LocalGalleryDataSource
 ) : ViewModel() {
@@ -41,41 +39,46 @@ internal class ImagePickerScreenViewModel(
     private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
     val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
 
-    private val _selectedImages = MutableStateFlow<MutableList<Gallery.Image>>(mutableListOf())
-    val selectedImages: StateFlow<List<Gallery.Image>> = _selectedImages.asStateFlow()
+    private val _selectedImages = MutableStateFlow<MutableList<MediaContent>>(mutableListOf())
+    val selectedImages: StateFlow<List<MediaContent>> = _selectedImages.asStateFlow()
 
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
 
-    private val _selectedAlbum: MutableStateFlow<Album> = MutableStateFlow(Album(id = null))
-    val selectedAlbum: StateFlow<Album> = _selectedAlbum.asStateFlow()
+    private val _selectedAlbum: MutableStateFlow<Album?> = MutableStateFlow(null)
+    val selectedAlbum: StateFlow<Album?> = _selectedAlbum.asStateFlow()
 
-    val contents: Flow<PagingData<Gallery.Image>> = _selectedAlbum.flatMapLatest {
-        localGalleryDataSource.getLocalGalleryImages(
-            page = 1,
-            albumId = it.id
-        )
-    }.cachedIn(viewModelScope)
-        .combine(_selectedUris) { data, uris ->
-            update(pagingData = data, uris = uris)
-        }.flowOn(Dispatchers.Default)
+    private val _refreshTrigger: MutableStateFlow<Long> = MutableStateFlow(0L)
+
+    val mediaContents: Flow<PagingData<MediaContent>> =
+        combine(_selectedAlbum, _refreshTrigger) { album, _ ->
+            album
+        }.flatMapLatest {
+            localGalleryDataSource.getLocalGalleryImages(
+                albumId = it?.id
+            )
+        }.cachedIn(viewModelScope)
+            .combine(_selectedUris) { data, uris ->
+                update(pagingData = data, uris = uris)
+            }.flowOn(Dispatchers.Default)
 
     private var _imageFile: File? = null
 
     init {
-        getAlbums()
-        setSelectedAlbum(album = _albums.value[0])
-
+        initializeAlbum()
         observeSelectedUris()
     }
 
-    private fun getAlbums() {
-        _albums.update {
-            localGalleryDataSource.getAlbums()
+    private fun initializeAlbum() {
+        viewModelScope.launch {
+            val albums = localGalleryDataSource.getAlbums()
+
+            _albums.update { albums }
+            _selectedAlbum.update { albums.getOrNull(0) }
         }
     }
 
-    fun setSelectedAlbum(album: Album) {
+    fun selectedAlbum(album: Album) {
         _selectedAlbum.update { album }
     }
 
@@ -112,7 +115,7 @@ internal class ImagePickerScreenViewModel(
     fun select(
         start: Int?,
         end: Int?,
-        images: List<Gallery.Image>,
+        mediaContents: List<MediaContent>,
         max: Int
     ) {
         if (start != null && end != null) {
@@ -122,8 +125,8 @@ internal class ImagePickerScreenViewModel(
 
                 val newList = buildList {
                     val tempList = when (start < end) {
-                        true -> images.subList(startIndex, endIndex)
-                        false -> images.subList(startIndex, endIndex).reversed()
+                        true -> mediaContents.subList(startIndex, endIndex)
+                        false -> mediaContents.subList(startIndex, endIndex).reversed()
                     }
 
                     addAll(_previousSelectedUris)
@@ -195,30 +198,35 @@ internal class ImagePickerScreenViewModel(
         return _imageFile ?: throw IllegalStateException("File is null!!")
     }
 
-    fun saveImageFile(context: Context, max: Int, autoSelectAfterCapture: Boolean) {
+    fun saveImageFile(max: Int, autoSelectAfterCapture: Boolean) {
         if (_imageFile != null) {
-            fileManager.saveImageFile(context = context, file = _imageFile!!)
+            viewModelScope.launch(Dispatchers.IO) {
+                fileManager.saveImageFile(file = _imageFile!!)
 
-            if (autoSelectAfterCapture) {
-                select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
+                if (autoSelectAfterCapture) {
+                    select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
+                }
+
+                refresh()
+                refreshAlbum()
             }
         }
     }
 
-    fun refresh() {
-        refreshAlbum()
+    private fun refresh() {
+        _refreshTrigger.update { System.currentTimeMillis() }
     }
 
     private fun refreshAlbum() {
-        getAlbums()
-        val newAlbum = _albums.value.first { it.id == _selectedAlbum.value.id }
-        setSelectedAlbum(album = newAlbum)
+        //getAlbums() TODO 사진 추가시 갱신 로직 필요
+        val newAlbum = _albums.value.first { it.id == _selectedAlbum.value?.id }
+        selectedAlbum(album = newAlbum)
     }
 
     private fun update(
-        pagingData: PagingData<Gallery.Image>,
+        pagingData: PagingData<MediaContent>,
         uris: List<Uri>
-    ): PagingData<Gallery.Image> {
+    ): PagingData<MediaContent> {
         return pagingData.map { image ->
             image.copy(
                 selectedOrder = uris.indexOfFirst { it == image.uri },

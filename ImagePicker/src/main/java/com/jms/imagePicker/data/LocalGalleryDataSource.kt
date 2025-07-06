@@ -1,15 +1,14 @@
 package com.jms.imagePicker.data
 
-import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import androidx.paging.PagingSource
-import com.jms.imagePicker.Constants
-import com.jms.imagePicker.extensions.getColumnString
+import com.jms.imagePicker.extensions.toImage
 import com.jms.imagePicker.manager.MediaContentManager
 import com.jms.imagePicker.model.Album
-import com.jms.imagePicker.model.Gallery
+import com.jms.imagePicker.model.MediaContent
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -17,54 +16,29 @@ import kotlinx.coroutines.flow.Flow
  * Local Gallery data source
  */
 internal class LocalGalleryDataSource(
-    private val contentManager: MediaContentManager,
-    private val galleryStream: GalleryPagingStream
+    private val contentManager: MediaContentManager
 ) {
     fun getAlbums(): List<Album> {
         return contentManager.getAlbums(uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
     }
 
     fun getLocalGalleryImages(
-        page: Int = 1,
-        albumId: String?,
-        pageSize: Int = Constants.DEFAULT_PAGE_SiZE
-    ): Flow<PagingData<Gallery.Image>> {
-        return galleryStream.load {
-            val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-
-            val _page = it.key ?: page
-
-            contentManager.getCursor(
-                uri = uri,
-                offset = (_page - 1) * pageSize,
-                albumId = albumId,
-                limit = pageSize,
-                projection = arrayOf(
-                    MediaStore.MediaColumns._ID,
-                    MediaStore.MediaColumns.TITLE,
-                    MediaStore.MediaColumns.DATE_MODIFIED,
-                    MediaStore.MediaColumns.DATA,
-                    MediaStore.MediaColumns.MIME_TYPE,
-                    MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
-                    MediaStore.MediaColumns.BUCKET_ID
-                )
-            )?.use { cursor ->
-                val list = buildList {
-                    while (cursor.moveToNext()) {
-                        add(toImage(cursor = cursor))
-                    }
-                }
-
-                return@load PagingSource.LoadResult.Page(
-                    data = list,
-                    prevKey = null,
-                    nextKey = if (list.isNotEmpty()) _page + 1 else null
-                )
-            } ?: PagingSource.LoadResult.Error(throwable = Exception("Empty Gallery"))
-        }
+        albumId: String?
+    ): Flow<PagingData<MediaContent>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = ImagePickerPagingDataSource.DEFAULT_PAGE_LIMIT,
+                initialLoadSize = 20,
+            )
+        ) {
+            ImagePickerPagingDataSource(
+                contentManager = contentManager,
+                albumId = albumId
+            )
+        }.flow
     }
 
-    fun getLocalGalleryImage(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): Gallery.Image {
+    fun getLocalGalleryImage(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): MediaContent {
         contentManager.getCursor(
             uri = uri,
             offset = 0,
@@ -81,43 +55,8 @@ internal class LocalGalleryDataSource(
             )
         )?.use { cursor ->
             if (cursor.moveToFirst()) {
-                return toImage(cursor = cursor)
+                return cursor.toImage()
             } else throw IllegalStateException("Cursor is empty!!")
         } ?: throw IllegalStateException("Cursor is null!!")
-    }
-
-    private fun toImage(cursor: Cursor): Gallery.Image {
-        val id =
-            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
-        val title =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.TITLE))
-        val dateAt =
-            cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED))
-
-        val mimeType =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE))
-
-        val uri = Uri.withAppendedPath(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            id.toString()
-        )
-
-        val data =
-            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA))
-
-        val album =
-            cursor.getColumnString(index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
-        val albumId = cursor.getColumnString(index = MediaStore.MediaColumns.BUCKET_ID)
-
-        return Gallery.Image(
-            id = id,
-            title = title,
-            dateAt = dateAt,
-            data = data,
-            uri = uri,
-            mimeType = mimeType,
-            album = album,
-            albumId = albumId
-        )
     }
 }

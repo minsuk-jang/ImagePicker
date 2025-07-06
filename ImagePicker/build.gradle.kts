@@ -27,6 +27,13 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+
+        freeCompilerArgs += listOf("-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:metricsDestination=${rootProject.file(".").absolutePath}/compose-metrics"
+        )
+        freeCompilerArgs += listOf("-P",
+            "plugin:androidx.compose.compiler.plugins.kotlin:reportsDestination=${rootProject.file(".").absolutePath}/compose-reports"
+        )
     }
     buildFeatures {
         compose = true
@@ -76,6 +83,9 @@ dependencies {
 
     //coil
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    //navigation
+    implementation("androidx.navigation:navigation-compose:2.8.4")
 }
 
 publishing{
@@ -83,7 +93,7 @@ publishing{
         register<MavenPublication>("release"){
             groupId = "com.github.minsuk-jang"
             artifactId = "imagePicker"
-            version = "1.0.13"
+            version = "1.0.14"
 
             afterEvaluate{
                 from(components["release"])
