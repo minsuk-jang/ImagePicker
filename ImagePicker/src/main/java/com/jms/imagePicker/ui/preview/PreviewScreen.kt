@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -40,7 +41,9 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import coil.size.Scale
 import com.jms.imagePicker.model.MediaContent
+import com.jms.imagePicker.ui.ImagePickerState
 import com.jms.imagePicker.ui.ImagePickerViewModel
 import kotlin.math.max
 
@@ -49,6 +52,7 @@ import kotlin.math.max
 internal fun PreviewScreen(
     modifier: Modifier = Modifier,
     viewModel: ImagePickerViewModel,
+    state: ImagePickerState,
     onBack: () -> Unit = {},
     initializeFirstVisibleItemIndex: Int = 0
 ) {
@@ -78,7 +82,7 @@ internal fun PreviewScreen(
             onBack = onBack,
             initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
             onSelect = {
-                viewModel.select(uri = it.uri, max = 30)
+                viewModel.select(uri = it.uri, max = state.max)
             }
         )
     }
@@ -110,7 +114,7 @@ private fun PreviewContent(
                 onClick = { onBack() }
             ) {
                 Icon(
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(25.dp),
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "back",
                     tint = Color.White
@@ -127,16 +131,20 @@ private fun PreviewContent(
                 state = listState,
             ) {
                 mediaContents[it]?.let {
-                    AsyncImage(
-                        modifier = Modifier
-                            .wrapContentSize()
-                            .align(Alignment.Center),
-                        model = ImageRequest.Builder(context)
-                            .data(it.uri)
-                            .build(),
-                        contentDescription = "content",
-                        filterQuality = FilterQuality.High
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        AsyncImage(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .align(Alignment.Center),
+                            model = ImageRequest.Builder(context)
+                                .data(it.uri)
+                                .build(),
+                            contentDescription = "content",
+                            filterQuality = FilterQuality.High,
+                        )
+                    }
                 }
             }
 

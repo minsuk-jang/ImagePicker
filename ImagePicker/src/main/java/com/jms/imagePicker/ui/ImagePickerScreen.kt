@@ -163,6 +163,7 @@ fun ImagePickerScreen(
 
                 PreviewScreen(
                     viewModel = viewModel,
+                    state = state,
                     initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
                     onBack = {
                         navController.popBackStack(
