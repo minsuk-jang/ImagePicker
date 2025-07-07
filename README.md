@@ -16,18 +16,19 @@
 [![](https://jitpack.io/v/minsuk-jang/ImagePicker.svg)](https://jitpack.io/#minsuk-jang/ImagePicker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**ImagePicker** is a Jetpack Compose library for displaying and selecting media from the device gallery. It supports full UI customization, single and multi-selection, album filtering, and camera integration
+**ImagePicker** is a Jetpack Compose library for displaying and selecting media from the device gallery.<br>
+It supports full UI customization, single and multi-selection, album filtering, and camera integration
 </div>
 
 ## Features
-- Fully customizable UI for content cells
-- Support for selecting multiple items with drag gestures
-- Support for selected image preview bar, album bar
-- Display the selected order of items
-- Camera support
-- Preview screen
-- Pagination for loading large image sets
-- Album-based image grouping
+- 📦 **Fully customizable UI** for each image cell
+- 🖐️ **Multi-selection** with drag gesture support
+- 🧩 **Composable Slot APIs** for album & preview bar customization
+- 🔢 **Visual selection order** (e.g., 1st, 2nd...)
+- 📷 **Camera integration** with optional auto-select after capture
+- 🖼️ **Full Preview screen** for selected images
+- 🔄 **Pagination** for smooth loading of large image sets (via Paging 3)
+- 🗂️ **Album-based grouping** with dynamic filtering
 
 ## Installation
 Step 1. Add it in your root build.gradle at the end of repositories:
@@ -57,27 +58,79 @@ dependencies {
 ```
 
 ### ImagePickerScreen
-ImagePickerScreen fetches the list of media contents using the Paging 3 Library. Customize each content cell's UI freely by receiving an Image through the Content parameter. It also supports drag gestures for selecting and deselecting multiple items.
+ImagePickerScreen fetches a list of media contents using the Paging 3 Library. <br>
+It allows full customization of image cells and supports drag gestures for selecting or deselecting multiple items.
+
 ```kotlin
 @Composable
 fun ImagePickerScreen(
-    state: ImagePickerState = rememberImagePickerState(), // Configuration and state
-    albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {}, // // Slot for rendering a custom album selector UI. Use scope to access album list and current selected album.
-    previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {}, // Slot for rendering a preview UI of selected images 
-    content: @Composable BoxScope.(Gallery.Image) -> Unit // Image cell Composable
+    // Configuration and state
+    state: ImagePickerState = rememberImagePickerState(), 
+    // Slot for rendering a custom album selector UI.
+    // Provides access to album list and the currently selected album.
+    albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
+    // Slot for rendering a preview UI of selected images.
+    // Provides access to the current selection list.
+    previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
+    // Image cell Composable
+    content: @Composable BoxScope.(MediaContent) -> Unit 
 )
-
-//TODO add Slot api explanation
-
-//TODO Preview screen explanation
-
 ```
 
-<!--
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/0fbd38e1-d7e8-441f-92a2-70ef02e405ff" width="270"/>
-<img src = "https://github.com/minsuk-jang/GallerySelector/assets/26684848/7d5abdf6-edef-4447-992f-5f47a057f24d" width="270"/> 
-<img src = "https://github.com/user-attachments/assets/1314c2e5-2d7b-4127-9048-4a085cf34ba5" width="270" />
--->
+### Slot APIs
+The library provides two powerful slot APIs for customizing the album bar and preview bar.<br>
+Each slot gives access to scoped data as show below:
+
+```kotlin
+@Stable
+interface ImagePickerAlbumScope {
+    val albums: List<Album>             // List of albums available on the device
+    val selectedAlbum: Album?           // Currently selected album
+    fun onSelect(album: Album)          // Function to change the selected album
+}
+
+@Stable
+interface PreviewTopBarScope {
+    val selectedMediaContents: List<MediaContent> // List of selected media items
+    fun onClick(mediaContent: MediaContent)       // Toggle selection for the given item
+}
+```
+you can use these properties and functions inside the respective slot lambdas to build your own UI components:
+```kotlin
+ImagePickerScreen(
+    albumTopBar = {
+        Text("Album: ${selectedAlbum?.name ?: "None"}")
+        albums.forEach { album ->
+            Text(
+                text = album.name,
+                modifier = Modifier.clickable { onSelect(album) }
+            )
+        }
+    },
+    previewTopBar = {
+        Row {
+            selectedMediaContents.forEach { media ->
+                Image(
+                    painter = rememberAsyncImagePainter(media.uri),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clickable { onClick(media) }
+                )
+            }
+        }
+    },
+    content = { media ->
+        // Your image cell content
+    }
+)
+```
+
+
+### PreviewScreen
+The library supports a fullscreen preview screen for selected images. it supports horizontal swiping and selection toggling.
+
+<!-- scrolling or select, unselect preview screen gif -->
 
 ### ImagePickerState
 ImagePickerState configures the ImagePickerScreen and provides the current state of content.
@@ -92,10 +145,6 @@ class ImagePickerState(
 }
 ```
 
-
-<!--
-<img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width ="270"/>
--->
 
 ## Classes
 ### MediaContent
