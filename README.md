@@ -16,15 +16,16 @@
 [![](https://jitpack.io/v/minsuk-jang/ImagePicker.svg)](https://jitpack.io/#minsuk-jang/ImagePicker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-ImagePicker is a Jetpack Compose-based library that allows for full customization of content cells and supports both single and multiple selection of media items
+**ImagePicker** is a Jetpack Compose library for displaying and selecting media from the device gallery. It supports full UI customization, single and multi-selection, album filtering, and camera integration
 </div>
 
 ## Features
 - Fully customizable UI for content cells
 - Support for selecting multiple items with drag gestures
-- Support for selected image preview bar
+- Support for selected image preview bar, album bar
 - Display the selected order of items
 - Camera support
+- Preview screen
 - Pagination for loading large image sets
 - Album-based image grouping
 
@@ -48,7 +49,7 @@ dependencies {
 
 ## Usage
 ### Add permission in AndroidManifest.xml file:
-``` AndroidManifest.xml
+```xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -61,12 +62,14 @@ ImagePickerScreen fetches the list of media contents using the Paging 3 Library.
 @Composable
 fun ImagePickerScreen(
     state: ImagePickerState = rememberImagePickerState(), // Configuration and state
-    album: Album? = null, // Currently selected album
-    onAlbumListLoaded: (List<Album>) -> Unit = {}, // Callback triggered when album list on deivce is loaded
-    onAlbumSelected: (Album) -> Unit = {}, // Callback when a user select on album
-    onClick: (Gallery.Image) -> Unit = {}, // Callback when an image cell is clicked
+    albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {}, // // Slot for rendering a custom album selector UI. Use scope to access album list and current selected album.
+    previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {}, // Slot for rendering a preview UI of selected images 
     content: @Composable BoxScope.(Gallery.Image) -> Unit // Image cell Composable
 )
+
+//TODO add Slot api explanation
+
+//TODO Preview screen explanation
 
 ```
 
@@ -78,17 +81,14 @@ fun ImagePickerScreen(
 
 ### ImagePickerState
 ImagePickerState configures the ImagePickerScreen and provides the current state of content.
-``` kotlin 
+```kotlin 
 @Stable
 class ImagePickerState(
     val max: Int = Constants.MAX_SIZE,  // Maximum number of selectable items 
     val autoSelectAfterCapture: Boolean = false, // Automatically select the photo after capture
-    val autoSelectOnClick: Boolean = true, // If true, clicking an image will select or deselect it automatically
-    val showPreviewBar: Boolean = false // If true, shows a preview bar displaying selected images
 ) {
     // List of currently selected images
-    private var _pickedImages: MutableState<List<Gallery.Image>> = mutableStateOf(emptyList())
-    val images: List<Gallery.Image> get() = _pickedImages.value
+    val mediaContents: State<List<MediaContent>> = _mediaContents
 }
 ```
 
@@ -97,10 +97,11 @@ class ImagePickerState(
 <img src = "https://github.com/user-attachments/assets/6147ad64-53cd-44b6-a504-05c031f66316" width ="270"/>
 -->
 
-## Classs
-### Image
+## Classes
+### MediaContent
 ```kotlin
-class Image(
+@Stable
+data class MediaContent(
   val id: Long, //Media content id
   val title: String, // Title of the content
   val dateAt: Long, // Date token
@@ -110,8 +111,8 @@ class Image(
   val album: String, // Album name
   val albumId: String // Album ID
   val selectedOrder: Int = Constants.NO_ORDER, // Selected order
-  val selected : Boolean = false //  Select Status
-) : Gallery
+  val selected : Boolean = false // Selection Status
+)
 ```
 
 ### Album
