@@ -87,7 +87,7 @@ fun ImagePickerScreen(
 
 ### Slot APIs
 The library provides two powerful slot APIs for customizing the album bar and preview bar.<br>
-Each slot gives access to scoped data as show below:
+Each slot gives access to scoped data as showㅜ below:
 
 ```kotlin
 @Stable
@@ -103,35 +103,33 @@ interface PreviewTopBarScope {
     fun onClick(mediaContent: MediaContent) // Toggle selection for the given item
 }
 ```
-you can use these properties and functions inside the respective slot lambdas to build your own UI components:
-<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177"  align="right" width="280" />
+you can use these properties and functions inside the respective slot lambdas to build your own UI:
+<br>
+<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177"  align="right" />
 ```kotlin
 ImagePickerScreen(
     albumTopBar = {
-        Text("Album: ${selectedAlbum?.name ?: "None"}")
-        albums.forEach { album ->
-            Text(
-                text = album.name,
-                modifier = Modifier.clickable { onSelect(album) }
-            )
+        // ───────── Album selector UI ─────────
+        Text(text = "${selectedAlbum?.name}(${selectedAlbum?.count})")
+        /* Customize album list using albums */
+        DropdownMenu(){
+          albums.forEach { album ->
+             DropdownMenuItem(
+                text = { Text(text = "${it.name}(${it.count})") }
+             )
+          }
         }
     },
     previewTopBar = {
+        // ───────── Selected-items preview UI ─────────
         Row {
             selectedMediaContents.forEach { media ->
-                Image(
-                    painter = rememberAsyncImagePainter(media.uri),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clickable { onClick(media) }
-                )
+                /* Customize thumbnail cell */
+                AsyncImage(...)
             }
         }
     },
-    content = { media ->
-        // Your image cell content
-    }
+    ... 
 )
 ```
 
