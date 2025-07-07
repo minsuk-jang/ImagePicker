@@ -54,6 +54,19 @@ dependencies {
 <uses-permission android:name="android.permission.CAMERA" />
 ```
 
+### ImagePickerState
+ImagePickerState configures the ImagePickerScreen and provides the current state of content.
+```kotlin 
+@Stable
+class ImagePickerState(
+    val max: Int = Constants.MAX_SIZE,  // Maximum number of selectable items 
+    val autoSelectAfterCapture: Boolean = false, // Automatically select the photo after capture
+) {
+    // List of currently selected images
+    val mediaContents: State<List<MediaContent>> = _mediaContents
+}
+```
+
 ### ImagePickerScreen
 ImagePickerScreen fetches a list of media contents using the Paging 3 Library. <br>
 It allows full customization of image cells and supports drag gestures for selecting or deselecting multiple items.
@@ -63,11 +76,9 @@ It allows full customization of image cells and supports drag gestures for selec
 fun ImagePickerScreen(
     // Configuration and state
     state: ImagePickerState = rememberImagePickerState(), 
-    // Slot for rendering a custom album selector UI.
-    // Provides access to album list and the currently selected album.
+    // Slot for rendering a custom album selector UI. Provides access to album list and the currently selected album.
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
-    // Slot for rendering a preview UI of selected images.
-    // Provides access to the current selection list.
+    // Slot for rendering a preview UI of selected images. Provides access to the current selection list.
     previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
     // Image cell Composable
     content: @Composable BoxScope.(MediaContent) -> Unit 
@@ -81,18 +92,19 @@ Each slot gives access to scoped data as show below:
 ```kotlin
 @Stable
 interface ImagePickerAlbumScope {
-    val albums: List<Album>             // List of albums available on the device
-    val selectedAlbum: Album?           // Currently selected album
-    fun onSelect(album: Album)          // Function to change the selected album
+    val albums: List<Album> // List of albums available on the device
+    val selectedAlbum: Album? // Currently selected album
+    fun onSelect(album: Album) // Function to change the selected album
 }
 
 @Stable
 interface PreviewTopBarScope {
     val selectedMediaContents: List<MediaContent> // List of selected media items
-    fun onClick(mediaContent: MediaContent)       // Toggle selection for the given item
+    fun onClick(mediaContent: MediaContent) // Toggle selection for the given item
 }
 ```
 you can use these properties and functions inside the respective slot lambdas to build your own UI components:
+<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177"  align="right" width="280" />
 ```kotlin
 ImagePickerScreen(
     albumTopBar = {
@@ -122,20 +134,6 @@ ImagePickerScreen(
     }
 )
 ```
-
-### ImagePickerState
-ImagePickerState configures the ImagePickerScreen and provides the current state of content.
-```kotlin 
-@Stable
-class ImagePickerState(
-    val max: Int = Constants.MAX_SIZE,  // Maximum number of selectable items 
-    val autoSelectAfterCapture: Boolean = false, // Automatically select the photo after capture
-) {
-    // List of currently selected images
-    val mediaContents: State<List<MediaContent>> = _mediaContents
-}
-```
-
 
 ## Classes
 ### MediaContent
