@@ -18,6 +18,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -111,7 +112,7 @@ class MainActivity : ComponentActivity() {
                                         albums.forEach {
                                             DropdownMenuItem(
                                                 text = {
-                                                    Text(text = "${it.name},  ${it.count}")
+                                                    Text(text = "${it.name}(${it.count})")
                                                 },
                                                 onClick = {
                                                     expand = false
@@ -141,21 +142,29 @@ class MainActivity : ComponentActivity() {
                                 if (it.selected)
                                     Box(
                                         modifier = Modifier
-                                            .border(width = 3.5.dp, color = Gray)
+                                            .border(width = 3.5.dp, color = Color.Green)
                                             .background(color = Gray.copy(0.5f))
                                             .fillMaxSize()
                                     ) {
-                                        Text(
+                                        Row(
                                             modifier = Modifier
-                                                .background(
-                                                    color = Purple40,
-                                                    shape = CircleShape
+                                                .align(Alignment.TopEnd)
+                                        ) {
+                                            Column {
+                                                Spacer(Modifier.height(5.dp))
+                                                Text(
+                                                    modifier = Modifier
+                                                        .background(
+                                                            color = Color.Green,
+                                                            shape = CircleShape
+                                                        )
+                                                        .size(20.dp),
+                                                    text = "${it.selectedOrder + 1}",
+                                                    textAlign = TextAlign.Center
                                                 )
-                                                .size(25.dp)
-                                                .align(Alignment.TopEnd),
-                                            text = "${it.selectedOrder + 1}",
-                                            textAlign = TextAlign.Center
-                                        )
+                                            }
+                                            Spacer(Modifier.width(5.dp))
+                                        }
                                     }
                             }
                         )
