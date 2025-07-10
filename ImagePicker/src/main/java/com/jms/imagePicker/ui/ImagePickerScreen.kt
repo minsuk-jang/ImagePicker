@@ -1,12 +1,8 @@
 package com.jms.imagePicker.ui
 
 import android.net.Uri
-import android.os.Build
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
@@ -19,22 +15,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
@@ -42,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,13 +46,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -69,21 +53,14 @@ import androidx.paging.compose.itemKey
 import com.jms.imagePicker.Constants
 import com.jms.imagePicker.R
 import com.jms.imagePicker.component.ImageCell
-import com.jms.imagePicker.data.LocalGalleryDataSource
 import com.jms.imagePicker.extensions.photoGridDragHandler
-import com.jms.imagePicker.manager.API21MediaContentManager
-import com.jms.imagePicker.manager.API29MediaContentManager
-import com.jms.imagePicker.manager.FileManager
+import com.jms.imagePicker.manager.ImagePickerManager
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.MediaContent
-import com.jms.imagePicker.ui.preview.PreviewScreen
 import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.PreviewTopBarScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -96,107 +73,50 @@ fun ImagePickerScreen(
     previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
     content: @Composable BoxScope.(MediaContent) -> Unit
 ) {
-    val context = LocalContext.current
-    val navController = rememberNavController()
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        NavHost(
-            modifier = Modifier.padding(it),
-            navController = navController,
-            startDestination = "route_image_list",
-            route = "graph_image_picker",
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None }
-        ) {
-            composable(
-                route = "route_image_list"
-            ) {
-                val parentEntry = remember(it) {
-                    navController.getBackStackEntry("graph_image_picker")
-                }
+    val context = LocalContext.current.applicationContext
+    val configuration = LocalConfiguration.current
+    val pickerManager = ImagePickerManager.getInstance(context = context)
 
-                val viewModel: ImagePickerViewModel = viewModel(parentEntry) {
-                    ImagePickerViewModel(
-                        fileManager = FileManager(context = context.applicationContext),
-                        localGalleryDataSource = LocalGalleryDataSource(
-                            contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                                API29MediaContentManager(context = context.applicationContext)
-                            } else
-                                API21MediaContentManager(context = context.applicationContext)
-                        )
-                    )
-                }
+    DisposableEffect(Unit) {
+        pickerManager.attach()
 
-                ImagePickerScaffold(
-                    viewModel = viewModel,
-                    state = state,
-                    albumTopBar = albumTopBar,
-                    content = content,
-                    previewTopBar = previewTopBar,
-                    onNavigateToPreview = {
-                        navController.navigate("route_preview?$it") {
-                            launchSingleTop = true
-
-                            popUpTo("route_image_list") {
-                                saveState = true
-                            }
-                        }
-                    }
-                )
-            }
-
-            composable(
-                route = "route_preview?{index}",
-                arguments = listOf(
-                    navArgument("index") {
-                        type = NavType.IntType
-                    }
-                )
-            ) {
-                val parentEntry = remember(it) {
-                    navController.getBackStackEntry("graph_image_picker")
-                }
-
-                val viewModel: ImagePickerViewModel = viewModel(parentEntry)
-                val initializeFirstVisibleItemIndex = it.arguments?.getInt("index") ?: 0
-
-                PreviewScreen(
-                    viewModel = viewModel,
-                    state = state,
-                    initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
-                    onBack = {
-                        navController.popBackStack(
-                            route = "route_image_list",
-                            inclusive = false
-                        )
-                    }
-                )
-            }
+        onDispose {
+            //TODO check to change configuration
+            pickerManager.detach()
         }
     }
+
+    ImagePickerScaffold(
+        pickerManager = pickerManager,
+        state = state,
+        albumTopBar = albumTopBar,
+        content = content,
+        previewTopBar = previewTopBar,
+        onNavigateToPreview = {
+
+        }
+    )
 }
 
 @Composable
 private fun ImagePickerScaffold(
     modifier: Modifier = Modifier,
     state: ImagePickerState = rememberImagePickerState(),
-    viewModel: ImagePickerViewModel,
+    pickerManager: ImagePickerManager,
     onNavigateToPreview: (Int) -> Unit = {},
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
     content: @Composable BoxScope.(MediaContent) -> Unit
 ) {
-    val context = LocalContext.current
-    val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
-    val selectedImages by viewModel.selectedImages.collectAsState()
-    val selectedUris by viewModel.selectedUris.collectAsState()
-    val albums by viewModel.albums.collectAsState()
-    val selectedAlbum by viewModel.selectedAlbum.collectAsState()
+    val mediaContents = pickerManager.mediaContents.collectAsLazyPagingItems()
+    val selectedImages by pickerManager.selectedImages.collectAsState()
+    val selectedUris by pickerManager.selectedUris.collectAsState()
+    val albums by pickerManager.albums.collectAsState()
+    val selectedAlbum by pickerManager.selectedAlbum.collectAsState()
 
-    LaunchedEffect(viewModel) {
+    LaunchedEffect(pickerManager) {
         launch {
-            viewModel.selectedImages.collectLatest {
+            pickerManager.selectedImages.collectLatest {
                 state.updateImages(list = it)
             }
         }
@@ -204,26 +124,21 @@ private fun ImagePickerScaffold(
 
     val cameraLaunch =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
-            if (it) {
-                viewModel.saveImageFile(
-                    max = state.max,
-                    autoSelectAfterCapture = state.autoSelectAfterCapture
-                )
-            }
+            //TODO navigate to camera
         }
 
-    val previewScopeImpl = remember(viewModel) {
+    val previewScopeImpl = remember(pickerManager) {
         object : PreviewTopBarScope {
             override val selectedMediaContents: List<MediaContent>
                 get() = selectedImages
 
             override fun onClick(mediaContent: MediaContent) {
-                viewModel.select(uri = mediaContent.uri, max = state.max)
+                pickerManager.select(uri = mediaContent.uri, max = state.max)
             }
         }
     }
 
-    val albumScopeImpl = remember(viewModel) {
+    val albumScopeImpl = remember(pickerManager) {
         object : ImagePickerAlbumScope {
             override val albums: List<Album>
                 get() = albums
@@ -232,7 +147,7 @@ private fun ImagePickerScaffold(
                 get() = selectedAlbum
 
             override fun onSelect(album: Album) {
-                viewModel.selectedAlbum(album = album)
+                pickerManager.selectedAlbum(album = album)
             }
         }
     }
@@ -247,13 +162,13 @@ private fun ImagePickerScaffold(
             mediaContents = mediaContents,
             selectedUris = selectedUris,
             onClick = {
-                viewModel.select(uri = it, max = state.max)
+                pickerManager.select(uri = it, max = state.max)
             },
             onDragStart = {
-                viewModel.select(uri = it, max = state.max)
+                pickerManager.select(uri = it, max = state.max)
             },
             onDrag = { start, end, items ->
-                viewModel.select(
+                pickerManager.select(
                     start = start,
                     end = end,
                     mediaContents = items,
@@ -261,15 +176,10 @@ private fun ImagePickerScaffold(
                 )
             },
             onDragEnd = {
-                viewModel.synchronize()
+                pickerManager.synchronize()
             },
             onPhoto = {
-                cameraLaunch.launch(
-                    FileProvider.getUriForFile(
-                        context.applicationContext, "com.jms.imagePicker.fileprovider",
-                        viewModel.createImageFile()
-                    )
-                )
+                //TODO handle camera navigate
             },
             onNavigateToPreview = { image ->
                 val index =
