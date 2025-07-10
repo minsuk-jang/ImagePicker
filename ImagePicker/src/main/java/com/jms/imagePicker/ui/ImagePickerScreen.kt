@@ -1,5 +1,6 @@
 package com.jms.imagePicker.ui
 
+import android.app.Activity
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -74,7 +75,7 @@ fun ImagePickerScreen(
     content: @Composable BoxScope.(MediaContent) -> Unit
 ) {
     val context = LocalContext.current.applicationContext
-    val configuration = LocalConfiguration.current
+    val activity = LocalContext.current as Activity
     val pickerManager = ImagePickerManager.getInstance(context = context)
 
     DisposableEffect(Unit) {
@@ -82,7 +83,8 @@ fun ImagePickerScreen(
 
         onDispose {
             //TODO check to change configuration
-            pickerManager.detach()
+            if (activity.isChangingConfigurations)
+                pickerManager.detach()
         }
     }
 
