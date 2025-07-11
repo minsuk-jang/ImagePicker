@@ -24,7 +24,7 @@ interface ImagePickerGraphScope {
     )
 
     fun PreviewScreen(
-        content: @Composable BoxScope.(PreviewScope) -> Unit
+        content: @Composable PreviewScope.(MediaContent) -> Unit
     )
 }
 
@@ -63,7 +63,7 @@ internal class ImagePickerGraphScopeImpl(
     }
 
     override fun PreviewScreen(
-        content: @Composable BoxScope.(PreviewScope) -> Unit
+        content: @Composable PreviewScope.(MediaContent) -> Unit
     ) {
         builder.composable(
             route = "route_preview?{index}",
@@ -79,6 +79,10 @@ internal class ImagePickerGraphScopeImpl(
                 viewModel = viewModel,
                 state = state,
                 initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
+                onBack = {
+                    navController.popBackStack()
+                },
+                content = content
             )
         }
     }
