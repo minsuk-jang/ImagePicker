@@ -28,8 +28,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,6 +44,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,17 +56,21 @@ import androidx.core.content.ContextCompat
 import com.jms.imagePicker.ui.ImagePickerNavHost
 import com.jms.imagePicker.ui.ImagePreviewBar
 import com.jms.imagePicker.ui.picker.rememberImagePickerNavHostState
-import com.jms.imagePicker.ui.theme.GallerySelectorTheme
+import com.jms.imagePicker.ui.theme.ImagePickerTheme
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GallerySelectorTheme(
+            ImagePickerTheme(
                 darkTheme = false
             ) {
                 // A surface container using the 'background' color from the theme
+
+                val iconOfExpandContent = rememberVectorPainter(
+                    ImageVector.vectorResource(R.drawable.expand_content)
+                )
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -138,8 +147,31 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 },
-                                content = {
-                                    if (it.selected) {
+                                content = { actions, mediaContent ->
+                                    Row(
+                                        modifier = Modifier.align(Alignment.BottomStart)
+                                    ) {
+                                        Spacer(modifier = Modifier.width(3.dp))
+                                        Column {
+                                            Icon(
+                                                modifier = Modifier
+                                                    .size(18.dp)
+                                                    .background(
+                                                        color = Color.Black.copy(alpha = 0.5f),
+                                                        shape = RoundedCornerShape(5.dp)
+                                                    )
+                                                    .clickable {
+                                                        actions.onNavigateToPreview(mediaContent)
+                                                    },
+                                                painter = iconOfExpandContent,
+                                                contentDescription = "expand_content",
+                                                tint = Color.White
+                                            )
+                                            Spacer(modifier = Modifier.height(3.dp))
+                                        }
+                                    }
+
+                                    if (mediaContent.selected) {
                                         Box(
                                             modifier = Modifier
                                                 .border(width = 3.5.dp, color = Color.Green)
@@ -159,7 +191,7 @@ class MainActivity : ComponentActivity() {
                                                                 shape = CircleShape
                                                             )
                                                             .size(20.dp),
-                                                        text = "${it.selectedOrder + 1}",
+                                                        text = "${mediaContent.selectedOrder + 1}",
                                                         textAlign = TextAlign.Center
                                                     )
                                                 }
@@ -170,7 +202,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
 
-                            PreviewScreen { handler, mediaContent ->
+                            PreviewScreen { actions, mediaContent ->
                                 Row(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
@@ -196,7 +228,7 @@ class MainActivity : ComponentActivity() {
                                                 shape = RectangleShape
                                             )
                                             .clickable {
-                                                handler.onClick(mediaContent)
+                                                actions.onClick(mediaContent)
                                             }
                                     ) {
                                         if (mediaContent.selected) {

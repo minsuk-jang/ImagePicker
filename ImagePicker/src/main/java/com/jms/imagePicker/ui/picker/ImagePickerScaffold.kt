@@ -10,17 +10,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,6 +48,7 @@ import com.jms.imagePicker.extensions.photoGridDragHandler
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
+import com.jms.imagePicker.ui.action.ImagePickerContentActions
 import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.ImagePickerPreviewTopBarScope
 import kotlinx.coroutines.delay
@@ -66,7 +62,7 @@ internal fun ImagePickerScaffold(
     onNavigateToPreview: (Int) -> Unit = {},
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
-    content: @Composable BoxScope.(MediaContent) -> Unit
+    content: @Composable BoxScope.(ImagePickerContentActions, MediaContent) -> Unit
 ) {
     val context = LocalContext.current
     val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
@@ -110,6 +106,21 @@ internal fun ImagePickerScaffold(
         }
     }
 
+    val contentHandler = remember(viewModel, state) {
+        object : ImagePickerContentActions {
+            override fun onClick(mediaContent: MediaContent) {
+                viewModel.select(uri = mediaContent.uri, max = state.max)
+            }
+
+            override fun onNavigateToPreview(mediaContent: MediaContent) {
+                val index =
+                    mediaContents.itemSnapshotList.indexOfFirst { it?.uri == mediaContent.uri }
+                        .coerceAtLeast(0)
+                onNavigateToPreview(index)
+            }
+        }
+    }
+
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -144,13 +155,9 @@ internal fun ImagePickerScaffold(
             onClick = {
                 viewModel.select(uri = it.uri, max = state.max)
             },
-            onNavigateToPreview = { mediaContent ->
-                val index =
-                    mediaContents.itemSnapshotList.indexOfFirst { it?.uri == mediaContent.uri }
-                        .coerceAtLeast(0)
-                onNavigateToPreview(index)
-            },
-            content = content
+            content = {
+                content(contentHandler, it)
+            }
         )
     }
 }
@@ -166,7 +173,6 @@ internal fun ImagePickerContent(
     onDrag: (start: Int?, end: Int?, List<MediaContent>) -> Unit,
     onDragEnd: () -> Unit = {},
     onClick: (MediaContent) -> Unit = {},
-    onNavigateToPreview: (MediaContent) -> Unit,
     content: @Composable BoxScope.(MediaContent) -> Unit
 ) {
     val gridState = rememberLazyGridState()
@@ -175,9 +181,6 @@ internal fun ImagePickerContent(
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
     val width = remember { screenWidthDp / 3 }
-    val iconOfExpandContent = rememberVectorPainter(
-        ImageVector.vectorResource(R.drawable.expand_content)
-    )
     val iconOfCamera = rememberVectorPainter(ImageVector.vectorResource(R.drawable.photo_camera))
 
     LaunchedEffect(Unit) {
@@ -253,29 +256,6 @@ internal fun ImagePickerContent(
                         cellDp = width.dp,
                         mediaContent = mediaContent,
                     )
-
-                    Row(
-                        modifier = Modifier.align(Alignment.BottomStart)
-                    ) {
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Column {
-                            Icon(
-                                modifier = Modifier
-                                    .size(18.dp)
-                                    .background(
-                                        color = Color.Black.copy(alpha = 0.5f),
-                                        shape = RoundedCornerShape(5.dp)
-                                    )
-                                    .clickable {
-                                        onNavigateToPreview(mediaContent)
-                                    },
-                                painter = iconOfExpandContent,
-                                contentDescription = "expand_content",
-                                tint = Color.White
-                            )
-                            Spacer(modifier = Modifier.height(3.dp))
-                        }
-                    }
 
                     content(mediaContent)
                 }

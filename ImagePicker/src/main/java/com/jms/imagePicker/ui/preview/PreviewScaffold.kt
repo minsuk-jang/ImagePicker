@@ -23,7 +23,7 @@ import coil.request.ImageRequest
 import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
 import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
-import com.jms.imagePicker.ui.scope.PreviewInteractionHandler
+import com.jms.imagePicker.ui.action.PreviewActions
 
 
 @Composable
@@ -32,7 +32,7 @@ internal fun PreviewScaffold(
     state: ImagePickerNavHostState,
     onBack: () -> Unit = {},
     initializeFirstVisibleItemIndex: Int = 0,
-    content: @Composable BoxScope.(PreviewInteractionHandler, MediaContent) -> Unit = { _, _ -> }
+    content: @Composable BoxScope.(PreviewActions, MediaContent) -> Unit = { _, _ -> }
 ) {
     val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
 
@@ -54,8 +54,8 @@ internal fun PreviewScaffold(
             return
         }
 
-        val handler: PreviewInteractionHandler = remember(viewModel, state) {
-            object : PreviewInteractionHandler {
+        val handler: PreviewActions = remember(viewModel, state) {
+            object : PreviewActions {
                 override fun onBack() {
                     onBack()
                 }

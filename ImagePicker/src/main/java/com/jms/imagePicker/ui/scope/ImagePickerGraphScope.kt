@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import com.jms.imagePicker.model.MediaContent
+import com.jms.imagePicker.ui.action.ImagePickerContentActions
+import com.jms.imagePicker.ui.action.PreviewActions
 
 
 @Stable
@@ -13,7 +15,7 @@ interface ImagePickerGraphScope {
     fun ImagePickerScreen(
         albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
         previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
-        content: @Composable BoxScope.(MediaContent) -> Unit = {}
+        content: @Composable BoxScope.(ImagePickerContentActions, MediaContent) -> Unit = { _, _ -> }
     )
 
     /**
@@ -21,6 +23,6 @@ interface ImagePickerGraphScope {
      * @param content: Preview Content UI Composable.
      */
     fun PreviewScreen(
-        content: @Composable BoxScope.(PreviewInteractionHandler, MediaContent) -> Unit = { _, _ -> }
+        content: @Composable BoxScope.(PreviewActions, MediaContent) -> Unit = { _, _ -> }
     )
 }

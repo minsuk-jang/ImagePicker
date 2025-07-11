@@ -1,11 +1,10 @@
-package com.jms.imagePicker.ui.scope
+package com.jms.imagePicker.ui.action
 
 import androidx.compose.runtime.Stable
 import com.jms.imagePicker.model.MediaContent
 
-
 @Stable
-interface PreviewInteractionHandler {
+interface PreviewActions {
     fun onBack()
     fun onClick(mediaContent: MediaContent)
 }

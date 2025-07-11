@@ -21,6 +21,7 @@ import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.MediaContent
+import com.jms.imagePicker.ui.action.ImagePickerContentActions
 import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
 import com.jms.imagePicker.ui.picker.ImagePickerScaffold
 import com.jms.imagePicker.ui.picker.rememberImagePickerNavHostState
@@ -28,7 +29,7 @@ import com.jms.imagePicker.ui.preview.PreviewScaffold
 import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.ImagePickerGraphScope
 import com.jms.imagePicker.ui.scope.ImagePickerPreviewTopBarScope
-import com.jms.imagePicker.ui.scope.PreviewInteractionHandler
+import com.jms.imagePicker.ui.action.PreviewActions
 
 @Composable
 fun ImagePickerNavHost(
@@ -81,7 +82,7 @@ internal class ImagePickerGraphScopeImpl(
     override fun ImagePickerScreen(
         albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit,
         previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit,
-        content: @Composable BoxScope.(MediaContent) -> Unit
+        content: @Composable BoxScope.(ImagePickerContentActions, MediaContent) -> Unit
     ) {
         builder.composable(
             route = "route_image_list"
@@ -106,7 +107,7 @@ internal class ImagePickerGraphScopeImpl(
     }
 
     override fun PreviewScreen(
-        content: @Composable BoxScope.(PreviewInteractionHandler, MediaContent) -> Unit
+        content: @Composable BoxScope.(PreviewActions, MediaContent) -> Unit
     ) {
         builder.composable(
             route = "route_preview?{index}",
