@@ -44,11 +44,11 @@ import com.jms.imagePicker.ui.picker.ImagePickerState
 import com.jms.imagePicker.ui.ImagePickerViewModel
 import com.jms.imagePicker.ui.scope.PreviewScope
 import com.jms.imagePicker.ui.scope.PreviewScopeImpl
+import kotlin.math.max
 
 
 @Composable
 internal fun PreviewScaffold(
-    modifier: Modifier = Modifier,
     viewModel: ImagePickerViewModel,
     state: ImagePickerState,
     onBack: () -> Unit = {},
@@ -75,19 +75,20 @@ internal fun PreviewScaffold(
             return
         }
 
+        val previewScopeImpl = remember(viewModel, state) {
+            PreviewScopeImpl(
+                boxScope = this, // Box Scope
+                onBack = onBack,
+                onClick = {
+                    viewModel.select(uri = it.uri, max = state.max)
+                }
+            )
+        }
+
         PreviewContent(
-            modifier = modifier,
             mediaContents = mediaContents,
             initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
         ) {
-            val previewScopeImpl = remember(viewModel, state) {
-                PreviewScopeImpl(
-                    boxScope = this,
-                    viewModel = viewModel,
-                    state = state
-                )
-            }
-
             content(previewScopeImpl, it)
         }
     }
@@ -95,8 +96,7 @@ internal fun PreviewScaffold(
 
 
 @Composable
-private fun PreviewContent(
-    modifier: Modifier = Modifier,
+private fun BoxScope.PreviewContent(
     mediaContents: LazyPagingItems<MediaContent>,
     initializeFirstVisibleItemIndex: Int = 0,
     content: @Composable BoxScope.(MediaContent) -> Unit = {}
@@ -107,36 +107,29 @@ private fun PreviewContent(
         initialPage = initializeFirstVisibleItemIndex
     ) { mediaContents.itemCount }
 
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.Black)
+    HorizontalPager(
+        modifier = Modifier.fillMaxSize(),
+        state = listState,
     ) {
-        HorizontalPager(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-        ) {
-            mediaContents[it]?.let {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    AsyncImage(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .align(Alignment.Center),
-                        model = ImageRequest.Builder(context)
-                            .data(it.uri)
-                            .build(),
-                        contentDescription = "content",
-                        filterQuality = FilterQuality.High,
-                    )
-                }
+        mediaContents[it]?.let {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                AsyncImage(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .align(Alignment.Center),
+                    model = ImageRequest.Builder(context)
+                        .data(it.uri)
+                        .build(),
+                    contentDescription = "content",
+                    filterQuality = FilterQuality.High,
+                )
             }
         }
+    }
 
-        mediaContents[listState.currentPage]?.let {
-            content(it)
-        }
+    mediaContents[listState.currentPage]?.let {
+        content(it)
     }
 }

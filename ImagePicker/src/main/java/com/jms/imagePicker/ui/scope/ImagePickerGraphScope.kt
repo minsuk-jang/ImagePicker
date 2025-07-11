@@ -23,6 +23,10 @@ interface ImagePickerGraphScope {
         content: @Composable BoxScope.(MediaContent) -> Unit
     )
 
+    /**
+     *
+     * @param content: Preview Content UI Composable.
+     */
     fun PreviewScreen(
         content: @Composable PreviewScope.(MediaContent) -> Unit
     )
@@ -79,9 +83,7 @@ internal class ImagePickerGraphScopeImpl(
                 viewModel = viewModel,
                 state = state,
                 initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
-                onBack = {
-                    navController.popBackStack()
-                },
+                onBack = { navController.popBackStack() },
                 content = content
             )
         }

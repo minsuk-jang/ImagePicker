@@ -84,7 +84,6 @@ class MainActivity : ComponentActivity() {
                         )
 
                         val images = state.mediaContents
-                        Log.e("jms8732", "images: $images")
 
                         var expand by remember {
                             mutableStateOf(false)
