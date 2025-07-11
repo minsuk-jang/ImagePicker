@@ -39,8 +39,8 @@ internal class ImagePickerViewModel(
     private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
     val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
 
-    private val _selectedImages = MutableStateFlow<MutableList<MediaContent>>(mutableListOf())
-    val selectedImages: StateFlow<List<MediaContent>> = _selectedImages.asStateFlow()
+    private val _selectedMediaContents = MutableStateFlow<MutableList<MediaContent>>(mutableListOf())
+    val selectedMediaContents: StateFlow<List<MediaContent>> = _selectedMediaContents.asStateFlow()
 
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
@@ -187,7 +187,7 @@ internal class ImagePickerViewModel(
                     image
                 }
 
-                _selectedImages.update { newList.toMutableList() }
+                _selectedMediaContents.update { newList.toMutableList() }
             }
 
         }

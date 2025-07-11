@@ -3,25 +3,36 @@ package com.jms.imagePicker.ui
 import android.os.Build
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
-import com.jms.imagePicker.ui.picker.ImagePickerState
-import com.jms.imagePicker.ui.picker.rememberImagePickerState
+import com.jms.imagePicker.model.MediaContent
+import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
+import com.jms.imagePicker.ui.picker.ImagePickerScaffold
+import com.jms.imagePicker.ui.picker.rememberImagePickerNavHostState
+import com.jms.imagePicker.ui.preview.PreviewScaffold
+import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.ImagePickerGraphScope
-import com.jms.imagePicker.ui.scope.ImagePickerGraphScopeImpl
+import com.jms.imagePicker.ui.scope.ImagePickerPreviewTopBarScope
+import com.jms.imagePicker.ui.scope.PreviewInteractionHandler
 
 @Composable
 fun ImagePickerNavHost(
-    state: ImagePickerState = rememberImagePickerState(),
+    state: ImagePickerNavHostState = rememberImagePickerNavHostState(),
     content: ImagePickerGraphScope.() -> Unit
 ) {
     val context = LocalContext.current
@@ -55,5 +66,65 @@ fun ImagePickerNavHost(
         )
 
         graphScopeImpl.content()
+    }
+}
+
+internal class ImagePickerGraphScopeImpl(
+    private val builder: NavGraphBuilder,
+    private val navController: NavController,
+    private val viewModel: ImagePickerViewModel,
+    private val state: ImagePickerNavHostState
+) : ImagePickerGraphScope {
+    override val selectedMediaContents: List<MediaContent>
+        get() = viewModel.selectedMediaContents.value
+
+    override fun ImagePickerScreen(
+        albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit,
+        previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit,
+        content: @Composable BoxScope.(MediaContent) -> Unit
+    ) {
+        builder.composable(
+            route = "route_image_list"
+        ) {
+            ImagePickerScaffold(
+                viewModel = viewModel,
+                albumTopBar = albumTopBar,
+                previewTopBar = previewTopBar,
+                state = state,
+                content = content,
+                onNavigateToPreview = {
+                    navController.navigate("route_preview?$it") {
+                        launchSingleTop = true
+
+                        popUpTo("route_image_list") {
+                            saveState = true
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    override fun PreviewScreen(
+        content: @Composable BoxScope.(PreviewInteractionHandler, MediaContent) -> Unit
+    ) {
+        builder.composable(
+            route = "route_preview?{index}",
+            arguments = listOf(
+                navArgument("index") {
+                    type = NavType.IntType
+                }
+            )
+        ) {
+            val initializeFirstVisibleItemIndex = it.arguments?.getInt("index") ?: 0
+
+            PreviewScaffold(
+                viewModel = viewModel,
+                state = state,
+                initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
+                onBack = { navController.popBackStack() },
+                content = content
+            )
+        }
     }
 }

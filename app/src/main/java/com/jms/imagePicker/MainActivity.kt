@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -42,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.jms.imagePicker.ui.ImagePickerNavHost
 import com.jms.imagePicker.ui.ImagePreviewBar
-import com.jms.imagePicker.ui.picker.rememberImagePickerState
+import com.jms.imagePicker.ui.picker.rememberImagePickerNavHostState
 import com.jms.imagePicker.ui.theme.GallerySelectorTheme
 
 class MainActivity : ComponentActivity() {
@@ -78,18 +78,18 @@ class MainActivity : ComponentActivity() {
                             arrays[0]
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        val state = rememberImagePickerState(
+                        val state = rememberImagePickerNavHostState(
                             max = 30,
                             autoSelectAfterCapture = true
                         )
-
-                        val images = state.mediaContents
 
                         var expand by remember {
                             mutableStateOf(false)
                         }
 
-                        ImagePickerNavHost {
+                        ImagePickerNavHost(
+                            state = state
+                        ) {
                             ImagePickerScreen(
                                 albumTopBar = {
                                     Row {
@@ -170,7 +170,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
 
-                            PreviewScreen {
+                            PreviewScreen { handler, mediaContent ->
                                 Row(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
@@ -179,31 +179,31 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .size(40.dp)
                                             .background(
-                                                color = when (it.selected) {
+                                                color = when (mediaContent.selected) {
                                                     true -> Color.White.copy(alpha = 0.9f)
                                                     false -> Color.DarkGray.copy(alpha = 0.5f)
                                                 },
-                                                shape = CircleShape
+                                                shape = RectangleShape
                                             )
                                             .border(
                                                 border = BorderStroke(
                                                     width = 3.dp,
-                                                    color = when (it.selected) {
+                                                    color = when (mediaContent.selected) {
                                                         true -> Color.White.copy(alpha = 0.9f)
                                                         false -> Color.LightGray
                                                     }
                                                 ),
-                                                shape = CircleShape
+                                                shape = RectangleShape
                                             )
                                             .clickable {
-                                                this@PreviewScreen.onClick(it)
+                                                handler.onClick(mediaContent)
                                             }
                                     ) {
-                                        if (it.selected) {
+                                        if (mediaContent.selected) {
                                             Text(
                                                 modifier = Modifier
                                                     .align(Alignment.Center),
-                                                text = "${it.selectedOrder + 1}",
+                                                text = "${mediaContent.selectedOrder + 1}",
                                                 style = TextStyle(
                                                     fontWeight = FontWeight.W500,
                                                     color = Color.Black,
@@ -213,7 +213,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
 
-                                    Spacer(Modifier.width(5.dp))
+                                    Spacer(Modifier.width(15.dp))
                                 }
                             }
                         }
