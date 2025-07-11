@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.jms.imagePicker.data.LocalGalleryDataSource
+import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Action
 import com.jms.imagePicker.model.Album
@@ -29,7 +29,7 @@ import kotlin.math.min
 
 internal class ImagePickerViewModel(
     private val fileManager: FileManager,
-    val localGalleryDataSource: LocalGalleryDataSource
+    private val localMediaContentsDataSource: LocalMediaContentsDataSource
 ) : ViewModel() {
     //init action
     private var _initAction: Action = Action.ADD //add
@@ -54,7 +54,7 @@ internal class ImagePickerViewModel(
         combine(_selectedAlbum, _refreshTrigger) { album, _ ->
             album
         }.flatMapLatest {
-            localGalleryDataSource.getLocalGalleryImages(
+            localMediaContentsDataSource.getMediaContents(
                 albumId = it?.id
             )
         }.cachedIn(viewModelScope)
@@ -71,7 +71,7 @@ internal class ImagePickerViewModel(
 
     private fun initializeAlbum() {
         viewModelScope.launch {
-            val albums = localGalleryDataSource.getAlbums()
+            val albums = localMediaContentsDataSource.getAlbums()
 
             _albums.update { albums }
             _selectedAlbum.update { albums.getOrNull(0) }
@@ -180,7 +180,7 @@ internal class ImagePickerViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             _selectedUris.collectLatest { uris ->
                 val newList = uris.mapIndexed { index, uri ->
-                    val image = localGalleryDataSource.getLocalGalleryImage(uri).copy(
+                    val image = localMediaContentsDataSource.getMediaContent(uri).copy(
                         selectedOrder = index,
                         selected = true
                     )
@@ -204,7 +204,7 @@ internal class ImagePickerViewModel(
                 fileManager.saveImageFile(file = _imageFile!!)
 
                 if (autoSelectAfterCapture) {
-                    select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
+                    select(uri = localMediaContentsDataSource.getMediaContent().uri, max = max)
                 }
 
                 refresh()
@@ -222,6 +222,7 @@ internal class ImagePickerViewModel(
         val newAlbum = _albums.value.first { it.id == _selectedAlbum.value?.id }
         selectedAlbum(album = newAlbum)
     }
+
 
     private fun update(
         pagingData: PagingData<MediaContent>,

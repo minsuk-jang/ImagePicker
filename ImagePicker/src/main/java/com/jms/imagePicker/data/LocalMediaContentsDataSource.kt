@@ -15,14 +15,14 @@ import kotlinx.coroutines.flow.Flow
  *
  * Local Gallery data source
  */
-internal class LocalGalleryDataSource(
+internal class LocalMediaContentsDataSource(
     private val contentManager: MediaContentManager
 ) {
     fun getAlbums(): List<Album> {
         return contentManager.getAlbums(uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
     }
 
-    fun getLocalGalleryImages(
+    fun getMediaContents(
         albumId: String?
     ): Flow<PagingData<MediaContent>> {
         return Pager(
@@ -38,7 +38,7 @@ internal class LocalGalleryDataSource(
         }.flow
     }
 
-    fun getLocalGalleryImage(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): MediaContent {
+    fun getMediaContent(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): MediaContent {
         contentManager.getCursor(
             uri = uri,
             offset = 0,

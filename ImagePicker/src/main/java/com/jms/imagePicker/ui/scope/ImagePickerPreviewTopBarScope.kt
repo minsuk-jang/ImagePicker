@@ -5,7 +5,7 @@ import com.jms.imagePicker.model.MediaContent
 
 
 @Stable
-interface PreviewTopBarScope {
+interface ImagePickerPreviewTopBarScope {
     val selectedMediaContents: List<MediaContent>
     fun onClick(mediaContent: MediaContent)
 }

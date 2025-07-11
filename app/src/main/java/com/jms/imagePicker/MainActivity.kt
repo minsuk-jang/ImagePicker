@@ -28,8 +28,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -46,11 +48,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.jms.imagePicker.ui.ImagePickerScreen
+import com.jms.imagePicker.ui.ImagePickerNavHost
 import com.jms.imagePicker.ui.ImagePreviewBar
-import com.jms.imagePicker.ui.rememberImagePickerState
+import com.jms.imagePicker.ui.picker.rememberImagePickerState
 import com.jms.imagePicker.ui.theme.GallerySelectorTheme
-import com.jms.imagePicker.ui.theme.Purple40
 
 class MainActivity : ComponentActivity() {
 
@@ -89,85 +90,89 @@ class MainActivity : ComponentActivity() {
                             mutableStateOf(false)
                         }
 
-                        ImagePickerScreen(
-                            state = state,
-                            albumTopBar = {
-                                Row {
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Text(
-                                        modifier = Modifier
-                                            .height(48.dp)
-                                            .clickable {
-                                                expand = true
-                                            }
-                                            .wrapContentHeight(Alignment.CenterVertically),
-                                        text = "${selectedAlbum?.name}(${selectedAlbum?.count})",
-                                        fontSize = 20.sp,
-                                        color = Color.Black,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                    DropdownMenu(
-                                        modifier = Modifier.wrapContentSize(),
-                                        expanded = expand, onDismissRequest = { }) {
-                                        albums.forEach {
-                                            DropdownMenuItem(
-                                                text = {
-                                                    Text(text = "${it.name}(${it.count})")
-                                                },
-                                                onClick = {
-                                                    expand = false
-                                                    onSelect(it)
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            },
-                            previewTopBar = {
-                                AnimatedVisibility(
-                                    visible = selectedMediaContents.isNotEmpty(),
-                                    enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
-                                            + fadeIn(initialAlpha = 0.3f),
-                                    exit = slideOutVertically() + shrinkVertically() + fadeOut()
-                                ) {
-                                    ImagePreviewBar(
-                                        mediaContents = selectedMediaContents,
-                                        onClick = { mediaContent ->
-                                            onClick(mediaContent)
-                                        }
-                                    )
-                                }
-                            },
-                            content = {
-                                if (it.selected)
-                                    Box(
-                                        modifier = Modifier
-                                            .border(width = 3.5.dp, color = Color.Green)
-                                            .background(color = Gray.copy(0.5f))
-                                            .fillMaxSize()
-                                    ) {
-                                        Row(
+                        ImagePickerNavHost {
+                            ImagePickerScreen(
+                                albumTopBar = {
+                                    Row {
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(
                                             modifier = Modifier
-                                                .align(Alignment.TopEnd)
-                                        ) {
-                                            Column {
-                                                Spacer(Modifier.height(5.dp))
-                                                Text(
-                                                    modifier = Modifier
-                                                        .background(
-                                                            color = Color.Green,
-                                                            shape = CircleShape
-                                                        )
-                                                        .size(20.dp),
-                                                    text = "${it.selectedOrder + 1}",
-                                                    textAlign = TextAlign.Center
+                                                .height(48.dp)
+                                                .clickable {
+                                                    expand = true
+                                                }
+                                                .wrapContentHeight(Alignment.CenterVertically),
+                                            text = "${selectedAlbum?.name}(${selectedAlbum?.count})",
+                                            fontSize = 20.sp,
+                                            color = Color.Black,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        DropdownMenu(
+                                            modifier = Modifier.wrapContentSize(),
+                                            expanded = expand, onDismissRequest = { }) {
+                                            albums.forEach {
+                                                DropdownMenuItem(
+                                                    text = {
+                                                        Text(text = "${it.name}(${it.count})")
+                                                    },
+                                                    onClick = {
+                                                        expand = false
+                                                        onSelect(it)
+                                                    }
                                                 )
                                             }
-                                            Spacer(Modifier.width(5.dp))
                                         }
                                     }
-                            }
-                        )
+                                },
+                                previewTopBar = {
+                                    AnimatedVisibility(
+                                        visible = selectedMediaContents.isNotEmpty(),
+                                        enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
+                                                + fadeIn(initialAlpha = 0.3f),
+                                        exit = slideOutVertically() + shrinkVertically() + fadeOut()
+                                    ) {
+                                        ImagePreviewBar(
+                                            mediaContents = selectedMediaContents,
+                                            onClick = { mediaContent ->
+                                                onClick(mediaContent)
+                                            }
+                                        )
+                                    }
+                                },
+                                content = {
+                                    if (it.selected) {
+                                        Box(
+                                            modifier = Modifier
+                                                .border(width = 3.5.dp, color = Color.Green)
+                                                .background(color = Gray.copy(0.5f))
+                                                .fillMaxSize()
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .align(Alignment.TopEnd)
+                                            ) {
+                                                Column {
+                                                    Spacer(Modifier.height(5.dp))
+                                                    Text(
+                                                        modifier = Modifier
+                                                            .background(
+                                                                color = Color.Green,
+                                                                shape = CircleShape
+                                                            )
+                                                            .size(20.dp),
+                                                        text = "${it.selectedOrder + 1}",
+                                                        textAlign = TextAlign.Center
+                                                    )
+                                                }
+                                                Spacer(Modifier.width(5.dp))
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+
+                            //PreviewScreen()
+                        }
                     }
                 }
             }
