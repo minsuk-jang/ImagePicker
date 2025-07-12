@@ -1,10 +1,10 @@
 <h1 align = "center">  ImagePicker </h1>
 <!-- Add Gif -->
 <p align = "center">
-<img src = "https://github.com/user-attachments/assets/3dc78705-e90d-42e4-859c-79e9b28ff8b9" width="250"/>
-<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" width="250"/>
-<img src = "https://github.com/user-attachments/assets/9531c4a4-9603-47b7-a716-d74aecf75c8f" width="250"/>
-<img src = "https://github.com/user-attachments/assets/64724a9e-669a-4e8a-9bc7-773c440bc755" width="250"/>
+<img src = "https://github.com/user-attachments/assets/3dc78705-e90d-42e4-859c-79e9b28ff8b9" width="200"/>
+<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" width="200"/>
+<img src = "https://github.com/user-attachments/assets/9531c4a4-9603-47b7-a716-d74aecf75c8f" width="200"/>
+<img src = "https://github.com/user-attachments/assets/64724a9e-669a-4e8a-9bc7-773c440bc755" width="200"/>
 </p>
 
 <div align = "center">
@@ -16,7 +16,7 @@
 ### A fully customizable, DSL-based image picker for Jetpack Compose
 
 ImagePicker is a Jetpack Compose library for displaying and selecting media from the device gallery.<br>
-ImagePicker uses a declarative DSL structure to define screens within a navigation graph, similar to NavHost and composable in Jetpack Navigation
+ImagePicker uses a declarative DSL structure to define screens within a navigation graph, similar to `NavHost` and composable in Jetpack Navigation
 
 
 </div>
