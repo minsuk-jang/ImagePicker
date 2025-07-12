@@ -76,7 +76,6 @@ ImagePickerNavHost(state = state) {
 }
 ```
 
-
 Each slot (albumTopBar, previewTopBar, cellContent, PreviewScreen) gives access to its own custom scope to help you build highly flexible UIs.
                                                                       
 ## Slot APIs and Their Scopes
@@ -159,10 +158,10 @@ Use this slot to:
 
 The `ImagePickerCellScope` gives you access to:
 
-| Property / Function                       | 	Description                               |
-|-------------------------------------------|--------------------------------------------|
-| `mediaContent: MediaContent`              | The media content represented by this cell |
-| `onNavigateToPreviewScreen(mediaContent)` | Triggers navigation to the Preview Screen  |
+| Property / Function                         | 	Description                               |
+|---------------------------------------------|--------------------------------------------|
+| `mediaContent: MediaContent`                | The media content represented by this cell |
+| `onNavigateToPreviewScreen(mediaContent: MediaContent)` | Triggers navigation to the Preview Screen  |
 
 ```kotlin
 cellContent = {
@@ -185,11 +184,11 @@ cellContent = {
 This slot allows you to define the full-screen preview UI for selected media content.   
 The `PreviewScreenScope` provides:   
 
-| Property / Function               | 	Description                                 |
-|-----------------------------------|----------------------------------------------|
-| `mediaContent: MediaContent`      | The currently visible media content          |
-| `onBack()`                        | Navigate back to the picker screen           |
-| `onToggleSelection(mediaContent)` | Selects or deselects the given media content |
+| Property / Function                             | 	Description                                 |
+|-------------------------------------------------|----------------------------------------------|
+| `mediaContent: MediaContent`                    | The currently visible media content          |
+| `onBack()`                                      | Navigate back to the picker screen           |
+| `onToggleSelection(mediaContent: MediaContent)` | Selects or deselects the given media content |
 
 > ⚠️ **Important** <br>
 PreviewScreen must be explicitly declared inside ImagePickerNavHost.<br>
