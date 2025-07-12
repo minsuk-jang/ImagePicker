@@ -9,7 +9,7 @@ import com.jms.imagePicker.ui.ImagePickerGraphContext
 import com.jms.imagePicker.ui.picker.ImagePickerScaffold
 import com.jms.imagePicker.ui.preview.PreviewScaffold
 import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
-import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
+import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewScope
 
 @Stable
 interface ImagePickerGraphBuilder
@@ -24,7 +24,7 @@ interface ImagePickerGraphBuilder
  */
 fun ImagePickerGraphBuilder.ImagePickerScreen(
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
-    previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
+    previewTopBar: @Composable ImagePickerPreviewScope.() -> Unit = {},
     cellContent: @Composable ImagePickerCellScope.() -> Unit = {}
 ) {
     this as? ImagePickerGraphContext

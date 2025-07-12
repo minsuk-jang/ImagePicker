@@ -47,7 +47,7 @@ import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
 import com.jms.imagePicker.ui.scope.ImagePickerCellScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
-import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
+import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewScope
 import com.jms.imagePicker.ui.state.ImagePickerNavHostState
 import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
 import kotlinx.coroutines.delay
@@ -60,7 +60,7 @@ internal fun ImagePickerScaffold(
     viewModel: ImagePickerViewModel,
     onNavigateToPreview: (Int) -> Unit = {},
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
-    previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
+    previewTopBar: @Composable ImagePickerPreviewScope.() -> Unit = {},
     cellContent: @Composable ImagePickerCellScope.() -> Unit
 ) {
     val context = LocalContext.current
@@ -81,11 +81,11 @@ internal fun ImagePickerScaffold(
         }
 
     val previewScopeImpl = remember(viewModel) {
-        object : ImagePickerPreviewTopBarScope {
+        object : ImagePickerPreviewScope {
             override val selectedMediaContents: List<MediaContent>
                 get() = selectedImages
 
-            override fun onClick(mediaContent: MediaContent) {
+            override fun onDeselect(mediaContent: MediaContent) {
                 viewModel.select(uri = mediaContent.uri, max = state.max)
             }
         }

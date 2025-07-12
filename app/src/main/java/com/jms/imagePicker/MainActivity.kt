@@ -147,7 +147,7 @@ class MainActivity : ComponentActivity() {
                                         ImagePreviewBar(
                                             mediaContents = selectedMediaContents,
                                             onClick = { mediaContent ->
-                                                onClick(mediaContent)
+                                                onDeselect(mediaContent)
                                             }
                                         )
                                     }
