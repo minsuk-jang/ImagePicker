@@ -1,10 +1,10 @@
 <h1 align = "center">  ImagePicker </h1>
 <!-- Add Gif -->
 <p align = "center">
-<img src = "https://github.com/user-attachments/assets/3dc78705-e90d-42e4-859c-79e9b28ff8b9" />
-<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" />
-<img src = "https://github.com/user-attachments/assets/9531c4a4-9603-47b7-a716-d74aecf75c8f" />
-<img src = "https://github.com/user-attachments/assets/64724a9e-669a-4e8a-9bc7-773c440bc755" />
+<img src = "https://github.com/user-attachments/assets/3dc78705-e90d-42e4-859c-79e9b28ff8b9" width="200"/>
+<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" width="200"/>
+<img src = "https://github.com/user-attachments/assets/9531c4a4-9603-47b7-a716-d74aecf75c8f" width="200"/>
+<img src = "https://github.com/user-attachments/assets/64724a9e-669a-4e8a-9bc7-773c440bc755" width="200"/>
 </p>
 
 <div align = "center">
@@ -13,14 +13,18 @@
 [![](https://jitpack.io/v/minsuk-jang/ImagePicker.svg)](https://jitpack.io/#minsuk-jang/ImagePicker)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**ImagePicker** is a Jetpack Compose library for displaying and selecting media from the device gallery.<br>
-It supports full UI customization, single and multi-selection, album filtering, and camera integration
+### A fully customizable, DSL-based image picker for Jetpack Compose
+
+ImagePicker is a Jetpack Compose library for displaying and selecting media from the device gallery.<br>
+ImagePicker uses a declarative DSL structure to define screens within a navigation graph, similar to `NavHost` and composable in Jetpack Navigation
+
+
 </div>
 
 ## Features
-- 📦 **Fully customizable UI** for each image cell
+- 🧩 **DSL-based Navigation Graph**: Declare screens inside `ImagePickerNavHost` like `NavHost`
+- 📦 **Fully customizable UI** for album selector, preview bar, image cells and preview screen
 - 🖐️ **Multi-selection** with drag gesture support
-- 🧩 **Composable Slot APIs** for album & preview bar customization
 - 🔢 **Visual selection order** (e.g., 1st, 2nd...)
 - 📷 **Camera integration** with optional auto-select after capture
 - 🖼️ **Full Preview screen** for selected images
@@ -45,8 +49,8 @@ dependencies {
 }
 ```
 
-## Usage
-### Add permission in AndroidManifest.xml file:
+## Permissions
+Make sure to include the following in your AndroidManifest.xml
 ```xml
 <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
@@ -54,108 +58,193 @@ dependencies {
 <uses-permission android:name="android.permission.CAMERA" />
 ```
 
-### ImagePickerState
-ImagePickerState configures the ImagePickerScreen and provides the current state of content.
-```kotlin 
-@Stable
-class ImagePickerState(
-    val max: Int = Constants.MAX_SIZE,  // Maximum number of selectable items 
-    val autoSelectAfterCapture: Boolean = false, // Automatically select the photo after capture
-) {
-    // List of currently selected images
-    val mediaContents: State<List<MediaContent>> = _mediaContents
-}
-```
-
-### ImagePickerScreen
-ImagePickerScreen fetches a list of media contents using the Paging 3 Library. <br>
-It allows full customization of image cells and supports drag gestures for selecting or deselecting multiple items.
-
+## 🚀 Quick Start
+Declare your image picker UI using `ImagePickerNavHost`, just like `NavHost` in Jetpack Navigation.   
+Each slot (`albumTopBar`, `previewTopBar`, `cellContent`) and `PreviewScreen` gives access to its own custom scope to help you build highly flexible UIs.
 ```kotlin
-@Composable
-fun ImagePickerScreen(
-    // Configuration and state
-    state: ImagePickerState = rememberImagePickerState(), 
-    // Slot for rendering a custom album selector UI. Provides access to album list and the currently selected album.
-    albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
-    // Slot for rendering a preview UI of selected images. Provides access to the current selection list.
-    previewTopBar: @Composable PreviewTopBarScope.() -> Unit = {},
-    // Image cell Composable
-    content: @Composable BoxScope.(MediaContent) -> Unit 
-)
-```
+ImagePickerNavHost(state = state) {
+    ImagePickerScreen(
+        albumTopBar = { ... },
+        previewTopBar = { ... },
+        cellContent = { ... }
+    )
 
-### Slot APIs
-The library provides two powerful slot APIs for customizing the album bar and preview bar.<br>
-Each slot gives access to scoped data as showㅜ below:
-
-```kotlin
-@Stable
-interface ImagePickerAlbumScope {
-    val albums: List<Album> // List of albums available on the device
-    val selectedAlbum: Album? // Currently selected album
-    fun onSelect(album: Album) // Function to change the selected album
+    PreviewScreen {
+        // Full-screen preview UI
+    }
 }
+``` 
+**📷 Example Output:**
+<p>
+<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" width="250"/>
+<img src = "https://github.com/user-attachments/assets/dcf74aef-64ac-4552-a005-5f63721c65e7" width="250"/>
+<img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f" width="250"/>
+</p>
 
-@Stable
-interface PreviewTopBarScope {
-    val selectedMediaContents: List<MediaContent> // List of selected media items
-    fun onClick(mediaContent: MediaContent) // Toggle selection for the given item
-}
-```
-you can use these properties and functions inside the respective slot lambdas to build your own UI:
-<br>
-<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177"  align="right" />
+                                                                      
+## Slot APIs, Scopes
+Each slot in `ImagePickerScreen` or `PreviewScreen` is powered by a custom scope. These scopes provide the necessary state and event handlers you need to build fully customized UIs.
+Below is a breakdown of each slot, its associated scope, and what you can do inside it.
+
+### 🎛️  `albumTopBar → ImagePickerAlbumScope`
+Use this slot to show album-related UI such as a dropdown or album selector. The `ImagePickerAlbumScope` gives you access to:
+
+|Property / Function    | 	Description                     |
+|-----------------------|----------------------------------|
+| `albums: List<Album>` | List of all albums on the device |
+| `selectedAlbum: Album?` | Currently selected album         |
+| `onClick(album: Album)` | Select the given album           |
+
+Example usage:
 ```kotlin
-ImagePickerScreen(
-    albumTopBar = {
-        // ───────── Album selector UI ─────────
-        Text(text = "${selectedAlbum?.name}(${selectedAlbum?.count})")
-        /* Customize album list using albums */
-        DropdownMenu(){
-          albums.forEach { album ->
-             DropdownMenuItem(
-                text = { Text(text = "${it.name}(${it.count})") }
-             )
-          }
-        }
-    },
-    previewTopBar = {
-        // ───────── Selected-items preview UI ─────────
-        Row {
-            selectedMediaContents.forEach { media ->
-                /* Customize thumbnail cell */
-                AsyncImage(...)
+albumTopBar = {
+    var expanded by remember { mutableStateOf(false) }
+  
+    Box {
+        Text(
+            text = selectedAlbum?.name ?: "All Albums",
+            modifier = Modifier.clickable { expanded = true }
+        )
+  
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            albums.forEach { album ->
+                DropdownMenuItem(
+                    text = { Text("${album.name} (${album.count})") },
+                    onClick = {
+                        expanded = false
+                        onClick(album) // Select the album
+                    }
+                )
             }
         }
-    },
-    ... 
-)
+  }
+}
 ```
 
-## Classes
-### MediaContent
+### 🎛️ `previewTopBar → ImagePickerPreviewScope`
+This slot allows you to preview currently selected media contents in a custom layout. The `ImagePickerPreviewScope` gives you access to:
+
+| Property / Function                         | 	Description                     |
+|---------------------------------------------|----------------------------------|
+| `selectedMediaContents: List<MediaContent>` | List of selected media content   |
+| `onDeselect(mediaContent: MediaContent)`    | Deselect the given media content |
+
+Example usage:
 ```kotlin
-@Stable
-data class MediaContent(
-  val id: Long, //Media content id
-  val title: String, // Title of the content
-  val dateAt: Long, // Date token
-  val data: String, // File size
-  val uri: Uri, // Content Uri
-  val mimeType: String, // MIME type
-  val album: String, // Album name
-  val albumId: String // Album ID
-  val selectedOrder: Int = Constants.NO_ORDER, // Selected order
-  val selected : Boolean = false // Selection Status
-)
+previewTopBar = {
+    Row {
+        selectedMediaContents.forEach { media ->
+            AsyncImage(
+                model = media.uri,
+                contentDescription = null,
+                modifier = Modifier.clickable {
+                    onDeselect(media) // Deselect
+                }
+            )
+        }
+    }
+}
 ```
 
-### Album
+### 🎛️ `cellContent → ImagePickerCellScope`
+This slot renders each image cell in the grid. Only the `MediaContent` is provided - the rest is up to you.<br>
+Use this slot to:
+- Display thumbnails
+- Indicate selected state (e.g., with a badge or overlay)
+- Navigate to the preview screen
+
+The `ImagePickerCellScope` gives you access to:
+
+| Property / Function                         | 	Description                               |
+|---------------------------------------------|--------------------------------------------|
+| `mediaContent: MediaContent`                | The media content represented by this cell |
+| `onNavigateToPreviewScreen(mediaContent: MediaContent)` | Triggers navigation to the Preview Screen  |
+
+Example usage:
 ```kotlin
-class Album(
-  val id: String? = null, // Album id
-  val name: String = "", // Album name
-  val count: Int = 0, // Number of images in the album
-)
+cellContent = {
+    Box(modifier = Modifier.clickable {
+        onNavigateToPreviewScreen(mediaContent)
+    }) {
+        AsyncImage(model = mediaContent.uri, contentDescription = null)
+        if (mediaContent.selected) {
+            Text(
+                text = "#${mediaContent.selectedOrder}",
+                modifier = Modifier.align(Alignment.TopEnd)
+            )
+        }
+    }
+}
 ```
+💡 You can fully control the UI — whether it's adding badges, applying blur, or animating selection — by customizing this slot.
+
+### 🎛️ `PreviewScreen → PreviewScreenScope`
+This slot allows you to define the full-screen preview UI for selected media content. The `PreviewScreenScope` provides:   
+
+| Property / Function                             | 	Description                                 |
+|-------------------------------------------------|----------------------------------------------|
+| `mediaContent: MediaContent`                    | The currently visible media content          |
+| `onBack()`                                      | Navigate back to the picker screen           |
+| `onToggleSelection(mediaContent: MediaContent)` | Selects or deselects the given media content |
+
+> ⚠️ **Important** <br>
+PreviewScreen must be explicitly declared inside ImagePickerNavHost.<br>
+If omitted, calling onNavigateToPreviewScreen() from a cell will cause a runtime crash.
+
+## 📦 ImagePickerNavHostState
+The `ImagePickerNavHostState` stores shared selection state and picker configuration across `ImagePickerScreen` and `PreviewScreen`.
+
+| Parameter | 	Description                                          |
+| --- |-------------------------------------------------------|
+| `max`	| Maximum number of media contents that can be selected | 
+| `autoSelectAfterCapture`	| Whether to auto-select the image after camera shot    | 
+
+### 🧷 Properties
+| Property                 | 	Type	                 | Description                                |
+|--------------------------|------------------------|--------------------------------------------|
+| `selectedMediaContents`  | 	`List<MediaContent>`  | 	List of currently selected media contents |
+
+You can read this state anywhere in your app to reflect selection results, UI updates, or submission logic:
+```kotlin
+val selected = state.selectedMediaContents
+```
+
+
+## 🧠 Concept
+ImagePicker is designed around three key principles:
+### 1. ✅ Declarative Navigation DSL
+Screens are declared inside `ImagePickerNavHost { ... }` just like `NavHost` and composable in Jetpack Navigation.
+
+```kotlin
+ImagePickerNavHost(state) {
+    ImagePickerScreen(...)
+    PreviewScreen { ... }
+}
+```
+### 2. 🧩 Scoped Slot APIs
+Each UI slot receives a dedicated Scope that provides data, actions for full composability:
+
+| Slot	        | Scope Interface                 | Description                                          |
+|--------------|---------------------------------|------------------------------------------------------| 
+| `albumTopBar`  | 	`ImagePickerAlbumScope`	         | Provides album list & selection                      | 
+| `previewTopBar` | 	`ImagePickerPreviewTopBarScope`  | 	Shows selected media, toggles select                |  
+| `cellContent` |	`ImagePickerCellScope` | 	Controls image cell UI & navigate to Preview Screen |
+| `PreviewScreen` |	`PreviewScreenScope`	| Full-screen preview screen actions                   |
+
+### 3. 📦 Shared Picker State
+`ImagePickerNavHostState` gives access to current selections and configuration.
+
+```kotlin
+val selectedItems = state.selectedMediaContents
+val maxSelectable = state.max
+```
+
+## 💡 Why this matters
+Most pickers are monolithic and hard to extend. ImagePicker provides navigation-level flexibility, enabling clean separation between:
+- Image list & preview
+- UI customization & logic
+- App-level state & picker state
+This structure makes it easy to build an image picker that feels native to your app, not boxed-in.

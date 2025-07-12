@@ -30,7 +30,7 @@ internal class ImagePickerPagingDataSource(
             val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             val page = params.key ?: DEFAULT_PAGE
 
-            contentManager.getCursor(
+            return contentManager.getCursor(
                 uri = uri,
                 offset = (page - 1) * DEFAULT_PAGE_LIMIT,
                 albumId = albumId,
@@ -51,7 +51,7 @@ internal class ImagePickerPagingDataSource(
                     }
                 }
 
-                return@load LoadResult.Page(
+                LoadResult.Page(
                     data = list,
                     prevKey = if (page - 1 > 0) page - 1 else null,
                     nextKey = if (list.isNotEmpty()) page + 1 else null

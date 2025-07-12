@@ -10,7 +10,7 @@ import com.jms.imagePicker.model.MediaContent
  *
  * get column string
  */
-fun Cursor.getColumnString(index: String): String? {
+internal fun Cursor.getColumnString(index: String): String? {
     val columnIndex = getColumnIndex(index)
     return if (columnIndex != -1)
         getString(columnIndex)
@@ -18,7 +18,7 @@ fun Cursor.getColumnString(index: String): String? {
 }
 
 
-fun Cursor.toImage(): MediaContent {
+internal fun Cursor.toImage(): MediaContent {
     val id = getLong(getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
     val title =
         getString(getColumnIndexOrThrow(MediaStore.MediaColumns.TITLE))

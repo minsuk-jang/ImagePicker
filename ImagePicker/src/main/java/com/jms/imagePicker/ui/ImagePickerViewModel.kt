@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.jms.imagePicker.data.LocalGalleryDataSource
+import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Action
 import com.jms.imagePicker.model.Album
@@ -29,7 +29,7 @@ import kotlin.math.min
 
 internal class ImagePickerViewModel(
     private val fileManager: FileManager,
-    val localGalleryDataSource: LocalGalleryDataSource
+    private val localMediaContentsDataSource: LocalMediaContentsDataSource
 ) : ViewModel() {
     //init action
     private var _initAction: Action = Action.ADD //add
@@ -39,8 +39,9 @@ internal class ImagePickerViewModel(
     private val _selectedUris: MutableStateFlow<List<Uri>> = MutableStateFlow(listOf())
     val selectedUris: StateFlow<List<Uri>> = _selectedUris.asStateFlow()
 
-    private val _selectedImages = MutableStateFlow<MutableList<MediaContent>>(mutableListOf())
-    val selectedImages: StateFlow<List<MediaContent>> = _selectedImages.asStateFlow()
+    private val _selectedMediaContents =
+        MutableStateFlow<List<MediaContent>>(emptyList())
+    val selectedMediaContents: StateFlow<List<MediaContent>> = _selectedMediaContents.asStateFlow()
 
     private val _albums: MutableStateFlow<List<Album>> = MutableStateFlow(mutableListOf())
     val albums: StateFlow<List<Album>> = _albums.asStateFlow()
@@ -54,12 +55,12 @@ internal class ImagePickerViewModel(
         combine(_selectedAlbum, _refreshTrigger) { album, _ ->
             album
         }.flatMapLatest {
-            localGalleryDataSource.getLocalGalleryImages(
+            localMediaContentsDataSource.getMediaContents(
                 albumId = it?.id
             )
         }.cachedIn(viewModelScope)
             .combine(_selectedUris) { data, uris ->
-                update(pagingData = data, uris = uris)
+                markSelectedItems(pagingData = data, uris = uris)
             }.flowOn(Dispatchers.Default)
 
     private var _imageFile: File? = null
@@ -71,7 +72,7 @@ internal class ImagePickerViewModel(
 
     private fun initializeAlbum() {
         viewModelScope.launch {
-            val albums = localGalleryDataSource.getAlbums()
+            val albums = localMediaContentsDataSource.getAlbums()
 
             _albums.update { albums }
             _selectedAlbum.update { albums.getOrNull(0) }
@@ -176,18 +177,19 @@ internal class ImagePickerViewModel(
         }
     }
 
+    //TODO update performance
     private fun observeSelectedUris() {
         viewModelScope.launch(Dispatchers.Default) {
             _selectedUris.collectLatest { uris ->
                 val newList = uris.mapIndexed { index, uri ->
-                    val image = localGalleryDataSource.getLocalGalleryImage(uri).copy(
+                    val image = localMediaContentsDataSource.getMediaContent(uri).copy(
                         selectedOrder = index,
                         selected = true
                     )
                     image
                 }
 
-                _selectedImages.update { newList.toMutableList() }
+                _selectedMediaContents.update { newList.toMutableList() }
             }
 
         }
@@ -204,26 +206,31 @@ internal class ImagePickerViewModel(
                 fileManager.saveImageFile(file = _imageFile!!)
 
                 if (autoSelectAfterCapture) {
-                    select(uri = localGalleryDataSource.getLocalGalleryImage().uri, max = max)
+                    select(uri = localMediaContentsDataSource.getMediaContent().uri, max = max)
                 }
 
-                refresh()
-                refreshAlbum()
+                invalidateMediaContents()
+                invalidateAlbum()
             }
         }
     }
 
-    private fun refresh() {
+    private fun invalidateMediaContents() {
         _refreshTrigger.update { System.currentTimeMillis() }
     }
 
-    private fun refreshAlbum() {
-        //getAlbums() TODO 사진 추가시 갱신 로직 필요
-        val newAlbum = _albums.value.first { it.id == _selectedAlbum.value?.id }
-        selectedAlbum(album = newAlbum)
+    private fun invalidateAlbum() {
+        viewModelScope.launch {
+            val albums = localMediaContentsDataSource.getAlbums()
+            _albums.update { albums }
+
+            val newAlbum =
+                _albums.value.firstOrNull { it.id == _selectedAlbum.value?.id } ?: return@launch
+            selectedAlbum(album = newAlbum)
+        }
     }
 
-    private fun update(
+    private fun markSelectedItems(
         pagingData: PagingData<MediaContent>,
         uris: List<Uri>
     ): PagingData<MediaContent> {
