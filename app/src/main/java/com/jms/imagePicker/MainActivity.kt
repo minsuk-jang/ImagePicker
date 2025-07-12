@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -47,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Gray
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.vectorResource
@@ -105,7 +103,7 @@ class MainActivity : ComponentActivity() {
                             state = state
                         ) {
                             ImagePickerScreen(
-                                albumTopBar = { actions ->
+                                albumTopBar = {
                                     Row {
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
@@ -130,7 +128,7 @@ class MainActivity : ComponentActivity() {
                                                     },
                                                     onClick = {
                                                         expand = false
-                                                        actions.onSelect(it)
+                                                        onSelect(it)
                                                     }
                                                 )
                                             }
@@ -152,121 +150,129 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 },
-                                content = { actions, mediaContent ->
-                                    Row(
-                                        modifier = Modifier.align(Alignment.BottomStart)
+                                content = {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize()
                                     ) {
-                                        Spacer(modifier = Modifier.width(3.dp))
-                                        Column {
-                                            Icon(
-                                                modifier = Modifier
-                                                    .size(18.dp)
-                                                    .background(
-                                                        color = Color.Black.copy(alpha = 0.5f),
-                                                        shape = RoundedCornerShape(5.dp)
-                                                    )
-                                                    .clickable {
-                                                        actions.onNavigateToPreview(mediaContent)
-                                                    },
-                                                painter = iconOfExpandContent,
-                                                contentDescription = "expand_content",
-                                                tint = Color.White
-                                            )
-                                            Spacer(modifier = Modifier.height(3.dp))
-                                        }
-                                    }
-
-                                    if (mediaContent.selected) {
-                                        Box(
-                                            modifier = Modifier
-                                                .border(width = 3.5.dp, color = Color.Green)
-                                                .background(color = Gray.copy(0.5f))
-                                                .fillMaxSize()
+                                        Row(
+                                            modifier = Modifier.align(Alignment.BottomStart)
                                         ) {
-                                            Row(
+                                            Spacer(modifier = Modifier.width(3.dp))
+                                            Column {
+                                                Icon(
+                                                    modifier = Modifier
+                                                        .size(18.dp)
+                                                        .background(
+                                                            color = Color.Black.copy(alpha = 0.5f),
+                                                            shape = RoundedCornerShape(5.dp)
+                                                        )
+                                                        .clickable {
+                                                            onNavigateToPreview(mediaContent)
+                                                        },
+                                                    painter = iconOfExpandContent,
+                                                    contentDescription = "expand_content",
+                                                    tint = Color.White
+                                                )
+                                                Spacer(modifier = Modifier.height(3.dp))
+                                            }
+                                        }
+                                        if (mediaContent.selected) {
+                                            Box(
                                                 modifier = Modifier
-                                                    .align(Alignment.TopEnd)
+                                                    .border(width = 3.5.dp, color = Color.Green)
+                                                    .background(color = Gray.copy(0.5f))
+                                                    .fillMaxSize()
                                             ) {
-                                                Column {
-                                                    Spacer(Modifier.height(5.dp))
-                                                    Text(
-                                                        modifier = Modifier
-                                                            .background(
-                                                                color = Color.Green,
-                                                                shape = CircleShape
-                                                            )
-                                                            .size(20.dp),
-                                                        text = "${mediaContent.selectedOrder + 1}",
-                                                        textAlign = TextAlign.Center
-                                                    )
+                                                Row(
+                                                    modifier = Modifier
+                                                        .align(Alignment.TopEnd)
+                                                ) {
+                                                    Column {
+                                                        Spacer(Modifier.height(5.dp))
+                                                        Text(
+                                                            modifier = Modifier
+                                                                .background(
+                                                                    color = Color.Green,
+                                                                    shape = CircleShape
+                                                                )
+                                                                .size(20.dp),
+                                                            text = "${mediaContent.selectedOrder + 1}",
+                                                            textAlign = TextAlign.Center
+                                                        )
+                                                    }
+                                                    Spacer(Modifier.width(5.dp))
                                                 }
-                                                Spacer(Modifier.width(5.dp))
                                             }
                                         }
                                     }
+
                                 }
                             )
 
-                            PreviewScreen { actions, mediaContent ->
-                                Icon(
-                                    modifier = Modifier
-                                        .align(Alignment.TopStart)
-                                        .padding(start = 15.dp, top = 20.dp)
-                                        .clickable {
-                                            actions.onBack()
-                                        },
-                                    imageVector = Icons.Default.ArrowBack,
-                                    contentDescription = "back",
-                                    tint = Color.White
-                                )
-
-                                Row(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
+                            PreviewScreen {
+                                Box(
+                                    modifier = Modifier.fillMaxSize()
                                 ) {
-                                    Column {
-                                        Spacer(modifier = Modifier.height(20.dp))
-                                        Box(
-                                            modifier = Modifier
-                                                .size(40.dp)
-                                                .background(
-                                                    color = when (mediaContent.selected) {
-                                                        true -> Color.Green.copy(alpha = 0.9f)
-                                                        false -> Color.DarkGray.copy(alpha = 0.5f)
-                                                    },
-                                                    shape = CircleShape
-                                                )
-                                                .border(
-                                                    border = BorderStroke(
-                                                        width = 3.dp,
+                                    Icon(
+                                        modifier = Modifier
+                                            .align(Alignment.TopStart)
+                                            .padding(start = 15.dp, top = 20.dp)
+                                            .clickable {
+                                                onBack()
+                                            },
+                                        imageVector = Icons.Default.ArrowBack,
+                                        contentDescription = "back",
+                                        tint = Color.White
+                                    )
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                    ) {
+                                        Column {
+                                            Spacer(modifier = Modifier.height(20.dp))
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(40.dp)
+                                                    .background(
                                                         color = when (mediaContent.selected) {
                                                             true -> Color.Green.copy(alpha = 0.9f)
-                                                            false -> Color.LightGray
-                                                        }
-                                                    ),
-                                                    shape = CircleShape
-                                                )
-                                                .clickable {
-                                                    actions.onClick(mediaContent)
-                                                }
-                                        ) {
-                                            if (mediaContent.selected) {
-                                                Text(
-                                                    modifier = Modifier
-                                                        .align(Alignment.Center),
-                                                    text = "${mediaContent.selectedOrder + 1}",
-                                                    style = TextStyle(
-                                                        fontWeight = FontWeight.W500,
-                                                        color = Color.Black,
-                                                        fontSize = 15.sp
+                                                            false -> Color.DarkGray.copy(alpha = 0.5f)
+                                                        },
+                                                        shape = CircleShape
                                                     )
-                                                )
+                                                    .border(
+                                                        border = BorderStroke(
+                                                            width = 3.dp,
+                                                            color = when (mediaContent.selected) {
+                                                                true -> Color.Green.copy(alpha = 0.9f)
+                                                                false -> Color.LightGray
+                                                            }
+                                                        ),
+                                                        shape = CircleShape
+                                                    )
+                                                    .clickable {
+                                                        onClick(mediaContent)
+                                                    }
+                                            ) {
+                                                if (mediaContent.selected) {
+                                                    Text(
+                                                        modifier = Modifier
+                                                            .align(Alignment.Center),
+                                                        text = "${mediaContent.selectedOrder + 1}",
+                                                        style = TextStyle(
+                                                            fontWeight = FontWeight.W500,
+                                                            color = Color.Black,
+                                                            fontSize = 15.sp
+                                                        )
+                                                    )
+                                                }
                                             }
                                         }
-                                    }
 
-                                    Spacer(Modifier.width(15.dp))
+                                        Spacer(Modifier.width(15.dp))
+                                    }
                                 }
+
                             }
                         }
                     }

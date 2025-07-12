@@ -3,7 +3,6 @@ package com.jms.imagePicker.ui
 import android.os.Build
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,16 +20,14 @@ import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
-import com.jms.imagePicker.model.MediaContent
-import com.jms.imagePicker.ui.action.picker.ImagePickerAlbumActions
-import com.jms.imagePicker.ui.action.picker.ImagePickerContentActions
-import com.jms.imagePicker.ui.action.PreviewActions
 import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
 import com.jms.imagePicker.ui.picker.ImagePickerScaffold
 import com.jms.imagePicker.ui.picker.rememberImagePickerNavHostState
 import com.jms.imagePicker.ui.preview.PreviewScaffold
-import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
+import com.jms.imagePicker.ui.scope.ImagePickerContentScope
 import com.jms.imagePicker.ui.scope.ImagePickerGraphScope
+import com.jms.imagePicker.ui.scope.PreviewScope
+import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
 import kotlinx.coroutines.flow.collectLatest
 
@@ -87,9 +84,9 @@ internal class ImagePickerGraphScopeImpl(
     private val state: ImagePickerNavHostState,
 ) : ImagePickerGraphScope {
     override fun ImagePickerScreen(
-        albumTopBar: @Composable ImagePickerAlbumScope.(ImagePickerAlbumActions) -> Unit,
+        albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit,
         previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit,
-        content: @Composable BoxScope.(ImagePickerContentActions, MediaContent) -> Unit
+        content: @Composable ImagePickerContentScope.() -> Unit
     ) {
         builder.composable(
             route = "route_image_list"
@@ -114,7 +111,7 @@ internal class ImagePickerGraphScopeImpl(
     }
 
     override fun PreviewScreen(
-        content: @Composable BoxScope.(PreviewActions, MediaContent) -> Unit
+        content: @Composable PreviewScope.() -> Unit
     ) {
         builder.composable(
             route = "route_preview?{index}",

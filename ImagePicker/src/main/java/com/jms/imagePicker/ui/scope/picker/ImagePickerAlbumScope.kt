@@ -7,4 +7,5 @@ import com.jms.imagePicker.model.Album
 interface ImagePickerAlbumScope {
     val albums: List<Album>
     val selectedAlbum: Album?
+    fun onSelect(album: Album)
 }

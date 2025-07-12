@@ -6,12 +6,9 @@ import com.jms.imagePicker.model.MediaContent
 
 
 @Stable
-interface PreviewScope {
+interface PreviewScope  {
     val mediaContent: MediaContent
+
+    fun onBack()
+    fun onClick(mediaContent: MediaContent)
 }
-
-
-internal class PreviewScopeImpl(
-    private val boxScope: BoxScope,
-    override val mediaContent: MediaContent
-) : PreviewScope, BoxScope by boxScope

@@ -23,9 +23,7 @@ import coil.request.ImageRequest
 import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
 import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
-import com.jms.imagePicker.ui.action.PreviewActions
 import com.jms.imagePicker.ui.scope.PreviewScope
-import com.jms.imagePicker.ui.scope.PreviewScopeImpl
 
 
 @Composable
@@ -34,7 +32,7 @@ internal fun PreviewScaffold(
     state: ImagePickerNavHostState,
     onBack: () -> Unit = {},
     initializeFirstVisibleItemIndex: Int = 0,
-    content: @Composable BoxScope.(PreviewActions, MediaContent) -> Unit = { _, _ -> }
+    content: @Composable PreviewScope.() -> Unit = {}
 ) {
     val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
 
@@ -56,31 +54,26 @@ internal fun PreviewScaffold(
             return
         }
 
-        val handler: PreviewActions = remember(viewModel, state) {
-            object : PreviewActions {
-                override fun onBack() {
-                    onBack()
-                }
-
-                override fun onClick(mediaContent: MediaContent) {
-                    viewModel.select(uri = mediaContent.uri, max = state.max)
-                }
-            }
-        }
-
-
         PreviewContent(
             mediaContents = mediaContents,
             initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
         ) {
             val impl: PreviewScope = remember(viewModel, it) {
-                PreviewScopeImpl(
-                    boxScope = this,
-                    mediaContent = it
-                )
+                object : PreviewScope {
+                    override val mediaContent: MediaContent
+                        get() = it
+
+                    override fun onBack() {
+                        onBack()
+                    }
+
+                    override fun onClick(mediaContent: MediaContent) {
+                        viewModel.select(uri = mediaContent.uri, max = state.max)
+                    }
+                }
             }
 
-            content(handler, it)
+            content(impl)
         }
     }
 }
@@ -90,7 +83,7 @@ internal fun PreviewScaffold(
 private fun BoxScope.PreviewContent(
     mediaContents: LazyPagingItems<MediaContent>,
     initializeFirstVisibleItemIndex: Int = 0,
-    content: @Composable BoxScope.(MediaContent) -> Unit = {}
+    content: @Composable (MediaContent) -> Unit = {}
 ) {
     val context = LocalContext.current
 
@@ -119,6 +112,7 @@ private fun BoxScope.PreviewContent(
             }
         }
     }
+
 
     mediaContents[listState.currentPage]?.let {
         content(it)

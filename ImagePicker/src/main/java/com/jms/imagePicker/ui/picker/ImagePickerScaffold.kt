@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,8 +49,7 @@ import com.jms.imagePicker.extensions.photoGridDragHandler
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
-import com.jms.imagePicker.ui.action.picker.ImagePickerAlbumActions
-import com.jms.imagePicker.ui.action.picker.ImagePickerContentActions
+import com.jms.imagePicker.ui.scope.ImagePickerContentScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
 import kotlinx.coroutines.delay
@@ -63,9 +61,9 @@ internal fun ImagePickerScaffold(
     state: ImagePickerNavHostState = rememberImagePickerNavHostState(),
     viewModel: ImagePickerViewModel,
     onNavigateToPreview: (Int) -> Unit = {},
-    albumTopBar: @Composable ImagePickerAlbumScope.(ImagePickerAlbumActions) -> Unit = {},
+    albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
-    content: @Composable BoxScope.(ImagePickerContentActions, MediaContent) -> Unit
+    content: @Composable ImagePickerContentScope.() -> Unit
 ) {
     val context = LocalContext.current
     val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
@@ -102,24 +100,9 @@ internal fun ImagePickerScaffold(
 
             override val selectedAlbum: Album?
                 get() = selectedAlbum
-        }
-    }
 
-    val albumActions = remember(viewModel) {
-        object : ImagePickerAlbumActions {
             override fun onSelect(album: Album) {
                 viewModel.selectedAlbum(album = album)
-            }
-        }
-    }
-
-    val contentActions = remember(viewModel, state) {
-        object : ImagePickerContentActions {
-            override fun onNavigateToPreview(mediaContent: MediaContent) {
-                val index =
-                    mediaContents.itemSnapshotList.indexOfFirst { it?.uri == mediaContent.uri }
-                        .coerceAtLeast(0)
-                onNavigateToPreview(index)
             }
         }
     }
@@ -127,7 +110,7 @@ internal fun ImagePickerScaffold(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        albumScopeImpl.albumTopBar(albumActions)
+        albumScopeImpl.albumTopBar()
         previewScopeImpl.previewTopBar()
 
         ImagePickerContent(
@@ -159,7 +142,21 @@ internal fun ImagePickerScaffold(
                 viewModel.select(uri = it.uri, max = state.max)
             },
             content = {
-                content(contentActions, it)
+                val contentScopeImpl = remember(it) {
+                    object : ImagePickerContentScope {
+                        override val mediaContent: MediaContent
+                            get() = it
+
+                        override fun onNavigateToPreview(mediaContent: MediaContent) {
+                            val index =
+                                mediaContents.itemSnapshotList.indexOfFirst { it?.uri == mediaContent.uri }
+                                    .coerceAtLeast(0)
+                            onNavigateToPreview(index)
+                        }
+                    }
+                }
+
+                content(contentScopeImpl)
             }
         )
     }
@@ -176,7 +173,7 @@ internal fun ImagePickerContent(
     onDrag: (start: Int?, end: Int?, List<MediaContent>) -> Unit,
     onDragEnd: () -> Unit = {},
     onClick: (MediaContent) -> Unit = {},
-    content: @Composable BoxScope.(MediaContent) -> Unit
+    content: @Composable (MediaContent) -> Unit
 ) {
     val gridState = rememberLazyGridState()
 
