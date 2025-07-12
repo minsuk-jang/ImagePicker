@@ -3,7 +3,6 @@ package com.jms.imagePicker.ui.preview
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -22,8 +21,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
-import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
-import com.jms.imagePicker.ui.scope.PreviewScope
+import com.jms.imagePicker.ui.scope.PreviewScreenScope
+import com.jms.imagePicker.ui.state.ImagePickerNavHostState
 
 
 @Composable
@@ -32,7 +31,7 @@ internal fun PreviewScaffold(
     state: ImagePickerNavHostState,
     onBack: () -> Unit = {},
     initializeFirstVisibleItemIndex: Int = 0,
-    content: @Composable PreviewScope.() -> Unit = {}
+    content: @Composable PreviewScreenScope.() -> Unit = {}
 ) {
     val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
 
@@ -58,8 +57,8 @@ internal fun PreviewScaffold(
             mediaContents = mediaContents,
             initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
         ) {
-            val impl: PreviewScope = remember(viewModel, it) {
-                object : PreviewScope {
+            val impl: PreviewScreenScope = remember(viewModel, state, it) {
+                object : PreviewScreenScope {
                     override val mediaContent: MediaContent
                         get() = it
 
@@ -80,7 +79,7 @@ internal fun PreviewScaffold(
 
 
 @Composable
-private fun BoxScope.PreviewContent(
+private fun PreviewContent(
     mediaContents: LazyPagingItems<MediaContent>,
     initializeFirstVisibleItemIndex: Int = 0,
     content: @Composable (MediaContent) -> Unit = {}

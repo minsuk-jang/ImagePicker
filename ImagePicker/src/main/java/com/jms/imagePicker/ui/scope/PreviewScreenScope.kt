@@ -1,12 +1,11 @@
 package com.jms.imagePicker.ui.scope
 
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.runtime.Stable
 import com.jms.imagePicker.model.MediaContent
 
 
 @Stable
-interface PreviewScope  {
+interface PreviewScreenScope  {
     val mediaContent: MediaContent
 
     fun onBack()

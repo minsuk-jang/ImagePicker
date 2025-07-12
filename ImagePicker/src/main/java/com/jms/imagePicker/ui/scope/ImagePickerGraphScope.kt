@@ -11,7 +11,7 @@ interface ImagePickerGraphScope {
     fun ImagePickerScreen(
         albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
         previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
-        content: @Composable ImagePickerContentScope.() -> Unit = {}
+        content: @Composable ImagePickerCellScope.() -> Unit = {}
     )
 
     /**
@@ -19,6 +19,6 @@ interface ImagePickerGraphScope {
      * @param content: Preview Content UI Composable.
      */
     fun PreviewScreen(
-        content: @Composable PreviewScope.() -> Unit = { }
+        content: @Composable PreviewScreenScope.() -> Unit = { }
     )
 }

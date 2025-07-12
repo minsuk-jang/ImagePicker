@@ -57,7 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.jms.imagePicker.ui.ImagePickerNavHost
 import com.jms.imagePicker.ui.ImagePreviewBar
-import com.jms.imagePicker.ui.picker.rememberImagePickerNavHostState
+import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
 import com.jms.imagePicker.ui.theme.ImagePickerTheme
 
 class MainActivity : ComponentActivity() {

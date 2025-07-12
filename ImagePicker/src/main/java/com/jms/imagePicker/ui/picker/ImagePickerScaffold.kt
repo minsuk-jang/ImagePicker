@@ -18,12 +18,9 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -42,16 +39,17 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.jms.imagePicker.Constants
 import com.jms.imagePicker.R
 import com.jms.imagePicker.component.ImageCell
 import com.jms.imagePicker.extensions.photoGridDragHandler
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
-import com.jms.imagePicker.ui.scope.ImagePickerContentScope
+import com.jms.imagePicker.ui.scope.ImagePickerCellScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
+import com.jms.imagePicker.ui.state.ImagePickerNavHostState
+import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
@@ -63,7 +61,7 @@ internal fun ImagePickerScaffold(
     onNavigateToPreview: (Int) -> Unit = {},
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
-    content: @Composable ImagePickerContentScope.() -> Unit
+    content: @Composable ImagePickerCellScope.() -> Unit
 ) {
     val context = LocalContext.current
     val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
@@ -143,7 +141,7 @@ internal fun ImagePickerScaffold(
             },
             content = {
                 val contentScopeImpl = remember(it) {
-                    object : ImagePickerContentScope {
+                    object : ImagePickerCellScope {
                         override val mediaContent: MediaContent
                             get() = it
 
@@ -176,7 +174,6 @@ internal fun ImagePickerContent(
     content: @Composable (MediaContent) -> Unit
 ) {
     val gridState = rememberLazyGridState()
-
     val autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() }
     val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
@@ -261,34 +258,5 @@ internal fun ImagePickerContent(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun rememberImagePickerNavHostState(
-    max: Int = Constants.MAX_SIZE,
-    autoSelectAfterCapture: Boolean = false,
-): ImagePickerNavHostState {
-    return remember {
-        ImagePickerNavHostState(
-            max = max,
-            autoSelectAfterCapture = autoSelectAfterCapture,
-        )
-    }
-}
-
-@Stable
-class ImagePickerNavHostState(
-    val max: Int = Constants.MAX_SIZE,
-    val autoSelectAfterCapture: Boolean = false
-) {
-    private var _selectedMediaContents: MutableState<List<MediaContent>> =
-        mutableStateOf(emptyList())
-
-    //Selected Media Content list
-    val selectedMediaContents: List<MediaContent> get() = _selectedMediaContents.value
-
-    internal fun updateMediaContents(mediaContents: List<MediaContent>) {
-        _selectedMediaContents.value = mediaContents
     }
 }

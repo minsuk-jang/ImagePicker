@@ -5,7 +5,7 @@ import com.jms.imagePicker.model.MediaContent
 
 
 @Stable
-interface ImagePickerContentScope {
+interface ImagePickerCellScope {
     val mediaContent : MediaContent
     fun onNavigateToPreview(mediaContent: MediaContent)
 }

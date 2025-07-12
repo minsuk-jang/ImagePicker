@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.compose.runtime.Stable
 
 @Stable
-data class OrderedUri(
+internal data class OrderedUri(
     val order: Int,
     val uri: Uri
 )

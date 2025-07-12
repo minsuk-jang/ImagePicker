@@ -20,15 +20,15 @@ import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
-import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
 import com.jms.imagePicker.ui.picker.ImagePickerScaffold
-import com.jms.imagePicker.ui.picker.rememberImagePickerNavHostState
 import com.jms.imagePicker.ui.preview.PreviewScaffold
-import com.jms.imagePicker.ui.scope.ImagePickerContentScope
+import com.jms.imagePicker.ui.scope.ImagePickerCellScope
 import com.jms.imagePicker.ui.scope.ImagePickerGraphScope
-import com.jms.imagePicker.ui.scope.PreviewScope
+import com.jms.imagePicker.ui.scope.PreviewScreenScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
+import com.jms.imagePicker.ui.state.ImagePickerNavHostState
+import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -50,12 +50,11 @@ fun ImagePickerNavHost(
         )
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel) {
         viewModel.selectedMediaContents.collectLatest {
             state.updateMediaContents(mediaContents = it)
         }
     }
-
 
     NavHost(
         modifier = Modifier
@@ -86,7 +85,7 @@ internal class ImagePickerGraphScopeImpl(
     override fun ImagePickerScreen(
         albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit,
         previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit,
-        content: @Composable ImagePickerContentScope.() -> Unit
+        content: @Composable ImagePickerCellScope.() -> Unit
     ) {
         builder.composable(
             route = "route_image_list"
@@ -111,7 +110,7 @@ internal class ImagePickerGraphScopeImpl(
     }
 
     override fun PreviewScreen(
-        content: @Composable PreviewScope.() -> Unit
+        content: @Composable PreviewScreenScope.() -> Unit
     ) {
         builder.composable(
             route = "route_preview?{index}",

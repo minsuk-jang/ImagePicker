@@ -39,7 +39,7 @@ internal class LocalMediaContentsDataSource(
     }
 
     fun getMediaContent(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): MediaContent {
-        contentManager.getCursor(
+        val cursor = contentManager.getCursor(
             uri = uri,
             offset = 0,
             albumId = null,
@@ -53,10 +53,14 @@ internal class LocalMediaContentsDataSource(
                 MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
                 MediaStore.MediaColumns.BUCKET_ID
             )
-        )?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                return cursor.toImage()
-            } else throw IllegalStateException("Cursor is empty!!")
-        } ?: throw IllegalStateException("Cursor is null!!")
+        )
+
+        if (cursor == null)
+            throw IllegalStateException("Cursor is null!!")
+
+        return if (cursor.moveToFirst()) {
+            cursor.toImage()
+        } else
+            throw IllegalStateException("Cursor is null!!")
     }
 }
