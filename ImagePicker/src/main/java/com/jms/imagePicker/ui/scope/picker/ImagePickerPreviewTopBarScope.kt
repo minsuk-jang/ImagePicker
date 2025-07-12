@@ -1,4 +1,4 @@
-package com.jms.imagePicker.ui.scope
+package com.jms.imagePicker.ui.scope.picker
 
 import androidx.compose.runtime.Stable
 import com.jms.imagePicker.model.MediaContent

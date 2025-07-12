@@ -1,13 +1,10 @@
-package com.jms.imagePicker.ui.scope
+package com.jms.imagePicker.ui.scope.picker
 
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.State
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.jms.imagePicker.model.Album
 
 @Stable
 interface ImagePickerAlbumScope {
     val albums: List<Album>
     val selectedAlbum: Album?
-    fun onSelect(album: Album)
 }

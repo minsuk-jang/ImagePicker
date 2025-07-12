@@ -24,6 +24,8 @@ import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
 import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
 import com.jms.imagePicker.ui.action.PreviewActions
+import com.jms.imagePicker.ui.scope.PreviewScope
+import com.jms.imagePicker.ui.scope.PreviewScopeImpl
 
 
 @Composable
@@ -66,10 +68,18 @@ internal fun PreviewScaffold(
             }
         }
 
+
         PreviewContent(
             mediaContents = mediaContents,
             initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
         ) {
+            val impl: PreviewScope = remember(viewModel, it) {
+                PreviewScopeImpl(
+                    boxScope = this,
+                    mediaContent = it
+                )
+            }
+
             content(handler, it)
         }
     }

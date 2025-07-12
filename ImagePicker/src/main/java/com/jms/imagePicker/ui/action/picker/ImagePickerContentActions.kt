@@ -1,4 +1,4 @@
-package com.jms.imagePicker.ui.action
+package com.jms.imagePicker.ui.action.picker
 
 import androidx.compose.runtime.Stable
 import com.jms.imagePicker.model.MediaContent
@@ -6,6 +6,5 @@ import com.jms.imagePicker.model.MediaContent
 
 @Stable
 interface ImagePickerContentActions {
-    fun onClick(mediaContent: MediaContent)
     fun onNavigateToPreview(mediaContent: MediaContent)
 }

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -23,12 +24,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -96,11 +100,12 @@ class MainActivity : ComponentActivity() {
                             mutableStateOf(false)
                         }
 
+
                         ImagePickerNavHost(
                             state = state
                         ) {
                             ImagePickerScreen(
-                                albumTopBar = {
+                                albumTopBar = { actions ->
                                     Row {
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Text(
@@ -125,7 +130,7 @@ class MainActivity : ComponentActivity() {
                                                     },
                                                     onClick = {
                                                         expand = false
-                                                        onSelect(it)
+                                                        actions.onSelect(it)
                                                     }
                                                 )
                                             }
@@ -203,45 +208,60 @@ class MainActivity : ComponentActivity() {
                             )
 
                             PreviewScreen { actions, mediaContent ->
+                                Icon(
+                                    modifier = Modifier
+                                        .align(Alignment.TopStart)
+                                        .padding(start = 15.dp, top = 20.dp)
+                                        .clickable {
+                                            actions.onBack()
+                                        },
+                                    imageVector = Icons.Default.ArrowBack,
+                                    contentDescription = "back",
+                                    tint = Color.White
+                                )
+
                                 Row(
                                     modifier = Modifier
                                         .align(Alignment.TopEnd)
                                 ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .background(
-                                                color = when (mediaContent.selected) {
-                                                    true -> Color.White.copy(alpha = 0.9f)
-                                                    false -> Color.DarkGray.copy(alpha = 0.5f)
-                                                },
-                                                shape = RectangleShape
-                                            )
-                                            .border(
-                                                border = BorderStroke(
-                                                    width = 3.dp,
+                                    Column {
+                                        Spacer(modifier = Modifier.height(20.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .background(
                                                     color = when (mediaContent.selected) {
-                                                        true -> Color.White.copy(alpha = 0.9f)
-                                                        false -> Color.LightGray
-                                                    }
-                                                ),
-                                                shape = RectangleShape
-                                            )
-                                            .clickable {
-                                                actions.onClick(mediaContent)
-                                            }
-                                    ) {
-                                        if (mediaContent.selected) {
-                                            Text(
-                                                modifier = Modifier
-                                                    .align(Alignment.Center),
-                                                text = "${mediaContent.selectedOrder + 1}",
-                                                style = TextStyle(
-                                                    fontWeight = FontWeight.W500,
-                                                    color = Color.Black,
-                                                    fontSize = 15.sp
+                                                        true -> Color.Green.copy(alpha = 0.9f)
+                                                        false -> Color.DarkGray.copy(alpha = 0.5f)
+                                                    },
+                                                    shape = CircleShape
                                                 )
-                                            )
+                                                .border(
+                                                    border = BorderStroke(
+                                                        width = 3.dp,
+                                                        color = when (mediaContent.selected) {
+                                                            true -> Color.Green.copy(alpha = 0.9f)
+                                                            false -> Color.LightGray
+                                                        }
+                                                    ),
+                                                    shape = CircleShape
+                                                )
+                                                .clickable {
+                                                    actions.onClick(mediaContent)
+                                                }
+                                        ) {
+                                            if (mediaContent.selected) {
+                                                Text(
+                                                    modifier = Modifier
+                                                        .align(Alignment.Center),
+                                                    text = "${mediaContent.selectedOrder + 1}",
+                                                    style = TextStyle(
+                                                        fontWeight = FontWeight.W500,
+                                                        color = Color.Black,
+                                                        fontSize = 15.sp
+                                                    )
+                                                )
+                                            }
                                         }
                                     }
 

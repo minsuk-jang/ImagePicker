@@ -6,6 +6,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -21,15 +22,17 @@ import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.MediaContent
-import com.jms.imagePicker.ui.action.ImagePickerContentActions
+import com.jms.imagePicker.ui.action.picker.ImagePickerAlbumActions
+import com.jms.imagePicker.ui.action.picker.ImagePickerContentActions
+import com.jms.imagePicker.ui.action.PreviewActions
 import com.jms.imagePicker.ui.picker.ImagePickerNavHostState
 import com.jms.imagePicker.ui.picker.ImagePickerScaffold
 import com.jms.imagePicker.ui.picker.rememberImagePickerNavHostState
 import com.jms.imagePicker.ui.preview.PreviewScaffold
-import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
+import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.ImagePickerGraphScope
-import com.jms.imagePicker.ui.scope.ImagePickerPreviewTopBarScope
-import com.jms.imagePicker.ui.action.PreviewActions
+import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun ImagePickerNavHost(
@@ -49,6 +52,13 @@ fun ImagePickerNavHost(
             )
         )
     }
+
+    LaunchedEffect(Unit) {
+        viewModel.selectedMediaContents.collectLatest {
+            state.updateMediaContents(mediaContents = it)
+        }
+    }
+
 
     NavHost(
         modifier = Modifier
@@ -74,13 +84,10 @@ internal class ImagePickerGraphScopeImpl(
     private val builder: NavGraphBuilder,
     private val navController: NavController,
     private val viewModel: ImagePickerViewModel,
-    private val state: ImagePickerNavHostState
+    private val state: ImagePickerNavHostState,
 ) : ImagePickerGraphScope {
-    override val selectedMediaContents: List<MediaContent>
-        get() = viewModel.selectedMediaContents.value
-
     override fun ImagePickerScreen(
-        albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit,
+        albumTopBar: @Composable ImagePickerAlbumScope.(ImagePickerAlbumActions) -> Unit,
         previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit,
         content: @Composable BoxScope.(ImagePickerContentActions, MediaContent) -> Unit
     ) {

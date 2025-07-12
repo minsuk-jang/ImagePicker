@@ -19,10 +19,12 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -48,9 +50,10 @@ import com.jms.imagePicker.extensions.photoGridDragHandler
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.MediaContent
 import com.jms.imagePicker.ui.ImagePickerViewModel
-import com.jms.imagePicker.ui.action.ImagePickerContentActions
-import com.jms.imagePicker.ui.scope.ImagePickerAlbumScope
-import com.jms.imagePicker.ui.scope.ImagePickerPreviewTopBarScope
+import com.jms.imagePicker.ui.action.picker.ImagePickerAlbumActions
+import com.jms.imagePicker.ui.action.picker.ImagePickerContentActions
+import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
+import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
@@ -60,7 +63,7 @@ internal fun ImagePickerScaffold(
     state: ImagePickerNavHostState = rememberImagePickerNavHostState(),
     viewModel: ImagePickerViewModel,
     onNavigateToPreview: (Int) -> Unit = {},
-    albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
+    albumTopBar: @Composable ImagePickerAlbumScope.(ImagePickerAlbumActions) -> Unit = {},
     previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
     content: @Composable BoxScope.(ImagePickerContentActions, MediaContent) -> Unit
 ) {
@@ -99,19 +102,19 @@ internal fun ImagePickerScaffold(
 
             override val selectedAlbum: Album?
                 get() = selectedAlbum
+        }
+    }
 
+    val albumActions = remember(viewModel) {
+        object : ImagePickerAlbumActions {
             override fun onSelect(album: Album) {
                 viewModel.selectedAlbum(album = album)
             }
         }
     }
 
-    val contentHandler = remember(viewModel, state) {
+    val contentActions = remember(viewModel, state) {
         object : ImagePickerContentActions {
-            override fun onClick(mediaContent: MediaContent) {
-                viewModel.select(uri = mediaContent.uri, max = state.max)
-            }
-
             override fun onNavigateToPreview(mediaContent: MediaContent) {
                 val index =
                     mediaContents.itemSnapshotList.indexOfFirst { it?.uri == mediaContent.uri }
@@ -124,7 +127,7 @@ internal fun ImagePickerScaffold(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        albumScopeImpl.albumTopBar()
+        albumScopeImpl.albumTopBar(albumActions)
         previewScopeImpl.previewTopBar()
 
         ImagePickerContent(
@@ -156,7 +159,7 @@ internal fun ImagePickerScaffold(
                 viewModel.select(uri = it.uri, max = state.max)
             },
             content = {
-                content(contentHandler, it)
+                content(contentActions, it)
             }
         )
     }
@@ -278,7 +281,17 @@ fun rememberImagePickerNavHostState(
 }
 
 @Stable
-data class ImagePickerNavHostState(
+class ImagePickerNavHostState(
     val max: Int = Constants.MAX_SIZE,
     val autoSelectAfterCapture: Boolean = false
-)
+) {
+    private var _selectedMediaContents: MutableState<List<MediaContent>> =
+        mutableStateOf(emptyList())
+
+    //Selected Media Content list
+    val selectedMediaContents: List<MediaContent> get() = _selectedMediaContents.value
+
+    internal fun updateMediaContents(mediaContents: List<MediaContent>) {
+        _selectedMediaContents.value = mediaContents
+    }
+}
