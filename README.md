@@ -59,7 +59,8 @@ Make sure to include the following in your AndroidManifest.xml
 ```
 
 ## 🚀 Quick Start
-Declare your image picker UI using `ImagePickerNavHost`, just like `NavHost` in Jetpack Navigation:
+Declare your image picker UI using `ImagePickerNavHost`, just like `NavHost` in Jetpack Navigation.   
+Each slot (`albumTopBar`, `previewTopBar`, `cellContent`) and `PreviewScreen` gives access to its own custom scope to help you build highly flexible UIs.
 ```kotlin
 ImagePickerNavHost(state = state) {
     ImagePickerScreen(
@@ -72,12 +73,15 @@ ImagePickerNavHost(state = state) {
         // Full-screen preview UI
     }
 }
-```
+``` 
+**📷 Example Output:**
+<p>
 <img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" width="250"/>
 <img src = "https://github.com/user-attachments/assets/dcf74aef-64ac-4552-a005-5f63721c65e7" width="250"/>
 <img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f" width="250"/>
 
-Each slot (albumTopBar, previewTopBar, cellContent, PreviewScreen) gives access to its own custom scope to help you build highly flexible UIs.
+</p>
+
 
                                                                       
 ## Slot APIs and Their Scopes
