@@ -59,6 +59,8 @@ Make sure to include the following in your AndroidManifest.xml
 ```
 
 ## 🚀 Quick Start
+<div>
+<img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f"  align="right" />
 <img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177"  align="right" />
 
 Declare your image picker UI using `ImagePickerNavHost`, just like `NavHost` in Jetpack Navigation:
