@@ -58,23 +58,6 @@ Make sure to include the following in your AndroidManifest.xml
 <uses-permission android:name="android.permission.CAMERA" />
 ```
 
-## 🧠 Concept
-ImagePicker is built on three core principles:
-1. Declarative Navigation DSL <br>
-Screens are defined inside `ImagePickerNavHost { ... }`, similar to `NavHost` and composable.
-2. Scoped Slot APIs<br>
-Instead of fixed UI, it exposes Scope interfaces per slot (albumTopBar, previewTopBar, cellContent, PreviewScreen) to give full control of rendering.
-
-3. Shared State Management <br>
-The provided ImagePickerNavHostState allows reading selected items and configuration from outside the picker.
-
-This architecture enables:
-- Composable-level customization 
-- Screen separation and preview logic encapsulation
-- Clean integration into existing Compose apps
-
-
-
 ## 🚀 Quick Start
 <img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f" />
 <img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" />
