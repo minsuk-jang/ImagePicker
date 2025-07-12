@@ -79,18 +79,16 @@ ImagePickerNavHost(state = state) {
 <img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" width="250"/>
 <img src = "https://github.com/user-attachments/assets/dcf74aef-64ac-4552-a005-5f63721c65e7" width="250"/>
 <img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f" width="250"/>
-
 </p>
 
-
                                                                       
-## Slot APIs and Their Scopes
+## Slot APIs, Scopes
 Each slot in `ImagePickerScreen` or `PreviewScreen` is powered by a custom scope. These scopes provide the necessary state and event handlers you need to build fully customized UIs.
 Below is a breakdown of each slot, its associated scope, and what you can do inside it.
 
 ### 🎛️  `albumTopBar → ImagePickerAlbumScope`
 Use this slot to show album-related UI such as a dropdown or album selector.
-The ImagePickerAlbumScope gives you access to:
+The `ImagePickerAlbumScope` gives you access to:
 
 | Property / Function    | 	Description                     |
 |------------------------|----------------------------------|
@@ -167,6 +165,7 @@ The `ImagePickerCellScope` gives you access to:
 | `mediaContent: MediaContent`                | The media content represented by this cell |
 | `onNavigateToPreviewScreen(mediaContent: MediaContent)` | Triggers navigation to the Preview Screen  |
 
+Example usage:
 ```kotlin
 cellContent = {
     Box(modifier = Modifier.clickable {
@@ -210,6 +209,7 @@ The `ImagePickerNavHostState` stores shared selection state and picker configura
 | Property                 | 	Type	                 | Description                                |
 |--------------------------|------------------------|--------------------------------------------|
 | `selectedMediaContents`  | 	`List<MediaContent>`  | 	List of currently selected media contents |
+
 You can read this state anywhere in your app to reflect selection results, UI updates, or submission logic:
 ```kotlin
 val selected = state.selectedMediaContents
