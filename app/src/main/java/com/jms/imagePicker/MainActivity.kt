@@ -57,6 +57,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.jms.imagePicker.ui.ImagePickerNavHost
 import com.jms.imagePicker.ui.ImagePreviewBar
+import com.jms.imagePicker.ui.scope.ImagePickerScreen
+import com.jms.imagePicker.ui.scope.PreviewScreen
 import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
 import com.jms.imagePicker.ui.theme.ImagePickerTheme
 
@@ -128,7 +130,7 @@ class MainActivity : ComponentActivity() {
                                                     },
                                                     onClick = {
                                                         expand = false
-                                                        onSelect(it)
+                                                        onClick(it)
                                                     }
                                                 )
                                             }
@@ -150,7 +152,7 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 },
-                                content = {
+                                cellContent = {
                                     Box(
                                         modifier = Modifier.fillMaxSize()
                                     ) {
@@ -167,7 +169,7 @@ class MainActivity : ComponentActivity() {
                                                             shape = RoundedCornerShape(5.dp)
                                                         )
                                                         .clickable {
-                                                            onNavigateToPreview(mediaContent)
+                                                            onNavigateToPreviewScreen(mediaContent)
                                                         },
                                                     painter = iconOfExpandContent,
                                                     contentDescription = "expand_content",
@@ -251,7 +253,7 @@ class MainActivity : ComponentActivity() {
                                                         shape = CircleShape
                                                     )
                                                     .clickable {
-                                                        onClick(mediaContent)
+                                                        onToggleSelection(mediaContent)
                                                     }
                                             ) {
                                                 if (mediaContent.selected) {

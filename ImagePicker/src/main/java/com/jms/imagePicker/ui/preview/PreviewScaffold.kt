@@ -66,7 +66,7 @@ internal fun PreviewScaffold(
                         onBack()
                     }
 
-                    override fun onClick(mediaContent: MediaContent) {
+                    override fun onToggleSelection(mediaContent: MediaContent) {
                         viewModel.select(uri = mediaContent.uri, max = state.max)
                     }
                 }

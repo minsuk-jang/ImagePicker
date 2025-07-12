@@ -99,7 +99,7 @@ internal fun ImagePickerScaffold(
             override val selectedAlbum: Album?
                 get() = selectedAlbum
 
-            override fun onSelect(album: Album) {
+            override fun onClick(album: Album) {
                 viewModel.selectedAlbum(album = album)
             }
         }
@@ -145,7 +145,7 @@ internal fun ImagePickerScaffold(
                         override val mediaContent: MediaContent
                             get() = it
 
-                        override fun onNavigateToPreview(mediaContent: MediaContent) {
+                        override fun onNavigateToPreviewScreen(mediaContent: MediaContent) {
                             val index =
                                 mediaContents.itemSnapshotList.indexOfFirst { it?.uri == mediaContent.uri }
                                     .coerceAtLeast(0)

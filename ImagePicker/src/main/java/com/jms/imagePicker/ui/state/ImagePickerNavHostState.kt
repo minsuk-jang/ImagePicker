@@ -10,8 +10,11 @@ import com.jms.imagePicker.model.MediaContent
 
 /**
  *
- * @param max: maximum selection count
- * @param autoSelectAfterCapture: auto select after capture
+ * Remembers and provides the [ImagePickerNavHostState] to be used with [ImagePickerNavHost].
+ *
+ * @param max The maximum number of media items allowed to be selected.
+ * @param autoSelectAfterCapture: If true, automatically selects the captured media after taking a photo.
+ *
  */
 @Composable
 fun rememberImagePickerNavHostState(
@@ -26,6 +29,14 @@ fun rememberImagePickerNavHostState(
     }
 }
 
+/**
+ *
+ * Holds the selection state and configuration for the [ImagePickerNavHost].
+ *
+ * @param max The maximum number of media items allowed to be selected.
+ * @param autoSelectAfterCapture: If true, automatically selects the captured media after taking a photo.
+ *
+ */
 @Stable
 class ImagePickerNavHostState(
     val max: Int = Constants.MAX_SIZE,
@@ -34,7 +45,10 @@ class ImagePickerNavHostState(
     private var _selectedMediaContents: MutableState<List<MediaContent>> =
         mutableStateOf(emptyList())
 
-    //Currently selected media Content list
+    /**
+     *
+     * The currently selected list of media content.
+     */
     val selectedMediaContents: List<MediaContent> get() = _selectedMediaContents.value
 
     internal fun updateMediaContents(mediaContents: List<MediaContent>) {

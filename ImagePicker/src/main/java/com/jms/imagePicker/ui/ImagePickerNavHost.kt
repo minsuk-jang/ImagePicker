@@ -11,22 +11,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
 import com.jms.imagePicker.manager.FileManager
-import com.jms.imagePicker.ui.picker.ImagePickerScaffold
-import com.jms.imagePicker.ui.preview.PreviewScaffold
-import com.jms.imagePicker.ui.scope.ImagePickerCellScope
-import com.jms.imagePicker.ui.scope.ImagePickerGraphScope
-import com.jms.imagePicker.ui.scope.PreviewScreenScope
-import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
-import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewTopBarScope
+import com.jms.imagePicker.ui.scope.ImagePickerGraphBuilder
 import com.jms.imagePicker.ui.state.ImagePickerNavHostState
 import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
 import kotlinx.coroutines.flow.collectLatest
@@ -34,7 +25,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun ImagePickerNavHost(
     state: ImagePickerNavHostState = rememberImagePickerNavHostState(),
-    content: ImagePickerGraphScope.() -> Unit
+    builder: ImagePickerGraphBuilder.() -> Unit
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -65,70 +56,20 @@ fun ImagePickerNavHost(
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None }
     ) {
-        val graphScopeImpl = ImagePickerGraphScopeImpl(
+        val ctxImpl = ImagePickerGraphContext(
             viewModel = viewModel,
             navController = navController,
             state = state,
             builder = this
         )
 
-        graphScopeImpl.content()
+        ctxImpl.builder()
     }
 }
 
-internal class ImagePickerGraphScopeImpl(
-    private val builder: NavGraphBuilder,
-    private val navController: NavController,
-    private val viewModel: ImagePickerViewModel,
-    private val state: ImagePickerNavHostState,
-) : ImagePickerGraphScope {
-    override fun ImagePickerScreen(
-        albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit,
-        previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit,
-        content: @Composable ImagePickerCellScope.() -> Unit
-    ) {
-        builder.composable(
-            route = "route_image_list"
-        ) {
-            ImagePickerScaffold(
-                viewModel = viewModel,
-                albumTopBar = albumTopBar,
-                previewTopBar = previewTopBar,
-                state = state,
-                cellContent = content,
-                onNavigateToPreview = {
-                    navController.navigate("route_preview?$it") {
-                        launchSingleTop = true
-
-                        popUpTo("route_image_list") {
-                            saveState = true
-                        }
-                    }
-                }
-            )
-        }
-    }
-
-    override fun PreviewScreen(
-        content: @Composable PreviewScreenScope.() -> Unit
-    ) {
-        builder.composable(
-            route = "route_preview?{index}",
-            arguments = listOf(
-                navArgument("index") {
-                    type = NavType.IntType
-                }
-            )
-        ) {
-            val initializeFirstVisibleItemIndex = it.arguments?.getInt("index") ?: 0
-
-            PreviewScaffold(
-                viewModel = viewModel,
-                state = state,
-                initializeFirstVisibleItemIndex = initializeFirstVisibleItemIndex,
-                onBack = { navController.popBackStack() },
-                content = content
-            )
-        }
-    }
-}
+internal class ImagePickerGraphContext(
+    val builder: NavGraphBuilder,
+    val navController: NavController,
+    val viewModel: ImagePickerViewModel,
+    val state: ImagePickerNavHostState,
+) : ImagePickerGraphBuilder
