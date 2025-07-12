@@ -45,7 +45,7 @@ dependencyResolutionManagement {
 Step 2. Add the dependency
 ```gradle
 dependencies {
-    implementation 'com.github.minsuk-jang:ImagePicker:1.0.14'
+    implementation 'com.github.minsuk-jang:ImagePicker:1.0.15'
 }
 ```
 
