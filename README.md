@@ -87,14 +87,13 @@ Each slot in `ImagePickerScreen` or `PreviewScreen` is powered by a custom scope
 Below is a breakdown of each slot, its associated scope, and what you can do inside it.
 
 ### 🎛️  `albumTopBar → ImagePickerAlbumScope`
-Use this slot to show album-related UI such as a dropdown or album selector.
-The `ImagePickerAlbumScope` gives you access to:
+Use this slot to show album-related UI such as a dropdown or album selector. The `ImagePickerAlbumScope` gives you access to:
 
-| Property / Function    | 	Description                     |
-|------------------------|----------------------------------|
-| `albums: List<Album>`  | List of all albums on the device |
-| `selectedAlbum: Album?`  | Currently selected album         |
-| `onClick(album: Album)`  | Select the given album           |
+|Property / Function    | 	Description                     |
+|-----------------------|----------------------------------|
+| `albums: List<Album>` | List of all albums on the device |
+| `selectedAlbum: Album?` | Currently selected album         |
+| `onClick(album: Album)` | Select the given album           |
 
 Example usage:
 ```kotlin
@@ -126,8 +125,7 @@ albumTopBar = {
 ```
 
 ### 🎛️ `previewTopBar → ImagePickerPreviewScope`
-This slot allows you to preview currently selected media contents in a custom layout.   
-The `ImagePickerPreviewScope` gives you access to:
+This slot allows you to preview currently selected media contents in a custom layout. The `ImagePickerPreviewScope` gives you access to:
 
 | Property / Function                         | 	Description                     |
 |---------------------------------------------|----------------------------------|
@@ -184,8 +182,7 @@ cellContent = {
 💡 You can fully control the UI — whether it's adding badges, applying blur, or animating selection — by customizing this slot.
 
 ### 🎛️ `PreviewScreen → PreviewScreenScope`
-This slot allows you to define the full-screen preview UI for selected media content.   
-The `PreviewScreenScope` provides:   
+This slot allows you to define the full-screen preview UI for selected media content. The `PreviewScreenScope` provides:   
 
 | Property / Function                             | 	Description                                 |
 |-------------------------------------------------|----------------------------------------------|
@@ -230,12 +227,12 @@ ImagePickerNavHost(state) {
 ### 2. 🧩 Scoped Slot APIs
 Each UI slot receives a dedicated Scope that provides data, actions for full composability:
 
-| Slot	        | Scope Interface                 | Description                      |
-|--------------|---------------------------------|----------------------------------| 
-| `albumTopBar`  | 	`ImagePickerAlbumScope`	         | Provides album list & selection  | 
-| `previewTopBar` | 	`ImagePickerPreviewTopBarScope`  |	Shows selected media, toggles select|  
-| `cellContent` |	`ImagePickerCellScope` |	Controls image cell UI & preview nav |
-| `PreviewScreen` |	`PreviewScreenScope`	| Full-screen preview screen actions |
+| Slot	        | Scope Interface                 | Description                                          |
+|--------------|---------------------------------|------------------------------------------------------| 
+| `albumTopBar`  | 	`ImagePickerAlbumScope`	         | Provides album list & selection                      | 
+| `previewTopBar` | 	`ImagePickerPreviewTopBarScope`  | 	Shows selected media, toggles select                |  
+| `cellContent` |	`ImagePickerCellScope` | 	Controls image cell UI & navigate to Preview Screen |
+| `PreviewScreen` |	`PreviewScreenScope`	| Full-screen preview screen actions                   |
 
 ### 3. 📦 Shared Picker State
 `ImagePickerNavHostState` gives access to current selections and configuration.
@@ -246,8 +243,7 @@ val maxSelectable = state.max
 ```
 
 ## 💡 Why this matters
-Most pickers are monolithic and hard to extend.   
-ImagePicker provides navigation-level flexibility, enabling clean separation between:
+Most pickers are monolithic and hard to extend. ImagePicker provides navigation-level flexibility, enabling clean separation between:
 - Image list & preview
 - UI customization & logic
 - App-level state & picker state
