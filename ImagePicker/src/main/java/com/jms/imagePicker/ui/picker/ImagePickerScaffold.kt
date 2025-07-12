@@ -61,7 +61,7 @@ internal fun ImagePickerScaffold(
     onNavigateToPreview: (Int) -> Unit = {},
     albumTopBar: @Composable ImagePickerAlbumScope.() -> Unit = {},
     previewTopBar: @Composable ImagePickerPreviewTopBarScope.() -> Unit = {},
-    content: @Composable ImagePickerCellScope.() -> Unit
+    cellContent: @Composable ImagePickerCellScope.() -> Unit
 ) {
     val context = LocalContext.current
     val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
@@ -139,8 +139,8 @@ internal fun ImagePickerScaffold(
             onClick = {
                 viewModel.select(uri = it.uri, max = state.max)
             },
-            content = {
-                val contentScopeImpl = remember(it) {
+            cellContent = {
+                val cellScopeImpl = remember(it) {
                     object : ImagePickerCellScope {
                         override val mediaContent: MediaContent
                             get() = it
@@ -154,7 +154,7 @@ internal fun ImagePickerScaffold(
                     }
                 }
 
-                content(contentScopeImpl)
+                cellContent(cellScopeImpl)
             }
         )
     }
@@ -171,7 +171,7 @@ internal fun ImagePickerContent(
     onDrag: (start: Int?, end: Int?, List<MediaContent>) -> Unit,
     onDragEnd: () -> Unit = {},
     onClick: (MediaContent) -> Unit = {},
-    content: @Composable (MediaContent) -> Unit
+    cellContent: @Composable (MediaContent) -> Unit
 ) {
     val gridState = rememberLazyGridState()
     val autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() }
@@ -254,7 +254,7 @@ internal fun ImagePickerContent(
                         mediaContent = mediaContent,
                     )
 
-                    content(mediaContent)
+                    cellContent(mediaContent)
                 }
             }
         }

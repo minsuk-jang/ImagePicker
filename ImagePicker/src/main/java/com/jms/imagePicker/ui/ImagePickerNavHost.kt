@@ -95,7 +95,7 @@ internal class ImagePickerGraphScopeImpl(
                 albumTopBar = albumTopBar,
                 previewTopBar = previewTopBar,
                 state = state,
-                content = content,
+                cellContent = content,
                 onNavigateToPreview = {
                     navController.navigate("route_preview?$it") {
                         launchSingleTop = true
