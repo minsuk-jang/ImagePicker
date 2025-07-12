@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -137,21 +138,6 @@ class MainActivity : ComponentActivity() {
                                         }
                                     }
                                 },
-                                previewTopBar = {
-                                    AnimatedVisibility(
-                                        visible = selectedMediaContents.isNotEmpty(),
-                                        enter = slideInVertically() + expandVertically(expandFrom = Alignment.Top)
-                                                + fadeIn(initialAlpha = 0.3f),
-                                        exit = slideOutVertically() + shrinkVertically() + fadeOut()
-                                    ) {
-                                        ImagePreviewBar(
-                                            mediaContents = selectedMediaContents,
-                                            onClick = { mediaContent ->
-                                                onDeselect(mediaContent)
-                                            }
-                                        )
-                                    }
-                                },
                                 cellContent = {
                                     Box(
                                         modifier = Modifier.fillMaxSize()
@@ -179,29 +165,17 @@ class MainActivity : ComponentActivity() {
                                             }
                                         }
                                         if (mediaContent.selected) {
-                                            Box(
+                                            Column(
                                                 modifier = Modifier
-                                                    .border(width = 3.5.dp, color = Color.Green)
-                                                    .background(color = Gray.copy(0.5f))
-                                                    .fillMaxSize()
+                                                    .align(Alignment.TopEnd)
                                             ) {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .align(Alignment.TopEnd)
-                                                ) {
-                                                    Column {
-                                                        Spacer(Modifier.height(5.dp))
-                                                        Text(
-                                                            modifier = Modifier
-                                                                .background(
-                                                                    color = Color.Green,
-                                                                    shape = CircleShape
-                                                                )
-                                                                .size(20.dp),
-                                                            text = "${mediaContent.selectedOrder + 1}",
-                                                            textAlign = TextAlign.Center
-                                                        )
-                                                    }
+                                                Spacer(Modifier.height(5.dp))
+                                                Row {
+                                                    Icon(
+                                                        imageVector = Icons.Default.CheckCircle,
+                                                        contentDescription = "",
+                                                        tint = Color.Blue
+                                                    )
                                                     Spacer(Modifier.width(5.dp))
                                                 }
                                             }

@@ -1,10 +1,10 @@
 <h1 align = "center">  ImagePicker </h1>
 <!-- Add Gif -->
 <p align = "center">
-<img src = "https://github.com/user-attachments/assets/3dc78705-e90d-42e4-859c-79e9b28ff8b9" />
-<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" />
-<img src = "https://github.com/user-attachments/assets/9531c4a4-9603-47b7-a716-d74aecf75c8f" />
-<img src = "https://github.com/user-attachments/assets/64724a9e-669a-4e8a-9bc7-773c440bc755" />
+<img src = "https://github.com/user-attachments/assets/3dc78705-e90d-42e4-859c-79e9b28ff8b9" width="250"/>
+<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" width="250"/>
+<img src = "https://github.com/user-attachments/assets/9531c4a4-9603-47b7-a716-d74aecf75c8f" width="250"/>
+<img src = "https://github.com/user-attachments/assets/64724a9e-669a-4e8a-9bc7-773c440bc755" width="250"/>
 </p>
 
 <div align = "center">
@@ -59,9 +59,6 @@ Make sure to include the following in your AndroidManifest.xml
 ```
 
 ## 🚀 Quick Start
-<img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f" />
-<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" />
-
 Declare your image picker UI using `ImagePickerNavHost`, just like `NavHost` in Jetpack Navigation:
 ```kotlin
 ImagePickerNavHost(state = state) {
@@ -76,16 +73,17 @@ ImagePickerNavHost(state = state) {
     }
 }
 ```
+<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" width="250"/>
+<img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f" width="250"/>
+
 Each slot (albumTopBar, previewTopBar, cellContent, PreviewScreen) gives access to its own custom scope to help you build highly flexible UIs.
 
                                                                       
 ## Slot APIs and Their Scopes
-Each slot in ImagePickerScreen or PreviewScreen is powered by a custom scope.
-These scopes provide the necessary state and event handlers you need to build fully customized UIs.
-
+Each slot in `ImagePickerScreen` or `PreviewScreen` is powered by a custom scope. These scopes provide the necessary state and event handlers you need to build fully customized UIs.
 Below is a breakdown of each slot, its associated scope, and what you can do inside it.
 
-### 🎛️  albumTopBar → ImagePickerAlbumScope
+### 🎛️  `albumTopBar → ImagePickerAlbumScope`
 Use this slot to show album-related UI such as a dropdown or album selector.
 The ImagePickerAlbumScope gives you access to:
 
@@ -124,7 +122,7 @@ albumTopBar = {
 }
 ```
 
-### 🎛️ previewTopBar → ImagePickerPreviewScope
+### 🎛️ `previewTopBar → ImagePickerPreviewScope`
 This slot allows you to preview currently selected media contents in a custom layout.   
 The `ImagePickerPreviewScope` gives you access to:
 
@@ -150,7 +148,7 @@ previewTopBar = {
 }
 ```
 
-### 🎛️ cellContent → ImagePickerCellScope
+### 🎛️ `cellContent → ImagePickerCellScope`
 This slot renders each image cell in the grid. Only the `MediaContent` is provided - the rest is up to you.<br>
 Use this slot to:
 - Display thumbnails
@@ -181,7 +179,7 @@ cellContent = {
 ```
 💡 You can fully control the UI — whether it's adding badges, applying blur, or animating selection — by customizing this slot.
 
-### 🎛️ PreviewScreen → PreviewScreenScope
+### 🎛️ `PreviewScreen → PreviewScreenScope`
 This slot allows you to define the full-screen preview UI for selected media content.   
 The `PreviewScreenScope` provides:   
 
