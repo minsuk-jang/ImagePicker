@@ -58,10 +58,26 @@ Make sure to include the following in your AndroidManifest.xml
 <uses-permission android:name="android.permission.CAMERA" />
 ```
 
+## 🧠 Concept
+ImagePicker is built on three core principles:
+1. Declarative Navigation DSL <br>
+Screens are defined inside `ImagePickerNavHost { ... }`, similar to `NavHost` and composable.
+2. Scoped Slot APIs<br>
+Instead of fixed UI, it exposes Scope interfaces per slot (albumTopBar, previewTopBar, cellContent, PreviewScreen) to give full control of rendering.
+
+3. Shared State Management <br>
+The provided ImagePickerNavHostState allows reading selected items and configuration from outside the picker.
+
+This architecture enables:
+- Composable-level customization 
+- Screen separation and preview logic encapsulation
+- Clean integration into existing Compose apps
+
+
+
 ## 🚀 Quick Start
-<div>
-<img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f"  align="right" />
-<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177"  align="right" />
+<img src = "https://github.com/user-attachments/assets/34a1a634-32b8-42e1-b519-134118118f6f" />
+<img src = "https://github.com/user-attachments/assets/2d6daad9-a499-443a-b7c7-282ad2c69177" />
 
 Declare your image picker UI using `ImagePickerNavHost`, just like `NavHost` in Jetpack Navigation:
 ```kotlin
@@ -77,8 +93,8 @@ ImagePickerNavHost(state = state) {
     }
 }
 ```
-
 Each slot (albumTopBar, previewTopBar, cellContent, PreviewScreen) gives access to its own custom scope to help you build highly flexible UIs.
+
                                                                       
 ## Slot APIs and Their Scopes
 Each slot in ImagePickerScreen or PreviewScreen is powered by a custom scope.
@@ -196,31 +212,57 @@ The `PreviewScreenScope` provides:
 PreviewScreen must be explicitly declared inside ImagePickerNavHost.<br>
 If omitted, calling onNavigateToPreviewScreen() from a cell will cause a runtime crash.
 
+## 📦 ImagePickerNavHostState
+The `ImagePickerNavHostState` stores shared selection state and picker configuration across `ImagePickerScreen` and `PreviewScreen`.
 
+| Parameter | 	Description                                          |
+| --- |-------------------------------------------------------|
+| `max`	| Maximum number of media contents that can be selected | 
+| `autoSelectAfterCapture`	| Whether to auto-select the image after camera shot    | 
 
-## Classes
-### MediaContent
+### 🧷 Properties
+| Property                 | 	Type	                 | Description                                |
+|--------------------------|------------------------|--------------------------------------------|
+| `selectedMediaContents`  | 	`List<MediaContent>`  | 	List of currently selected media contents |
+You can read this state anywhere in your app to reflect selection results, UI updates, or submission logic:
 ```kotlin
-@Stable
-data class MediaContent(
-  val id: Long, //Media content id
-  val title: String, // Title of the content
-  val dateAt: Long, // Date token
-  val data: String, // File size
-  val uri: Uri, // Content Uri
-  val mimeType: String, // MIME type
-  val album: String, // Album name
-  val albumId: String // Album ID
-  val selectedOrder: Int = Constants.NO_ORDER, // Selected order
-  val selected : Boolean = false // Selection Status
-)
+val selected = state.selectedMediaContents
 ```
 
-### Album
+
+## 🧠 Concept
+ImagePicker is designed around three key principles:
+### 1. ✅ Declarative Navigation DSL
+Screens are declared inside `ImagePickerNavHost { ... }` just like `NavHost` and composable in Jetpack Navigation.
+
 ```kotlin
-class Album(
-  val id: String? = null, // Album id
-  val name: String = "", // Album name
-  val count: Int = 0, // Number of images in the album
-)
+ImagePickerNavHost(state) {
+    ImagePickerScreen(...)
+    PreviewScreen { ... }
+}
 ```
+### 2. 🧩 Scoped Slot APIs
+Each UI slot receives a dedicated Scope that provides data, actions for full composability:
+
+| Slot	        | Scope Interface                 | Description                      |
+|--------------|---------------------------------|----------------------------------| 
+| `albumTopBar`  | 	`ImagePickerAlbumScope`	         | Provides album list & selection  | 
+| `previewTopBar` | 	`ImagePickerPreviewTopBarScope`  |	Shows selected media, toggles select|  
+| `cellContent` |	`ImagePickerCellScope` |	Controls image cell UI & preview nav |
+| `PreviewScreen` |	`PreviewScreenScope`	| Full-screen preview screen actions |
+
+### 3. 📦 Shared Picker State
+`ImagePickerNavHostState` gives access to current selections and configuration.
+
+```kotlin
+val selectedItems = state.selectedMediaContents
+val maxSelectable = state.max
+```
+
+## 💡 Why this matters
+Most pickers are monolithic and hard to extend.   
+ImagePicker provides navigation-level flexibility, enabling clean separation between:
+- Image list & preview
+- UI customization & logic
+- App-level state & picker state
+This structure makes it easy to build an image picker that feels native to your app, not boxed-in.
