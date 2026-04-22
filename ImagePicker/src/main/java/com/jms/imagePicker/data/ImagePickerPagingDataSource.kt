@@ -18,8 +18,6 @@ internal class ImagePickerPagingDataSource(
         const val DEFAULT_PAGE_LIMIT = 30
     }
 
-    private val seenIds = mutableSetOf<Long>()
-
     override fun getRefreshKey(state: PagingState<Int, MediaContent>): Int? {
         return state.anchorPosition?.let { anchorPos ->
             val anchorPage = state.closestPageToPosition(anchorPos)
@@ -47,21 +45,14 @@ internal class ImagePickerPagingDataSource(
                     MediaStore.MediaColumns.BUCKET_ID
                 )
             )?.use { cursor ->
-                var cursorCount = 0
                 val list = buildList {
-                    while (cursor.moveToNext()) {
-                        cursorCount++
-                        val item = cursor.toImage()
-                        if (seenIds.add(item.id)) {
-                            add(item)
-                        }
-                    }
+                    while (cursor.moveToNext()) add(cursor.toImage())
                 }
 
                 LoadResult.Page(
                     data = list,
                     prevKey = if (page - 1 > 0) page - 1 else null,
-                    nextKey = if (cursorCount == DEFAULT_PAGE_LIMIT) page + 1 else null
+                    nextKey = if (list.size == DEFAULT_PAGE_LIMIT) page + 1 else null
                 )
             } ?: LoadResult.Error(throwable = Exception("Empty Gallery"))
         } catch (e: Exception) {
