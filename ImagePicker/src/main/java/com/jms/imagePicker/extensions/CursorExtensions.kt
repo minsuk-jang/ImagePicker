@@ -20,24 +20,12 @@ internal fun Cursor.getColumnString(index: String): String? {
 
 internal fun Cursor.toImage(): MediaContent {
     val id = getLong(getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
-    val title =
-        getString(getColumnIndexOrThrow(MediaStore.MediaColumns.TITLE))
-    val dateAt =
-        getLong(getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED))
-
-    val mimeType =
-        getString(getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE))
-
-    val uri = Uri.withAppendedPath(
-        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-        id.toString()
-    )
-
-    val data =
-        getString(getColumnIndexOrThrow(MediaStore.MediaColumns.DATA))
-
-    val album =
-        getColumnString(index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+    val title = getColumnString(index = MediaStore.MediaColumns.TITLE).orEmpty()
+    val dateAt = getLong(getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED))
+    val mimeType = getColumnString(index = MediaStore.MediaColumns.MIME_TYPE).orEmpty()
+    val uri = Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toString())
+    val data = getColumnString(index = MediaStore.MediaColumns.DATA).orEmpty()
+    val album = getColumnString(index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
     val albumId = getColumnString(index = MediaStore.MediaColumns.BUCKET_ID)
 
     return MediaContent(

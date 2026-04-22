@@ -16,60 +16,26 @@ internal abstract class MediaContentManager {
             MediaStore.MediaColumns.BUCKET_ID
         )
         val map = mutableMapOf<Pair<String, String>, Int>()
-        val limit = 20
-        var index = 0
 
-        while (true) {
-            getCursor(
-                uri = uri,
-                projection = projection,
-                albumId = null,
-                offset = index * limit,
-                limit = limit
-            )?.use {
-                while (it.moveToNext()) {
-                    val id = it.getColumnString(index = MediaStore.MediaColumns.BUCKET_ID)
-                    val title = it.getColumnString(
-                        index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME
-                    )?.lowercase()
+        getAlbumCursor(uri = uri, projection = projection)?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val id = cursor.getColumnString(index = MediaStore.MediaColumns.BUCKET_ID)
+                val title = cursor.getColumnString(
+                    index = MediaStore.MediaColumns.BUCKET_DISPLAY_NAME
+                )?.lowercase()
 
-                    if (id == null || title == null) continue
+                if (id == null || title == null) continue
 
-                    if (map.contains(id to title)) {
-                        map[id to title] = map[id to title]?.plus(1) ?: 1
-                    } else
-                        map[id to title] = 1
-                }
-
-                if (it.count < limit) {
-                    return map.toList().map {
-                        Album(
-                            id = it.first.first,
-                            name = it.first.second,
-                            count = it.second
-                        )
-                    }.toMutableList().apply {
-                        add(
-                            0,
-                            Album(
-                                id = null,
-                                name = "total",
-                                count = sumOf { it.count }
-                            )
-                        )
-                    }
-                }
-            } ?: break
-
-            index++
+                map[id to title] = (map[id to title] ?: 0) + 1
+            }
         }
 
+        return buildAlbumList(map)
+    }
+
+    private fun buildAlbumList(map: Map<Pair<String, String>, Int>): List<Album> {
         return map.toList().map {
-            Album(
-                id = it.first.first,
-                name = it.first.second,
-                count = it.second
-            )
+            Album(id = it.first.first, name = it.first.second, count = it.second)
         }.toMutableList().apply {
             add(0, Album(id = null, name = "total", count = sumOf { it.count }))
         }
@@ -82,4 +48,8 @@ internal abstract class MediaContentManager {
         offset: Int,
         limit: Int,
     ): Cursor?
+
+    abstract fun getAlbumCursor(uri: Uri, projection: Array<String>): Cursor?
+
+    abstract fun getCursorByIds(uri: Uri, projection: Array<String>, ids: List<Long>): Cursor?
 }

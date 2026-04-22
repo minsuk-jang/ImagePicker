@@ -6,6 +6,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.jms.imagePicker.ui.ImagePickerGraphContext
+import com.jms.imagePicker.ui.Route
 import com.jms.imagePicker.ui.picker.ImagePickerScaffold
 import com.jms.imagePicker.ui.preview.PreviewScaffold
 import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
@@ -31,7 +32,7 @@ fun ImagePickerGraphBuilder.ImagePickerScreen(
         ?: error("ImagePickerGraphBuilder is not ImagePickerGraphContext")
 
     builder.composable(
-        route = "route_image_list"
+        route = Route.PICKER
     ) {
         ImagePickerScaffold(
             viewModel = viewModel,
@@ -40,10 +41,10 @@ fun ImagePickerGraphBuilder.ImagePickerScreen(
             state = state,
             cellContent = cellContent,
             onNavigateToPreview = {
-                navController.navigate("route_preview?$it") {
+                navController.navigate(Route.preview(it)) {
                     launchSingleTop = true
 
-                    popUpTo("route_image_list") {
+                    popUpTo(Route.PICKER) {
                         saveState = true
                     }
                 }
@@ -62,7 +63,7 @@ fun ImagePickerGraphBuilder.PreviewScreen(
 ){
     this as? ImagePickerGraphContext ?: error("ImagePickerGraphBuilder is not ImagePickerGraphContext")
     builder.composable(
-        route = "route_preview?{index}",
+        route = Route.PREVIEW,
         arguments = listOf(
             navArgument("index") {
                 type = NavType.IntType

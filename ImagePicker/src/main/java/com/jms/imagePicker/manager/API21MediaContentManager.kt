@@ -30,4 +30,22 @@ internal class API21MediaContentManager(
             "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
         )
     }
+
+    override fun getAlbumCursor(uri: Uri, projection: Array<String>): Cursor? {
+        return context.contentResolver.query(
+            uri,
+            projection,
+            baseSelectionClause,
+            baseSelectionArgs.toTypedArray(),
+            null
+        )
+    }
+
+    override fun getCursorByIds(uri: Uri, projection: Array<String>, ids: List<Long>): Cursor? {
+        if (ids.isEmpty()) return null
+        val placeholders = ids.joinToString(",") { "?" }
+        val selection = "$baseSelectionClause AND ${MediaStore.MediaColumns._ID} IN ($placeholders)"
+        val selectionArgs = (baseSelectionArgs + ids.map { it.toString() }).toTypedArray()
+        return context.contentResolver.query(uri, projection, selection, selectionArgs, null)
+    }
 }
