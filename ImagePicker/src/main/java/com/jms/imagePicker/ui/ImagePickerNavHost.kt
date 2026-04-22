@@ -16,7 +16,6 @@ import androidx.navigation.compose.rememberNavController
 import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
-import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.ui.scope.ImagePickerGraphBuilder
 import com.jms.imagePicker.ui.state.ImagePickerNavHostState
 import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
@@ -31,7 +30,6 @@ fun ImagePickerNavHost(
     val navController = rememberNavController()
     val viewModel: ImagePickerViewModel = viewModel {
         ImagePickerViewModel(
-            fileManager = FileManager(context.applicationContext),
             localMediaContentsDataSource = LocalMediaContentsDataSource(
                 contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     API29MediaContentManager(context = context.applicationContext)

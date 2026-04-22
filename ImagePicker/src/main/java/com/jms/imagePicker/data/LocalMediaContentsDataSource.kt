@@ -53,14 +53,11 @@ internal class LocalMediaContentsDataSource(
                 MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
                 MediaStore.MediaColumns.BUCKET_ID
             )
-        )
+        ) ?: throw IllegalStateException("Cursor is null!!")
 
-        if (cursor == null)
-            throw IllegalStateException("Cursor is null!!")
-
-        return if (cursor.moveToFirst()) {
-            cursor.toImage()
-        } else
-            throw IllegalStateException("Cursor is null!!")
+        return cursor.use {
+            if (it.moveToFirst()) it.toImage()
+            else throw IllegalStateException("Cursor is empty!!")
+        }
     }
 }

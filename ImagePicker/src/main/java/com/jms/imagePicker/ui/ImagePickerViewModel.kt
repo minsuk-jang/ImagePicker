@@ -7,7 +7,6 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.jms.imagePicker.data.LocalMediaContentsDataSource
-import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.model.Action
 import com.jms.imagePicker.model.Album
 import com.jms.imagePicker.model.MediaContent
@@ -23,12 +22,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
 internal class ImagePickerViewModel(
-    private val fileManager: FileManager,
     private val localMediaContentsDataSource: LocalMediaContentsDataSource
 ) : ViewModel() {
     //init action
@@ -62,8 +59,6 @@ internal class ImagePickerViewModel(
             .combine(_selectedUris) { data, uris ->
                 markSelectedItems(pagingData = data, uris = uris)
             }.flowOn(Dispatchers.Default)
-
-    private var _imageFile: File? = null
 
     init {
         initializeAlbum()
@@ -192,26 +187,6 @@ internal class ImagePickerViewModel(
                 _selectedMediaContents.update { newList.toMutableList() }
             }
 
-        }
-    }
-
-    fun createImageFile(): File {
-        _imageFile = fileManager.createImageFile()
-        return _imageFile ?: throw IllegalStateException("File is null!!")
-    }
-
-    fun saveImageFile(max: Int, autoSelectAfterCapture: Boolean) {
-        if (_imageFile != null) {
-            viewModelScope.launch(Dispatchers.IO) {
-                fileManager.saveImageFile(file = _imageFile!!)
-
-                if (autoSelectAfterCapture) {
-                    select(uri = localMediaContentsDataSource.getMediaContent().uri, max = max)
-                }
-
-                invalidateMediaContents()
-                invalidateAlbum()
-            }
         }
     }
 
