@@ -16,11 +16,18 @@ import androidx.navigation.compose.rememberNavController
 import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.manager.API21MediaContentManager
 import com.jms.imagePicker.manager.API29MediaContentManager
-import com.jms.imagePicker.manager.FileManager
 import com.jms.imagePicker.ui.scope.ImagePickerGraphBuilder
 import com.jms.imagePicker.ui.state.ImagePickerNavHostState
 import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
 import kotlinx.coroutines.flow.collectLatest
+
+internal object Route {
+    const val GRAPH = "graph_image_picker"
+    const val PICKER = "route_image_list"
+    const val PREVIEW = "route_preview?{index}"
+
+    fun preview(index: Int) = "route_preview?$index"
+}
 
 @Composable
 fun ImagePickerNavHost(
@@ -31,7 +38,6 @@ fun ImagePickerNavHost(
     val navController = rememberNavController()
     val viewModel: ImagePickerViewModel = viewModel {
         ImagePickerViewModel(
-            fileManager = FileManager(context.applicationContext),
             localMediaContentsDataSource = LocalMediaContentsDataSource(
                 contentManager = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     API29MediaContentManager(context = context.applicationContext)
@@ -51,8 +57,8 @@ fun ImagePickerNavHost(
         modifier = Modifier
             .fillMaxSize(),
         navController = navController,
-        startDestination = "route_image_list",
-        route = "graph_image_picker",
+        startDestination = Route.PICKER,
+        route = Route.GRAPH,
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None }
     ) {

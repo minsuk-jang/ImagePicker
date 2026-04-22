@@ -94,7 +94,6 @@ class MainActivity : ComponentActivity() {
                     ) {
                         val state = rememberImagePickerNavHostState(
                             max = 30,
-                            autoSelectAfterCapture = true
                         )
 
                         var expand by remember {

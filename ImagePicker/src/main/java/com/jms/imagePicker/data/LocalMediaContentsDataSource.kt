@@ -38,29 +38,34 @@ internal class LocalMediaContentsDataSource(
         }.flow
     }
 
-    fun getMediaContent(uri: Uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI): MediaContent {
-        val cursor = contentManager.getCursor(
-            uri = uri,
-            offset = 0,
-            albumId = null,
-            limit = 1,
-            projection = arrayOf(
-                MediaStore.MediaColumns._ID,
-                MediaStore.MediaColumns.TITLE,
-                MediaStore.MediaColumns.DATE_MODIFIED,
-                MediaStore.MediaColumns.DATA,
-                MediaStore.MediaColumns.MIME_TYPE,
-                MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
-                MediaStore.MediaColumns.BUCKET_ID
-            )
+    fun getMediaContents(uris: List<Uri>): List<MediaContent> {
+        if (uris.isEmpty()) return emptyList()
+
+        val ids = uris.mapNotNull { it.lastPathSegment?.toLongOrNull() }
+        if (ids.isEmpty()) return emptyList()
+
+        val projection = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.TITLE,
+            MediaStore.MediaColumns.DATE_MODIFIED,
+            MediaStore.MediaColumns.DATA,
+            MediaStore.MediaColumns.MIME_TYPE,
+            MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
+            MediaStore.MediaColumns.BUCKET_ID
         )
 
-        if (cursor == null)
-            throw IllegalStateException("Cursor is null!!")
+        val mediaMap = mutableMapOf<Uri, MediaContent>()
+        contentManager.getCursorByIds(
+            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection = projection,
+            ids = ids
+        )?.use { cursor ->
+            while (cursor.moveToNext()) {
+                val item = cursor.toImage()
+                mediaMap[item.uri] = item
+            }
+        }
 
-        return if (cursor.moveToFirst()) {
-            cursor.toImage()
-        } else
-            throw IllegalStateException("Cursor is null!!")
+        return uris.mapNotNull { mediaMap[it] }
     }
 }

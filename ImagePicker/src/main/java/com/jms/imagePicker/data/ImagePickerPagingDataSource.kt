@@ -46,15 +46,13 @@ internal class ImagePickerPagingDataSource(
                 )
             )?.use { cursor ->
                 val list = buildList {
-                    while (cursor.moveToNext()) {
-                        add(cursor.toImage())
-                    }
+                    while (cursor.moveToNext()) add(cursor.toImage())
                 }
 
                 LoadResult.Page(
                     data = list,
                     prevKey = if (page - 1 > 0) page - 1 else null,
-                    nextKey = if (list.isNotEmpty()) page + 1 else null
+                    nextKey = if (list.size == DEFAULT_PAGE_LIMIT) page + 1 else null
                 )
             } ?: LoadResult.Error(throwable = Exception("Empty Gallery"))
         } catch (e: Exception) {

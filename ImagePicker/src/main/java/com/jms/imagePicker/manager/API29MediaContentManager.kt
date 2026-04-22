@@ -25,7 +25,7 @@ internal class API29MediaContentManager(
                 if (albumId != null) " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?" else ""
         val selectionArgs = baseSelectionArgs.toMutableList().apply {
             add("0")
-            albumId?.let { add(it) } //when album id is not null
+            albumId?.let { add(it) }
         }.toTypedArray()
 
         val selectionBundle = bundleOf(
@@ -39,11 +39,22 @@ internal class API29MediaContentManager(
             ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs
         )
 
-        return context.contentResolver.query(
-            uri,
-            projection,
-            selectionBundle,
-            null
+        return context.contentResolver.query(uri, projection, selectionBundle, null)
+    }
+
+    override fun getAlbumCursor(uri: Uri, projection: Array<String>): Cursor? {
+        val selectionBundle = bundleOf(
+            ContentResolver.QUERY_ARG_SQL_SELECTION to baseSelectionClause,
+            ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to baseSelectionArgs.toTypedArray()
         )
+        return context.contentResolver.query(uri, projection, selectionBundle, null)
+    }
+
+    override fun getCursorByIds(uri: Uri, projection: Array<String>, ids: List<Long>): Cursor? {
+        if (ids.isEmpty()) return null
+        val placeholders = ids.joinToString(",") { "?" }
+        val selection = "$baseSelectionClause AND ${MediaStore.MediaColumns._ID} IN ($placeholders)"
+        val selectionArgs = (baseSelectionArgs + ids.map { it.toString() }).toTypedArray()
+        return context.contentResolver.query(uri, projection, selection, selectionArgs, null)
     }
 }

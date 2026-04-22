@@ -1,45 +1,30 @@
 package com.jms.imagePicker.ui.picker
 
 import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.jms.imagePicker.R
 import com.jms.imagePicker.component.ImageCell
 import com.jms.imagePicker.extensions.photoGridDragHandler
 import com.jms.imagePicker.model.Album
@@ -50,9 +35,6 @@ import com.jms.imagePicker.ui.scope.picker.ImagePickerAlbumScope
 import com.jms.imagePicker.ui.scope.picker.ImagePickerPreviewScope
 import com.jms.imagePicker.ui.state.ImagePickerNavHostState
 import com.jms.imagePicker.ui.state.rememberImagePickerNavHostState
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.isActive
 
 @Composable
 internal fun ImagePickerScaffold(
@@ -63,22 +45,13 @@ internal fun ImagePickerScaffold(
     previewTopBar: @Composable ImagePickerPreviewScope.() -> Unit = {},
     cellContent: @Composable ImagePickerCellScope.() -> Unit
 ) {
-    val context = LocalContext.current
     val mediaContents = viewModel.mediaContents.collectAsLazyPagingItems()
     val selectedImages by viewModel.selectedMediaContents.collectAsState()
     val selectedUris by viewModel.selectedUris.collectAsState()
     val albums by viewModel.albums.collectAsState()
     val selectedAlbum by viewModel.selectedAlbum.collectAsState()
 
-    val cameraLaunch =
-        rememberLauncherForActivityResult(contract = ActivityResultContracts.TakePicture()) {
-            if (it) {
-                viewModel.saveImageFile(
-                    max = state.max,
-                    autoSelectAfterCapture = state.autoSelectAfterCapture
-                )
-            }
-        }
+    val currentSelectedUris = rememberUpdatedState(selectedUris)
 
     val previewScopeImpl = remember(viewModel) {
         object : ImagePickerPreviewScope {
@@ -113,28 +86,22 @@ internal fun ImagePickerScaffold(
 
         ImagePickerContent(
             mediaContents = mediaContents,
-            selectedUris = selectedUris,
+            selectedUris = currentSelectedUris,
             onDragStart = {
-                viewModel.select(uri = it, max = state.max)
+                viewModel.startDrag(uri = it, max = state.max)
             },
             onDrag = { start, end, items ->
-                viewModel.select(
-                    start = start,
-                    end = end,
-                    mediaContents = items,
-                    max = state.max
-                )
+                if (start != null && end != null) {
+                    viewModel.updateDragSelection(
+                        start = start,
+                        end = end,
+                        mediaContents = items,
+                        max = state.max
+                    )
+                }
             },
             onDragEnd = {
-                viewModel.synchronize()
-            },
-            onPhoto = {
-                cameraLaunch.launch(
-                    FileProvider.getUriForFile(
-                        context.applicationContext, "com.jms.imagePicker.fileprovider",
-                        viewModel.createImageFile()
-                    )
-                )
+                viewModel.endDrag()
             },
             onClick = {
                 viewModel.select(uri = it.uri, max = state.max)
@@ -165,8 +132,7 @@ internal fun ImagePickerScaffold(
 internal fun ImagePickerContent(
     modifier: Modifier = Modifier,
     mediaContents: LazyPagingItems<MediaContent>,
-    selectedUris: List<Uri> = emptyList(),
-    onPhoto: () -> Unit,
+    selectedUris: State<List<Uri>>,
     onDragStart: (Uri) -> Unit,
     onDrag: (start: Int?, end: Int?, List<MediaContent>) -> Unit,
     onDragEnd: () -> Unit = {},
@@ -175,24 +141,9 @@ internal fun ImagePickerContent(
 ) {
     val gridState = rememberLazyGridState()
     val autoScrollThreshold = with(LocalDensity.current) { 15.dp.toPx() }
-    val autoScrollSpeed = remember { mutableFloatStateOf(0f) }
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
     val width = remember { screenWidthDp / 3 }
-    val iconOfCamera = rememberVectorPainter(ImageVector.vectorResource(R.drawable.photo_camera))
 
-    LaunchedEffect(Unit) {
-        snapshotFlow { autoScrollSpeed.floatValue }
-            .collectLatest { speed ->
-                if (speed == 0f) return@collectLatest
-
-                while (isActive) {
-                    gridState.scrollBy(speed)
-                    delay(5)
-                }
-            }
-    }
-
-    //when loading..
     if (mediaContents.loadState.refresh is LoadState.Loading) return
 
     LazyVerticalGrid(
@@ -202,9 +153,8 @@ internal fun ImagePickerContent(
                 lazyGridState = gridState,
                 selectedUris = selectedUris,
                 haptics = LocalHapticFeedback.current,
-                onDragStart = onDragStart,
-                autoScrollSpeed = autoScrollSpeed,
                 autoScrollThreshold = autoScrollThreshold,
+                onDragStart = onDragStart,
                 onDrag = { start, end ->
                     onDrag(
                         start,
@@ -219,23 +169,6 @@ internal fun ImagePickerContent(
         verticalArrangement = Arrangement.spacedBy(3.dp),
         horizontalArrangement = Arrangement.spacedBy(3.dp),
     ) {
-        item {
-            Box(
-                modifier = Modifier
-                    .background(color = Color.LightGray)
-                    .clickable { onPhoto() }
-                    .aspectRatio(1f)
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .size(40.dp),
-                    painter = iconOfCamera,
-                    contentDescription = null,
-                )
-            }
-        }
-
         items(
             count = mediaContents.itemCount,
             key = mediaContents.itemKey { it.uri }
