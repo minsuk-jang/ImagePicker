@@ -219,13 +219,18 @@ Renders each image cell in the grid. The scope provides:
 | Property / Function                                        | Description                                    |
 |------------------------------------------------------------|------------------------------------------------|
 | `mediaContent: MediaContent`                               | The media item for this cell                   |
+| `onSelect()`                                               | Toggle the selection state of this cell        |
 | `onNavigateToPreviewScreen(mediaContent: MediaContent)`    | Navigate to the full preview screen            |
+
+> **Note:** Selection toggling is no longer handled internally. You must call `onSelect()` yourself (e.g. inside a `clickable` modifier) to toggle the selection state.
 
 ```kotlin
 cellContent = {
-    Box(modifier = Modifier.clickable {
-        onNavigateToPreviewScreen(mediaContent)
-    }) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable { onSelect() }
+    ) {
         AsyncImage(model = mediaContent.uri, contentDescription = null)
 
         if (mediaContent.selected) {
