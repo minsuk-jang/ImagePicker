@@ -139,7 +139,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 cellContent = {
                                     Box(
-                                        modifier = Modifier.fillMaxSize()
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable { onSelect() }
                                     ) {
                                         Row(
                                             modifier = Modifier.align(Alignment.BottomStart)

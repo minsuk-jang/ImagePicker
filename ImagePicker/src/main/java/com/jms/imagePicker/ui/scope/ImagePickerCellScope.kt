@@ -7,7 +7,10 @@ import com.jms.imagePicker.model.MediaContent
 @Stable
 interface ImagePickerCellScope {
     /** The media content represented by this cell */
-    val mediaContent : MediaContent
+    val mediaContent: MediaContent
+
+    /** Toggle selection state of this cell */
+    fun onSelect()
 
     /**
      * Navigate to the preview screen for the given media content.
