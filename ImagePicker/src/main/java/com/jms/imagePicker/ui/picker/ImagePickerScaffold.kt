@@ -1,7 +1,6 @@
 package com.jms.imagePicker.ui.picker
 
 import android.net.Uri
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -103,14 +102,15 @@ internal fun ImagePickerScaffold(
             onDragEnd = {
                 viewModel.endDrag()
             },
-            onClick = {
-                viewModel.select(uri = it.uri, max = state.max)
-            },
             cellContent = {
                 val cellScopeImpl = remember(it) {
                     object : ImagePickerCellScope {
                         override val mediaContent: MediaContent
                             get() = it
+
+                        override fun onSelect() {
+                            viewModel.select(uri = it.uri, max = state.max)
+                        }
 
                         override fun onNavigateToPreviewScreen(mediaContent: MediaContent) {
                             val index =
@@ -136,7 +136,6 @@ internal fun ImagePickerContent(
     onDragStart: (Uri) -> Unit,
     onDrag: (start: Int?, end: Int?, List<MediaContent>) -> Unit,
     onDragEnd: () -> Unit = {},
-    onClick: (MediaContent) -> Unit = {},
     cellContent: @Composable (MediaContent) -> Unit
 ) {
     val gridState = rememberLazyGridState()
@@ -175,11 +174,7 @@ internal fun ImagePickerContent(
         ) {
             mediaContents[it]?.let { mediaContent ->
                 Box(
-                    modifier = Modifier
-                        .clickable {
-                            onClick(mediaContent)
-                        }
-                        .aspectRatio(1f)
+                    modifier = Modifier.aspectRatio(1f)
                 ) {
                     ImageCell(
                         modifier = Modifier.fillMaxSize(),
