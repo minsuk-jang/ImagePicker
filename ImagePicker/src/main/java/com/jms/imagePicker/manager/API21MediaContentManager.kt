@@ -27,7 +27,7 @@ internal class API21MediaContentManager(
             projection,
             selectionClause,
             selectionArgs,
-            "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $limit OFFSET $offset"
+            "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC, ${MediaStore.MediaColumns._ID} DESC LIMIT $limit OFFSET $offset"
         )
     }
 

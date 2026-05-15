@@ -32,7 +32,8 @@ internal class API29MediaContentManager(
             ContentResolver.QUERY_ARG_OFFSET to offset,
             ContentResolver.QUERY_ARG_LIMIT to limit,
             ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(
-                MediaStore.Files.FileColumns.DATE_MODIFIED
+                MediaStore.Files.FileColumns.DATE_MODIFIED,
+                MediaStore.MediaColumns._ID
             ),
             ContentResolver.QUERY_ARG_SORT_DIRECTION to ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
             ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
