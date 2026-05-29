@@ -171,8 +171,14 @@ internal fun ImagePickerContent(
         items(
             count = mediaContents.itemCount,
             key = mediaContents.itemKey { it.uri }
-        ) {
-            mediaContents[it]?.let { mediaContent ->
+        ) { index ->
+            mediaContents[index]?.let { rawContent ->
+                val uris = selectedUris.value
+                val order = uris.indexOf(rawContent.uri)
+                val mediaContent = rawContent.copy(
+                    selected = order >= 0,
+                    selectedOrder = order
+                )
                 Box(
                     modifier = Modifier.aspectRatio(1f)
                 ) {
