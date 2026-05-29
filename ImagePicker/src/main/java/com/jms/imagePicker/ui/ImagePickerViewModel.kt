@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.map
 import com.jms.imagePicker.data.LocalMediaContentsDataSource
 import com.jms.imagePicker.model.Action
 import com.jms.imagePicker.model.Album
@@ -16,9 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -53,9 +50,6 @@ internal class ImagePickerViewModel(
                 albumId = it?.id
             )
         }.cachedIn(viewModelScope)
-            .combine(_selectedUris) { data, uris ->
-                markSelectedItems(pagingData = data, uris = uris)
-            }.flowOn(Dispatchers.Default)
 
     init {
         initializeAlbum()
@@ -156,15 +150,4 @@ internal class ImagePickerViewModel(
         }
     }
 
-    private fun markSelectedItems(
-        pagingData: PagingData<MediaContent>,
-        uris: List<Uri>
-    ): PagingData<MediaContent> {
-        return pagingData.map { image ->
-            image.copy(
-                selectedOrder = uris.indexOfFirst { it == image.uri },
-                selected = uris.any { it == image.uri }
-            )
-        }
-    }
 }
