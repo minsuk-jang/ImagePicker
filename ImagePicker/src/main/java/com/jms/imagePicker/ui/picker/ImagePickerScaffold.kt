@@ -150,7 +150,6 @@ internal fun ImagePickerContent(
             .fillMaxSize()
             .photoGridDragHandler(
                 lazyGridState = gridState,
-                selectedUris = selectedUris,
                 haptics = LocalHapticFeedback.current,
                 autoScrollThreshold = autoScrollThreshold,
                 onDragStart = onDragStart,

@@ -5,7 +5,6 @@ import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.grid.LazyGridItemInfo
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedback
@@ -22,7 +21,6 @@ import kotlinx.coroutines.launch
 
 internal fun Modifier.photoGridDragHandler(
     lazyGridState: LazyGridState,
-    selectedUris: State<List<Uri>>,
     haptics: HapticFeedback,
     autoScrollThreshold: Float,
     onDragStart: (Uri) -> Unit = {},
@@ -55,12 +53,10 @@ internal fun Modifier.photoGridDragHandler(
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     if (key == null) return@detectDragGesturesAfterLongPress
 
-                    if (!selectedUris.value.contains(key)) {
-                        initialKey = key
-                        initialIndex = index
-                        currentKey = key
-                        onDragStart(key)
-                    }
+                    initialKey = key
+                    initialIndex = index
+                    currentKey = key
+                    onDragStart(key)
                 }
             },
             onDragCancel = { resetDrag() },
