@@ -8,34 +8,43 @@ import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.os.bundleOf
+import com.jms.imagePicker.model.MediaSeekKey
 
 
 @RequiresApi(Build.VERSION_CODES.R)
 internal class API29MediaContentManager(
     private val context: Context
 ) : MediaContentManager() {
+    override val contentResolver: ContentResolver get() = context.contentResolver
+
     override fun getCursor(
         uri: Uri,
         projection: Array<String>,
         albumId: String?,
-        offset: Int,
+        seekKey: MediaSeekKey?,
         limit: Int
     ): Cursor? {
+        val albumClause = if (albumId != null) " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?" else ""
+        val seekClause = if (seekKey != null) {
+            " AND (${MediaStore.Files.FileColumns.DATE_MODIFIED} < ? OR " +
+                    "(${MediaStore.Files.FileColumns.DATE_MODIFIED} = ? AND ${MediaStore.MediaColumns._ID} < ?))"
+        } else ""
         val selection = baseSelectionClause + " AND ${MediaStore.MediaColumns.IS_PENDING} = ?" +
-                if (albumId != null) " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?" else ""
+                albumClause + seekClause
         val selectionArgs = baseSelectionArgs.toMutableList().apply {
             add("0")
             albumId?.let { add(it) }
+            seekKey?.let {
+                add(it.dateModified.toString())
+                add(it.dateModified.toString())
+                add(it.id.toString())
+            }
         }.toTypedArray()
 
         val selectionBundle = bundleOf(
-            ContentResolver.QUERY_ARG_OFFSET to offset,
             ContentResolver.QUERY_ARG_LIMIT to limit,
-            ContentResolver.QUERY_ARG_SORT_COLUMNS to arrayOf(
-                MediaStore.Files.FileColumns.DATE_MODIFIED,
-                MediaStore.MediaColumns._ID
-            ),
-            ContentResolver.QUERY_ARG_SORT_DIRECTION to ContentResolver.QUERY_SORT_DIRECTION_DESCENDING,
+            ContentResolver.QUERY_ARG_SQL_SORT_ORDER to
+                    "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC, ${MediaStore.MediaColumns._ID} DESC",
             ContentResolver.QUERY_ARG_SQL_SELECTION to selection,
             ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS to selectionArgs
         )

@@ -1,14 +1,33 @@
 package com.jms.imagePicker.manager
 
+import android.content.ContentResolver
+import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import com.jms.imagePicker.extensions.getColumnString
 import com.jms.imagePicker.model.Album
+import com.jms.imagePicker.model.MediaSeekKey
 
 internal abstract class MediaContentManager {
     protected val baseSelectionClause = "${MediaStore.Images.Media.MIME_TYPE} != ?"
     protected val baseSelectionArgs = arrayListOf("image/gif")
+
+    protected abstract val contentResolver: ContentResolver
+
+    fun registerObserver(uri: Uri, onChange: () -> Unit): ContentObserver {
+        val observer = object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) = onChange()
+        }
+        contentResolver.registerContentObserver(uri, true, observer)
+        return observer
+    }
+
+    fun unregisterObserver(observer: ContentObserver) {
+        contentResolver.unregisterContentObserver(observer)
+    }
 
     fun getAlbums(uri: Uri): List<Album> {
         val projection = arrayOf(
@@ -45,7 +64,7 @@ internal abstract class MediaContentManager {
         uri: Uri,
         projection: Array<String>,
         albumId: String?,
-        offset: Int,
+        seekKey: MediaSeekKey?,
         limit: Int,
     ): Cursor?
 

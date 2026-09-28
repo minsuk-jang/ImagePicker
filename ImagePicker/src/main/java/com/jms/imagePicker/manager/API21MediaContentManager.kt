@@ -1,25 +1,38 @@
 package com.jms.imagePicker.manager
 
+import android.content.ContentResolver
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.provider.MediaStore
+import com.jms.imagePicker.model.MediaSeekKey
 
 internal class API21MediaContentManager(
     private val context: Context
 ) : MediaContentManager() {
+    override val contentResolver: ContentResolver get() = context.contentResolver
+
     override fun getCursor(
         uri: Uri,
         projection: Array<String>,
         albumId: String?,
-        offset: Int,
+        seekKey: MediaSeekKey?,
         limit: Int
     ): Cursor? {
-        val selectionClause = baseSelectionClause +
-                if (albumId != null) " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?" else ""
+        val albumClause = if (albumId != null) " AND ${MediaStore.MediaColumns.BUCKET_ID} = ?" else ""
+        val seekClause = if (seekKey != null) {
+            " AND (${MediaStore.Files.FileColumns.DATE_MODIFIED} < ? OR " +
+                    "(${MediaStore.Files.FileColumns.DATE_MODIFIED} = ? AND ${MediaStore.MediaColumns._ID} < ?))"
+        } else ""
+        val selectionClause = baseSelectionClause + albumClause + seekClause
 
         val selectionArgs = baseSelectionArgs.toMutableList().apply {
             albumId?.let { add(it) }
+            seekKey?.let {
+                add(it.dateModified.toString())
+                add(it.dateModified.toString())
+                add(it.id.toString())
+            }
         }.toTypedArray()
 
         return context.contentResolver.query(
@@ -27,7 +40,7 @@ internal class API21MediaContentManager(
             projection,
             selectionClause,
             selectionArgs,
-            "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC, ${MediaStore.MediaColumns._ID} DESC LIMIT $limit OFFSET $offset"
+            "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC, ${MediaStore.MediaColumns._ID} DESC LIMIT $limit"
         )
     }
 

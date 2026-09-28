@@ -6,35 +6,36 @@ import androidx.paging.PagingState
 import com.jms.imagePicker.extensions.toImage
 import com.jms.imagePicker.manager.MediaContentManager
 import com.jms.imagePicker.model.MediaContent
+import com.jms.imagePicker.model.MediaSeekKey
 
 
 internal class ImagePickerPagingDataSource(
     private val contentManager: MediaContentManager,
     private val albumId: String?
-) : PagingSource<Int, MediaContent>() {
+) : PagingSource<MediaSeekKey, MediaContent>() {
 
     companion object {
-        const val DEFAULT_PAGE = 1
         const val DEFAULT_PAGE_LIMIT = 30
     }
 
-    override fun getRefreshKey(state: PagingState<Int, MediaContent>): Int? {
-        return state.anchorPosition?.let { anchorPos ->
-            val anchorPage = state.closestPageToPosition(anchorPos)
-            anchorPage?.prevKey?.plus(1) ?: anchorPage?.nextKey?.minus(1)
-        }
+    private val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    private val observer = contentManager.registerObserver(uri = uri) { invalidate() }
+
+    init {
+        registerInvalidatedCallback { contentManager.unregisterObserver(observer) }
     }
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MediaContent> {
-        return try {
-            val uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-            val page = params.key ?: DEFAULT_PAGE
+    override fun getRefreshKey(state: PagingState<MediaSeekKey, MediaContent>): MediaSeekKey? = null
 
-            return contentManager.getCursor(
+    override suspend fun load(params: LoadParams<MediaSeekKey>): LoadResult<MediaSeekKey, MediaContent> {
+        return try {
+            val limit = params.loadSize
+
+            contentManager.getCursor(
                 uri = uri,
-                offset = (page - 1) * DEFAULT_PAGE_LIMIT,
+                seekKey = params.key,
                 albumId = albumId,
-                limit = DEFAULT_PAGE_LIMIT,
+                limit = limit,
                 projection = arrayOf(
                     MediaStore.MediaColumns._ID,
                     MediaStore.MediaColumns.TITLE,
@@ -49,10 +50,14 @@ internal class ImagePickerPagingDataSource(
                     while (cursor.moveToNext()) add(cursor.toImage())
                 }
 
+                val nextKey = if (list.size == limit) {
+                    list.lastOrNull()?.let { MediaSeekKey(dateModified = it.dateAt, id = it.id) }
+                } else null
+
                 LoadResult.Page(
                     data = list,
-                    prevKey = if (page - 1 > 0) page - 1 else null,
-                    nextKey = if (list.size == DEFAULT_PAGE_LIMIT) page + 1 else null
+                    prevKey = null,
+                    nextKey = nextKey
                 )
             } ?: LoadResult.Error(throwable = Exception("Empty Gallery"))
         } catch (e: Exception) {
@@ -60,4 +65,3 @@ internal class ImagePickerPagingDataSource(
         }
     }
 }
-

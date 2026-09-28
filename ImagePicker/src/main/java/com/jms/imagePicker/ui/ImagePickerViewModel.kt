@@ -105,7 +105,7 @@ internal class ImagePickerViewModel(
     }
 
     fun updateDragSelection(start: Int, end: Int, mediaContents: List<MediaContent>, max: Int) {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch {
             selectionMutex.withLock {
                 val startIndex = (min(start, end) - 1).coerceAtLeast(0)
                 val endIndex = max(start, end).coerceAtMost(mediaContents.size)
@@ -139,7 +139,7 @@ internal class ImagePickerViewModel(
     }
 
     private fun observeSelectedUris() {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(Dispatchers.IO) {
             _selectedUris.collectLatest { uris ->
                 val newList = localMediaContentsDataSource.getMediaContents(uris)
                     .mapIndexed { index, item ->
