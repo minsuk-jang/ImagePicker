@@ -18,16 +18,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.math.max
 import kotlin.math.min
 
 internal class ImagePickerViewModel(
     private val localMediaContentsDataSource: LocalMediaContentsDataSource
 ) : ViewModel() {
-    private val selectionMutex = Mutex()
-
     private var dragSnapshot: Set<Uri> = emptySet()
     private var dragAction: Action = Action.ADD
 
@@ -71,70 +67,62 @@ internal class ImagePickerViewModel(
 
     fun select(uri: Uri, max: Int) {
         viewModelScope.launch {
-            selectionMutex.withLock {
-                val current = _selectedUris.value.toMutableList()
-                val index = current.indexOfFirst { it == uri }
-                if (index == -1) {
-                    if (current.size < max) current.add(uri)
-                } else {
-                    current.removeAt(index)
-                }
-                _selectedUris.update { current }
+            val current = _selectedUris.value.toMutableList()
+            val index = current.indexOfFirst { it == uri }
+            if (index == -1) {
+                if (current.size < max) current.add(uri)
+            } else {
+                current.removeAt(index)
             }
+            _selectedUris.update { current }
         }
     }
 
     fun startDrag(uri: Uri, max: Int) {
         viewModelScope.launch {
-            selectionMutex.withLock {
-                val current = _selectedUris.value.toMutableList()
-                val index = current.indexOfFirst { it == uri }
-                if (index == -1) {
-                    if (current.size < max) {
-                        current.add(uri)
-                        dragAction = Action.ADD
-                    }
-                } else {
-                    current.removeAt(index)
-                    dragAction = Action.REMOVE
+            val current = _selectedUris.value.toMutableList()
+            val index = current.indexOfFirst { it == uri }
+            if (index == -1) {
+                if (current.size < max) {
+                    current.add(uri)
+                    dragAction = Action.ADD
                 }
-                dragSnapshot = current.toSet()
-                _selectedUris.update { current }
+            } else {
+                current.removeAt(index)
+                dragAction = Action.REMOVE
             }
+            dragSnapshot = current.toSet()
+            _selectedUris.update { current }
         }
     }
 
     fun updateDragSelection(start: Int, end: Int, mediaContents: List<MediaContent>, max: Int) {
         viewModelScope.launch {
-            selectionMutex.withLock {
-                val startIndex = (min(start, end) - 1).coerceAtLeast(0)
-                val endIndex = max(start, end).coerceAtMost(mediaContents.size)
-                val range = if (start <= end) {
-                    mediaContents.subList(startIndex, endIndex)
-                } else {
-                    mediaContents.subList(startIndex, endIndex).reversed()
-                }
-
-                val newList = dragSnapshot.toMutableList()
-                range.forEach { item ->
-                    when (dragAction) {
-                        Action.ADD -> if (!dragSnapshot.contains(item.uri) && newList.size < max) {
-                            newList.add(item.uri)
-                        }
-                        Action.REMOVE -> newList.remove(item.uri)
-                    }
-                }
-
-                _selectedUris.update { newList }
+            val startIndex = (min(start, end) - 1).coerceAtLeast(0)
+            val endIndex = max(start, end).coerceAtMost(mediaContents.size)
+            val range = if (start <= end) {
+                mediaContents.subList(startIndex, endIndex)
+            } else {
+                mediaContents.subList(startIndex, endIndex).reversed()
             }
+
+            val newList = dragSnapshot.toMutableList()
+            range.forEach { item ->
+                when (dragAction) {
+                    Action.ADD -> if (!dragSnapshot.contains(item.uri) && newList.size < max) {
+                        newList.add(item.uri)
+                    }
+                    Action.REMOVE -> newList.remove(item.uri)
+                }
+            }
+
+            _selectedUris.update { newList }
         }
     }
 
     fun endDrag() {
         viewModelScope.launch {
-            selectionMutex.withLock {
-                dragSnapshot = emptySet()
-            }
+            dragSnapshot = emptySet()
         }
     }
 
