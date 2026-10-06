@@ -15,5 +15,6 @@ data class MediaContent(
     val album: String?,
     val albumId: String?,
     val selectedOrder: Int = Constants.NO_ORDER,
-    val selected: Boolean = false
-)
+) {
+    val selected: Boolean get() = selectedOrder != Constants.NO_ORDER
+}

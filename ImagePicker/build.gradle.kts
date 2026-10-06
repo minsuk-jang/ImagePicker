@@ -93,7 +93,7 @@ publishing{
         register<MavenPublication>("release"){
             groupId = "com.github.minsuk-jang"
             artifactId = "imagePicker"
-            version = "1.0.22"
+            version = "1.0.23"
 
             afterEvaluate{
                 from(components["release"])

@@ -68,7 +68,7 @@ internal class ImagePickerViewModel(
     fun select(uri: Uri, max: Int) {
         viewModelScope.launch {
             val current = _selectedUris.value.toMutableList()
-            val index = current.indexOfFirst { it == uri }
+            val index = current.indexOf(uri)
             if (index == -1) {
                 if (current.size < max) current.add(uri)
             } else {
@@ -81,7 +81,7 @@ internal class ImagePickerViewModel(
     fun startDrag(uri: Uri, max: Int) {
         viewModelScope.launch {
             val current = _selectedUris.value.toMutableList()
-            val index = current.indexOfFirst { it == uri }
+            val index = current.indexOf(uri)
             if (index == -1) {
                 if (current.size < max) {
                     current.add(uri)
@@ -100,11 +100,8 @@ internal class ImagePickerViewModel(
         viewModelScope.launch {
             val startIndex = (min(start, end) - 1).coerceAtLeast(0)
             val endIndex = max(start, end).coerceAtMost(mediaContents.size)
-            val range = if (start <= end) {
-                mediaContents.subList(startIndex, endIndex)
-            } else {
-                mediaContents.subList(startIndex, endIndex).reversed()
-            }
+            val range = mediaContents.subList(startIndex, endIndex)
+                .let { if (start <= end) it else it.reversed() }
 
             val newList = dragSnapshot.toMutableList()
             range.forEach { item ->
@@ -131,7 +128,7 @@ internal class ImagePickerViewModel(
             _selectedUris.collectLatest { uris ->
                 val newList = localMediaContentsDataSource.getMediaContents(uris)
                     .mapIndexed { index, item ->
-                        item.copy(selectedOrder = index, selected = true)
+                        item.copy(selectedOrder = index)
                     }
                 _selectedMediaContents.update { newList.toMutableList() }
             }

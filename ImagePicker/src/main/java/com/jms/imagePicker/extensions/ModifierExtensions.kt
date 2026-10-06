@@ -18,6 +18,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+private const val AUTO_SCROLL_SPEED = 15f
+private const val AUTO_SCROLL_INTERVAL_MS = 5L
+
 
 internal fun Modifier.photoGridDragHandler(
     lazyGridState: LazyGridState,
@@ -46,58 +49,58 @@ internal fun Modifier.photoGridDragHandler(
 
         detectDragGesturesAfterLongPress(
             onDragStart = { offset ->
-                lazyGridState.gridItemKeyAtPosition(offset)?.let { info ->
-                    val key = info.key as? Uri
-                    val index = info.index
+                val info = lazyGridState.gridItemKeyAtPosition(offset)
+                    ?: return@detectDragGesturesAfterLongPress
 
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    if (key == null) return@detectDragGesturesAfterLongPress
+                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                val key = info.key as? Uri ?: return@detectDragGesturesAfterLongPress
 
-                    initialKey = key
-                    initialIndex = index
-                    currentKey = key
-                    onDragStart(key)
-                }
+                initialKey = key
+                initialIndex = info.index
+                currentKey = key
+                onDragStart(key)
             },
             onDragCancel = { resetDrag() },
             onDragEnd = { resetDrag() },
             onDrag = { change, _ ->
-                if (initialKey != null) {
-                    val distFromBottom =
-                        lazyGridState.layoutInfo.viewportSize.height - change.position.y
-                    val distFromTop = change.position.y
+                if (initialKey == null) return@detectDragGesturesAfterLongPress
 
-                    val scrollSpeed = when {
-                        distFromBottom < autoScrollThreshold -> 15f
-                        distFromTop < autoScrollThreshold -> -15f
-                        else -> 0f
-                    }
-
-                    scrollJob?.cancel()
-                    scrollJob = if (scrollSpeed != 0f) {
-                        scope.launch {
-                            while (isActive) {
-                                lazyGridState.scrollBy(scrollSpeed)
-                                delay(5)
-                            }
-                        }
-                    } else null
-
-                    lazyGridState.gridItemKeyAtPosition(change.position)?.let { info ->
-                        val key = info.key as? Uri
-                        val index = info.index
-
-                        if (key == null) return@detectDragGesturesAfterLongPress
-
-                        if (currentKey != key) {
-                            onDrag(initialIndex, index)
-                            currentKey = key
+                val speed = autoScrollSpeed(
+                    y = change.position.y,
+                    viewportHeight = lazyGridState.layoutInfo.viewportSize.height,
+                    threshold = autoScrollThreshold
+                )
+                scrollJob?.cancel()
+                scrollJob = if (speed != 0f) {
+                    scope.launch {
+                        while (isActive) {
+                            lazyGridState.scrollBy(speed)
+                            delay(AUTO_SCROLL_INTERVAL_MS)
                         }
                     }
+                } else null
+
+                val info = lazyGridState.gridItemKeyAtPosition(change.position)
+                    ?: return@detectDragGesturesAfterLongPress
+                val key = info.key as? Uri ?: return@detectDragGesturesAfterLongPress
+
+                if (currentKey != key) {
+                    onDrag(initialIndex, info.index)
+                    currentKey = key
                 }
             }
         )
     }
+}
+
+/**
+ * Returns the auto-scroll speed for the drag position: positive near the bottom edge,
+ * negative near the top edge, and 0 otherwise.
+ */
+private fun autoScrollSpeed(y: Float, viewportHeight: Int, threshold: Float): Float = when {
+    viewportHeight - y < threshold -> AUTO_SCROLL_SPEED
+    y < threshold -> -AUTO_SCROLL_SPEED
+    else -> 0f
 }
 
 internal fun LazyGridState.gridItemKeyAtPosition(hitPoint: Offset): LazyGridItemInfo? {
