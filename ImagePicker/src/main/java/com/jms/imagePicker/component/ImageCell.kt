@@ -28,6 +28,8 @@ internal fun ImageCell(
     val density = LocalDensity.current
     val rawPx = with(density) { cellDp.roundToPx() }
 
+    // Memory cache is write-only and disk cache is read-only. Network is disabled
+    // because the data is always a local MediaStore content URI.
     val request = remember(mediaContent.uri) {
         ImageRequest.Builder(context)
             .size(rawPx)
